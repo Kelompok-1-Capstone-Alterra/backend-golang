@@ -1,4 +1,4 @@
-<p align="center"><img src="https://media.giphy.com/media/uurtMtTKqkJda4dk8Y/giphy-downsized-large.gif" width="100"/></p>
+<p align="center"><img src="https://media.giphy.com/media/RbDKaczqWovIugyJmW/giphy.gif" width="100"/></p>
 
 # Backend Golang 
 ## We create RESTFul API for <b>Agriplan Application</b>
