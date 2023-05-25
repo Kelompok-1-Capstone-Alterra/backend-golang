@@ -11,6 +11,7 @@ func New() *echo.Echo {
 
 	e.POST("/admins", admin.CreateAdmin)
 	e.GET("/admins", admin.GetAdmins)
+	e.POST("/admins/login", admin.LoginAdmin)
 	e.GET("/users/hello", user.User_Hello_World)
 
 	return e
