@@ -9,11 +9,14 @@ import (
 func New() *echo.Echo {
 	e := echo.New()
 
+	// ENDPOINT WEB
 	e.POST("/admins", admin.CreateAdmin)
 	e.GET("/admins", admin.GetAdmins)
 	e.POST("/admins/login", admin.LoginAdmin)
 
+	// ENDPOINT MOBILE
 	e.POST("/users/register", user.Register)
+	e.POST("/users/login", user.Login)
 
 	return e
 }
