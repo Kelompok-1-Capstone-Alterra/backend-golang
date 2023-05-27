@@ -3,9 +3,9 @@ package config
 import (
 	"fmt"
 
+	"github.com/agriplant/model"
 	"gorm.io/driver/mysql"
 	"gorm.io/gorm"
-	"github.com/agriplant/model"
 )
 
 var (
@@ -51,4 +51,6 @@ func InitDB() {
 
 func InitialMigration() {
 	DB.AutoMigrate(&model.Admin{})
+	DB.AutoMigrate(&model.Article{})
+	DB.AutoMigrate(&model.Picture{})
 }
