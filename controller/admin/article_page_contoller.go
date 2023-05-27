@@ -33,3 +33,43 @@ func CreateArticle(c echo.Context) error {
 		"data":    article,
 	})
 }
+
+func GetArticles(c echo.Context) error {
+	articles := []model.Article{}
+
+	// Get all articles
+	if err := config.DB.Find(&articles).Error; err != nil {
+		return echo.NewHTTPError(http.StatusInternalServerError, err.Error())
+	}
+
+	//Populate Pictures field for each article
+	for i := 0; i < len(articles); i++ {
+		config.DB.Model(&articles[i]).Association("Pictures").Find(&articles[i].Pictures)
+	}
+
+	return c.JSON(http.StatusOK, map[string]interface{}{
+		"message": "success",
+		"data":    articles,
+	})
+}
+
+func GetArticlesByKeyword(c echo.Context) error {
+	keyword := c.QueryParam("keyword")
+
+	articles := []model.Article{}
+
+	// Retrieve articles by keyword
+	if err := config.DB.Where("title LIKE ?", "%"+keyword+"%").Find(&articles).Error; err != nil {
+		return echo.NewHTTPError(http.StatusInternalServerError, err.Error())
+	}
+
+	//Populate Pictures field for each article
+	for i := 0; i < len(articles); i++ {
+		config.DB.Model(&articles[i]).Association("Pictures").Find(&articles[i].Pictures)
+	}
+
+	return c.JSON(http.StatusOK, map[string]interface{}{
+		"message": "success",
+		"data":    articles,
+	})
+}
