@@ -1,4 +1,4 @@
-name: CI/CD to Docker Hub
+name: CI/CD to Docker Hub and Deploy
 
 on:
   push:
@@ -23,3 +23,16 @@ jobs:
         
       - name: Push Docker image
         run: docker push widhofaisal/backend-golang:latest
+
+      - name: Deploy to Server
+        uses: appleboy/ssh-action@master
+        with:
+          host: ${{ secrets.HOST }}
+          username: ${{ secrets.USERNAME }}
+          key: ${{ secrets.PRIVATE_KEY }}
+          port: 22
+          script: |
+            sudo docker pull widhofaisal/backend-golang:latest
+            sudo docker stop agriplant
+            sudo docker rm agriplant
+            sudo docker run -p 8080:8080 -d --name agriplant widhofaisal/backend-golang:latest
