@@ -50,7 +50,5 @@ func InitDB() {
 }
 
 func InitialMigration() {
-	DB.AutoMigrate(&model.Admin{})
-	DB.AutoMigrate(&model.Article{})
-	DB.AutoMigrate(&model.Picture{})
+	DB.AutoMigrate(&model.Admin{}, &model.User{}, &model.Article{}&model.Picture{})
 }

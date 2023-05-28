@@ -23,7 +23,7 @@ func New() *echo.Echo {
 	eAuth.GET("/admins/articles", admin.GetArticles)
 	eAuth.GET("/admins/articles/search", admin.GetArticlesByKeyword)
 
-	e.GET("/users/hello", user.User_Hello_World)
+	e.POST("/users/register", user.Register)
 
 	return e
 }
