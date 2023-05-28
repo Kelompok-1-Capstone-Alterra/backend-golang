@@ -9,6 +9,6 @@ func Hello_World(c echo.Context) error {
 	return c.JSON(http.StatusOK, map[string]interface{}{
 		"status":  200,
 		"message": "Hello World. OK",
-		"no_test": 4,
+		"no_test": 5,
 	})
 }
