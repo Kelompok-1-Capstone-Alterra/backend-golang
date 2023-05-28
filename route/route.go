@@ -11,19 +11,28 @@ import (
 func New() *echo.Echo {
 	e := echo.New()
 
+  // ENDPOINT WEB (no token)
 	e.POST("/admins", admin.CreateAdmin)
 	e.GET("/admins", admin.GetAdmins)
 	e.POST("/admins/login", admin.LoginAdmin)
-
+  
+  // ENDPOINT MOBILE (no token)
+	e.POST("/users/register", user.Register)
+	e.POST("/users/login", user.Login)
+  
 	// Protected route
 	eAuth := e.Group("/auth")
 	eAuth.Use(JWTMiddleware())
+  
+  // ENDPOINT WEB (with token)
 	// Article
 	eAuth.POST("/admins/articles/add", admin.CreateArticle)
 	eAuth.GET("/admins/articles", admin.GetArticles)
 	eAuth.GET("/admins/articles/search", admin.GetArticlesByKeyword)
+  
+  // ENDPOINT MOBILE (with token)
 
-	e.POST("/users/register", user.Register)
+  
 
 	return e
 }
