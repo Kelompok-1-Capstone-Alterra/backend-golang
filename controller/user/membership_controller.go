@@ -15,6 +15,7 @@ func Register(c echo.Context) error {
 
 	// binding struct
 	if err_bind := c.Bind(&user); err_bind != nil {
+		fmt.Println(err_bind.Error())
 		return c.JSON(http.StatusBadRequest, map[string]interface{}{
 			"status":  400,
 			"message": "bad request",
