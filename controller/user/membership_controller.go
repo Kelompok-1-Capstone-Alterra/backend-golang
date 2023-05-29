@@ -1,12 +1,13 @@
 package controller
 
 import (
-	"fmt"
+	"log"
 	"net/http"
 
 	"github.com/agriplant/config"
 	"github.com/agriplant/model"
 	"github.com/agriplant/utils"
+	"github.com/fatih/color"
 	"github.com/labstack/echo/v4"
 )
 
@@ -15,7 +16,8 @@ func Register(c echo.Context) error {
 
 	// binding struct
 	if err_bind := c.Bind(&user); err_bind != nil {
-		fmt.Println(err_bind.Error())
+		// echo.NewHTTPError(http.StatusBadRequest)
+		log.Print(color.RedString(err_bind.Error()))
 		return c.JSON(http.StatusBadRequest, map[string]interface{}{
 			"status":  400,
 			"message": "bad request",
@@ -27,7 +29,7 @@ func Register(c echo.Context) error {
 
 	// register
 	if err_insert := config.DB.Save(&user).Error; err_insert != nil {
-		fmt.Println(err_insert.Error())
+		log.Print(color.RedString(err_insert.Error()))
 		return c.JSON(http.StatusInternalServerError, map[string]interface{}{
 			"status":  500,
 			"message": "internal server error",
@@ -50,8 +52,8 @@ func Login(c echo.Context) error {
 
 	// binding struct
 	if err_bind := c.Bind(&loginData); err_bind != nil {
-		fmt.Println(err_bind.Error())
-		return c.JSON(http.StatusBadRequest, map[string]interface{}{
+		log.Print(color.RedString(err_bind.Error()))
+		return c.JSON((http.StatusBadRequest), map[string]interface{}{
 			"status":  400,
 			"message": "bad request",
 		})
@@ -59,7 +61,7 @@ func Login(c echo.Context) error {
 
 	// check email validity
 	if err_select := config.DB.Where("email=?", loginData.Email).First(&user).Error; err_select != nil {
-		fmt.Println(err_select.Error())
+		log.Print(color.RedString(err_select.Error()))
 		return c.JSON(http.StatusInternalServerError, map[string]interface{}{
 			"status":  500,
 			"message": "internal server error",
@@ -68,7 +70,7 @@ func Login(c echo.Context) error {
 
 	// verify the password
 	if !utils.ComparePassword(user.Password, loginData.Password) {
-		fmt.Println("Invalid password")
+		log.Print(color.RedString("code=401, message=internal server error"))
 		return c.JSON(http.StatusUnauthorized, map[string]interface{}{
 			"status":  401,
 			"message": "unauthorized",
@@ -78,6 +80,7 @@ func Login(c echo.Context) error {
 	// create token
 	token, err_token := utils.CreateTokenUser(user.ID, user.Name)
 	if err_token != nil {
+		log.Print(color.RedString(err_token.Error()))
 		return c.JSON(http.StatusInternalServerError, map[string]interface{}{
 			"status":  500,
 			"message": "internal server error",

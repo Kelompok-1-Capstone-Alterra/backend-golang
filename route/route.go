@@ -4,13 +4,18 @@ import (
 	"github.com/agriplant/constant"
 	admin "github.com/agriplant/controller/admin"
 	user "github.com/agriplant/controller/user"
+	"github.com/agriplant/middleware"
 	"github.com/labstack/echo/v4"
 	mid "github.com/labstack/echo/v4/middleware"
 )
 
 func New() *echo.Echo {
+
 	e := echo.New()
 
+	e.Use(middleware.MiddlewareLogging)
+	e.HTTPErrorHandler = middleware.ErrorHandler
+  
   // ENDPOINT WEB (no token)
 	e.POST("/admins", admin.CreateAdmin)
 	e.GET("/admins", admin.GetAdmins)
