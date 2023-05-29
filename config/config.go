@@ -27,10 +27,10 @@ type Config struct {
 
 func InitDB() {
 	config_rds := Config{
-		DB_Username: "developergolang",
-		DB_Password: "plantagridb123",
+		DB_Username: "root",
+		DB_Password: "",
 		DB_Port:     "3306",
-		DB_Host:     "database-agriplant.ctbpmx2n7zth.ap-southeast-2.rds.amazonaws.com",
+		DB_Host:     "localhost",
 		DB_Name:     "agriplant_db",
 	}
 
