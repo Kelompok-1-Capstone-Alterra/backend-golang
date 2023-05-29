@@ -2,8 +2,10 @@ package config
 
 import (
 	"fmt"
+	"os"
 
 	"github.com/agriplant/model"
+	"github.com/joho/godotenv"
 	"gorm.io/driver/mysql"
 	"gorm.io/gorm"
 )
@@ -13,6 +15,7 @@ var (
 )
 
 func init() {
+	godotenv.Load(".env")
 	InitDB()
 	InitialMigration()
 }
@@ -27,11 +30,11 @@ type Config struct {
 
 func InitDB() {
 	config_rds := Config{
-		DB_Username: "developergolang",
-		DB_Password: "plantagridb123",
-		DB_Port:     "3306",
-		DB_Host:     "database-agriplant.ctbpmx2n7zth.ap-southeast-2.rds.amazonaws.com",
-		DB_Name:     "agriplant_db",
+		DB_Username: os.Getenv("DB_USERNAME"),
+		DB_Password: os.Getenv("DB_PASSWORD"),
+		DB_Port:     os.Getenv("DB_PORT"),
+		DB_Host:     os.Getenv("DB_HOST"),
+		DB_Name:     os.Getenv("DB_DB"),
 	}
 
 	connectionString := fmt.Sprintf("%s:%s@tcp(%s:%s)/%s?charset=utf8mb4&parseTime=True&loc=Local",
@@ -41,6 +44,7 @@ func InitDB() {
 		config_rds.DB_Port,
 		config_rds.DB_Name,
 	)
+	fmt.Println(connectionString)
 
 	var err error
 	DB, err = gorm.Open(mysql.Open(connectionString), &gorm.Config{})
@@ -50,5 +54,5 @@ func InitDB() {
 }
 
 func InitialMigration() {
-	DB.AutoMigrate(&model.Admin{}, &model.User{}, &model.Article{}, &model.Picture{})
+	DB.AutoMigrate(&model.Admin{}, &model.User{}, &model.Article{}, &model.Product{}, &model.Picture{})
 }

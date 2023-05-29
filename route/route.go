@@ -16,13 +16,13 @@ func New() *echo.Echo {
 
 	e.Use(middleware.MiddlewareLogging)
 	e.HTTPErrorHandler = middleware.ErrorHandler
-  
-  // ENDPOINT GLOBAL (no token)
-  e.GET("/hello", controller.Hello_World)
+
+	// ENDPOINT GLOBAL (no token)
+	e.GET("/hello", controller.Hello_World)
 	e.POST("/pictures", controller.Upload_pictures)
 	e.GET("/pictures/:url", controller.Get_picture)
-  
-  // ENDPOINT WEB (no token)
+
+	// ENDPOINT WEB (no token)
 	e.POST("/admins", admin.CreateAdmin)
 	e.GET("/admins", admin.GetAdmins)
 	e.POST("/admins/login", admin.LoginAdmin)
@@ -40,6 +40,9 @@ func New() *echo.Echo {
 	eAuth.POST("/admins/articles/add", admin.CreateArticle)
 	eAuth.GET("/admins/articles", admin.GetArticles)
 	eAuth.GET("/admins/articles/search", admin.GetArticlesByKeyword)
+
+	// Product
+	eAuth.POST("/admins/products/add", admin.CreateProduct)
 
 	// ENDPOINT MOBILE (with token)
 
