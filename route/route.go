@@ -12,7 +12,8 @@ import (
 func New() *echo.Echo {
 	e := echo.New()
 
-	e.POST("/pictures", controller.Add_image)
+	// ENDPOINT GLOBAL (no token)
+	e.POST("/pictures", controller.Upload_pictures)
 	e.GET("/pictures/:url", controller.Get_picture)
 
 	// ENDPOINT WEB (no token)

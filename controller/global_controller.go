@@ -3,6 +3,9 @@ package controller
 import (
 	"encoding/base64"
 	"fmt"
+	"io/ioutil"
+	"log"
+	"mime/multipart"
 	"net/http"
 	"os"
 	"strings"
@@ -11,19 +14,53 @@ import (
 	"github.com/labstack/echo/v4"
 )
 
-func Add_image(c echo.Context) error {
-	type Image struct {
-		StringBase64 string `form:"string_base64"`
+func Upload_pictures(c echo.Context) error {
+	// Menerima file-file gambar dari request body
+	form, err := c.MultipartForm()
+	if err != nil {
+		log.Println(err)
+		return c.JSON(http.StatusBadRequest, "Failed to read pictures files")
 	}
 
-	var image Image
-	c.Bind(&image)
-	fmt.Println(image.StringBase64[:10])
-	url := Decode_and_write_base64(image.StringBase64)
+	pictures := form.File["pictures"] // pictures adalah nama field untuk file-file gambar
+
+	var urls []string
+	for _, pictureFile := range pictures {
+		url := Save_picture(pictureFile)
+		urls = append(urls, url)
+	}
 
 	return c.JSON(http.StatusOK, map[string]interface{}{
-		"url": url,
+		"urls": urls,
 	})
+}
+
+func Save_picture(pictureFile *multipart.FileHeader) string {
+	encodedImage := Encode_base64(pictureFile)
+	url := Decode_and_write_base64(encodedImage)
+	return url
+}
+
+func Encode_base64(pictureFile *multipart.FileHeader) string {
+
+	// Buka file gambar
+	src, err_open := pictureFile.Open()
+	if err_open != nil {
+		log.Println(err_open)
+		return "Failed to open image file"
+	}
+	defer src.Close()
+
+	// Baca isi file gambar
+	imageData, err_read := ioutil.ReadAll(src)
+	if err_read != nil {
+		log.Println(err_read)
+		return "Failed to read image file"
+	}
+
+	encodedImage := base64.StdEncoding.EncodeToString(imageData)
+
+	return encodedImage
 }
 
 func Decode_and_write_base64(stringBase64 string) string {
@@ -62,7 +99,7 @@ func Get_picture(c echo.Context) error {
 
 	if os.IsNotExist(err) {
 		// Jika file tidak ditemukan, kirimkan pesan error
-		return c.File("assets/images/dummy.png")
+		return c.File("assets/dummy.png")
 	}
 
 	return c.File(url)
