@@ -2,20 +2,27 @@ package route
 
 import (
 	"github.com/agriplant/constant"
-	controller "github.com/agriplant/controller"
+	"github.com/agriplant/controller"
 	admin "github.com/agriplant/controller/admin"
 	user "github.com/agriplant/controller/user"
+	"github.com/agriplant/middleware"
 	"github.com/labstack/echo/v4"
 	mid "github.com/labstack/echo/v4/middleware"
 )
 
 func New() *echo.Echo {
+
 	e := echo.New()
 
-	// ENDPOINT GLOBAL
-	e.GET("/hello", controller.Hello_World)
-
-	// ENDPOINT WEB (no token)
+	e.Use(middleware.MiddlewareLogging)
+	e.HTTPErrorHandler = middleware.ErrorHandler
+  
+  // ENDPOINT GLOBAL (no token)
+  e.GET("/hello", controller.Hello_World)
+	e.POST("/pictures", controller.Upload_pictures)
+	e.GET("/pictures/:url", controller.Get_picture)
+  
+  // ENDPOINT WEB (no token)
 	e.POST("/admins", admin.CreateAdmin)
 	e.GET("/admins", admin.GetAdmins)
 	e.POST("/admins/login", admin.LoginAdmin)
