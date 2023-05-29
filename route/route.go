@@ -18,6 +18,7 @@ func New() *echo.Echo {
 	e.HTTPErrorHandler = middleware.ErrorHandler
   
   // ENDPOINT GLOBAL (no token)
+  e.GET("/hello", controller.Hello_World)
 	e.POST("/pictures", controller.Upload_pictures)
 	e.GET("/pictures/:url", controller.Get_picture)
   

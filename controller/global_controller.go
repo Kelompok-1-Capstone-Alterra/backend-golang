@@ -14,6 +14,14 @@ import (
 	"github.com/labstack/echo/v4"
 )
 
+func Hello_World(c echo.Context) error {
+	return c.JSON(http.StatusOK, map[string]interface{}{
+		"status":  200,
+		"message": "Hello World. OK",
+		"no_test": 5,
+	})
+}
+
 func Upload_pictures(c echo.Context) error {
 	// Menerima file-file gambar dari request body
 	form, err := c.MultipartForm()
