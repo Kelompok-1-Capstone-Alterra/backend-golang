@@ -44,7 +44,6 @@ func InitDB() {
 		config_rds.DB_Port,
 		config_rds.DB_Name,
 	)
-	fmt.Println(connectionString)
 
 	var err error
 	DB, err = gorm.Open(mysql.Open(connectionString), &gorm.Config{})
@@ -54,5 +53,11 @@ func InitDB() {
 }
 
 func InitialMigration() {
-	DB.AutoMigrate(&model.Admin{}, &model.User{}, &model.Article{}, &model.Product{}, &model.Picture{})
+	DB.AutoMigrate(
+		&model.Admin{},
+		&model.User{},
+		&model.Article{},
+		&model.Product{},
+		&model.Picture{},
+	)
 }

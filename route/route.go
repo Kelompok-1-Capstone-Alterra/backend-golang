@@ -43,6 +43,13 @@ func New() *echo.Echo {
 
 	// Product
 	eAuth.POST("/admins/products/add", admin.CreateProduct)
+	eAuth.GET("/admins/products", admin.GetProducts)
+	eAuth.GET("/admins/products/display", admin.GetProductsDisplay)
+	eAuth.GET("/admins/products/archive", admin.GetProductsArchive)
+	eAuth.GET("/admins/products/:id/detail", admin.GetProductByID)
+	eAuth.DELETE("/admins/products/:id", admin.DeleteProductByID)
+	eAuth.PUT("/admins/products/:id", admin.UpdateProductByID)
+	eAuth.GET("/admins/products/search", admin.GetProductsByKeyword)
 
 	// ENDPOINT MOBILE (with token)
 

@@ -45,8 +45,8 @@ type Article struct {
 type Picture struct {
 	gorm.Model
 	URL       string `json:"url"`
-	ArticleID uint   `json:"article_id"`
-	ProductID uint   `json:"product_id"`
+	ArticleID *uint  `json:"article_id" `
+	ProductID *uint  `json:"product_id"`
 }
 
 func (a *Admin) BeforeCreateAdmin(tx *gorm.DB) (err error) {
