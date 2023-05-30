@@ -19,7 +19,10 @@ jobs:
           password: ${{ secrets.DOCKER_PASSWORD }}
 
       - name: Build Docker image
-        run: docker build -t widhofaisal/backend-golang:latest .
+        run: docker build -t backend-golang:latest .
+
+      - name: Tag Dccker image
+        run: docker tag backend-golang:latest widhofaisal/backend-golang:latest
 
       - name: Push Docker image
         run: docker push widhofaisal/backend-golang:latest
