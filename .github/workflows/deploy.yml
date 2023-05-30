@@ -1,56 +1,28 @@
-name: Deploy to GCP Compute Engine
-
-on:
-  push:
-    branches:
-      - master
-
-env:
-  PROJECT_ID: capstonealterra
-  SERVICE_ACCOUNT_KEY: ${{ secrets.GCP_SA_KEY }}
-  INSTANCE_NAME: agriplant
-  ZONE: asia-southeast2-a
-
 jobs:
-  deploy:
-    runs-on: ubuntu-latest
+  job_id:
+    permissions:
+      contents: 'read'
+      id-token: 'write'
 
     steps:
-      - name: Checkout Repository
-        uses: actions/checkout@v2
+    - uses: 'actions/checkout@v2'
 
-      - name: Set up Google Cloud SDK
-        uses: google-github-actions/setup-gcloud@v0.5.0
-        with:
-          service_account_key: ${{ env.SERVICE_ACCOUNT_KEY }}
-          project_id: ${{ env.PROJECT_ID }}
+    - id: 'auth'
+      uses: 'google-github-actions/auth@v0'
+      with:
+        workload_identity_provider: 'projects/123456789/locations/global/workloadIdentityPools/my-pool/providers/my-provider'
+        service_account: 'my-service-account@my-project.iam.gserviceaccount.com'
 
-      - name: SSH into Compute Engine Instance
-        uses: appleboy/ssh-action@master
-        with:
-          host: ${{ env.INSTANCE_NAME }}
-          username: widhofaisal26
-          key: ${{ secrets.SSH_PRIVATE_KEY }}
+    - id: 'compute-ssh'
+      uses: 'google-github-actions/ssh-compute@v0'
+      with:
+        instance_name: 'agriplant'
+        zone: 'asia-southeast2-a'
+        ssh_private_key: '${{ secrets.SSH_PRIVATE_KEY }}'
+        command: 'echo Hello world'
 
-          # Uncomment the line below if using password authentication
-          # password: ${{ secrets.SSH_PASSWORD }}
-
-          # Uncomment the line below if using passphrase for the private key
-          # passphrase: ${{ secrets.SSH_PASSPHRASE }}
-
-          # Uncomment the line below if using a custom SSH port
-          # port: 22
-
-          # Uncomment the line below if using a different SSH known_hosts file
-          # known_hosts: /path/to/known_hosts
-
-      - name: Pull and Run Container Image
-        run: |
-          gcloud auth configure-docker --quiet
-          sudo docker pull widhofaisal/backend-golang:latest
-          sudo docker stop container_backend_golang
-          sudo docker stop container_mysql
-          sudo docker rm container_backend_golang
-          sudo docker rm container_mysql
-          sudo docker run -d --name container_mysql -p 3306:3306 -e MYSQL_ROOT_PASSWORD=123456 -e MYSQL_DATABASE=agriplant_db -e MYSQL_USER=developergolang -e MYSQL_PASSWORD=plantagridb123 mysql:latest
-          sudo docker run -d -p 8080:8080 --name container_backend_golang  --link container_mysql:mysql -e DB_HOST=mysql -e DB_PORT=3306 -e DB_USER=developergolang -e DB_PASSWORD=plantagridb123 -e DB_NAME=agriplant_db widhofaisal/backend-golang:latest
+    # Example of using the output
+    - id: 'test'
+      run: |-
+        echo '${{ steps.compute-ssh.outputs.stdout }}'
+        echo '${{ steps.compute-ssh.outputs.stderr }}'
