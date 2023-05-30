@@ -30,7 +30,7 @@ func InitDB() {
 		DB_Username: "developergolang",
 		DB_Password: "plantagridb123",
 		DB_Port:     "3306",
-		DB_Host:     "database-agriplant.ctbpmx2n7zth.ap-southeast-2.rds.amazonaws.com",
+		DB_Host:     "mysql",
 		DB_Name:     "agriplant_db",
 	}
 
