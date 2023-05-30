@@ -1,3 +1,9 @@
+name: CI/CD to Docker Hub and Deploy
+
+on:
+  push:
+    branches: ["master"]
+    
 jobs:
   job_id:
     permissions:
