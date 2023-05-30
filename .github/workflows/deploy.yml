@@ -28,7 +28,7 @@ jobs:
         uses: google-github-actions/setup-gcloud@v0.4.0
         with:
           service_account_key: ${{ secrets.GCP_SA_KEY }}
-          project_id: capstonealterra
+          project_id: 8583945173046225725
 
       - name: Deploy to Compute Engine
         run: |
