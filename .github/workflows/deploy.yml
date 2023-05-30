@@ -1,40 +1,56 @@
-name: CI/CD to Docker Hub and Deploy
+name: Deploy to GCP Compute Engine
 
 on:
   push:
-    branches: ["master"]
+    branches:
+      - master
+
+env:
+  PROJECT_ID: capstonealterra
+  SERVICE_ACCOUNT_KEY: ${{ secrets.GCP_SA_KEY }}
+  INSTANCE_NAME: agriplant
+  ZONE: asia-southeast2-a
 
 jobs:
-  build-and-push:
+  deploy:
     runs-on: ubuntu-latest
 
     steps:
-      - name: Checkout repository
+      - name: Checkout Repository
         uses: actions/checkout@v2
 
-      - name: Login to Docker Hub
-        uses: docker/login-action@v1
+      - name: Set up Google Cloud SDK
+        uses: google-github-actions/setup-gcloud@v0.5.0
         with:
-          username: ${{ secrets.DOCKER_USERNAME }}
-          password: ${{ secrets.DOCKER_PASSWORD }}
+          service_account_key: ${{ env.SERVICE_ACCOUNT_KEY }}
+          project_id: ${{ env.PROJECT_ID }}
 
-      - name: Build Docker image
-        run: docker build -t backend-golang:latest .
-
-      - name: Tag Dccker image
-        run: docker tag backend-golang:latest widhofaisal/backend-golang:latest
-
-      - name: Push Docker image
-        run: docker push widhofaisal/backend-golang:latest
-
-      - name: Configure gcloud CLI
-        uses: google-github-actions/setup-gcloud@v0.4.0
+      - name: SSH into Compute Engine Instance
+        uses: appleboy/ssh-action@master
         with:
-          service_account_key: ${{ secrets.GCP_SA_KEY }}
-          project_id: ${{ secrets.GCP_PROJECT_ID }}
+          host: ${{ env.INSTANCE_NAME }}
+          username: widhofaisal26
+          key: ${{ secrets.SSH_PRIVATE_KEY }}
 
-      - name: Deploy to Compute Engine
+          # Uncomment the line below if using password authentication
+          # password: ${{ secrets.SSH_PASSWORD }}
+
+          # Uncomment the line below if using passphrase for the private key
+          # passphrase: ${{ secrets.SSH_PASSPHRASE }}
+
+          # Uncomment the line below if using a custom SSH port
+          # port: 22
+
+          # Uncomment the line below if using a different SSH known_hosts file
+          # known_hosts: /path/to/known_hosts
+
+      - name: Pull and Run Container Image
         run: |
+          gcloud auth configure-docker --quiet
           sudo docker pull widhofaisal/backend-golang:latest
+          sudo docker stop container_backend_golang
+          sudo docker stop container_mysql
+          sudo docker rm container_backend_golang
+          sudo docker rm container_mysql
           sudo docker run -d --name container_mysql -p 3306:3306 -e MYSQL_ROOT_PASSWORD=123456 -e MYSQL_DATABASE=agriplant_db -e MYSQL_USER=developergolang -e MYSQL_PASSWORD=plantagridb123 mysql:latest
           sudo docker run -d -p 8080:8080 --name container_backend_golang  --link container_mysql:mysql -e DB_HOST=mysql -e DB_PORT=3306 -e DB_USER=developergolang -e DB_PASSWORD=plantagridb123 -e DB_NAME=agriplant_db widhofaisal/backend-golang:latest
