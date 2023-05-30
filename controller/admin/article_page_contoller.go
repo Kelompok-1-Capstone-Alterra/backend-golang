@@ -1,10 +1,12 @@
 package admin
 
 import (
+	"log"
 	"net/http"
 
 	"github.com/agriplant/config"
 	"github.com/agriplant/model"
+	"github.com/fatih/color"
 	"github.com/labstack/echo/v4"
 )
 
@@ -17,7 +19,8 @@ func CreateArticle(c echo.Context) error {
 	// Get user by id
 	// If user not found, return error
 	if err := config.DB.First(&admin, article.AdminID).Error; err != nil {
-		return echo.NewHTTPError(http.StatusInternalServerError, err.Error())
+		log.Print(color.RedString(err.Error()))
+		return echo.NewHTTPError(http.StatusInternalServerError)
 	}
 
 	// set admin id to article
@@ -25,7 +28,8 @@ func CreateArticle(c echo.Context) error {
 
 	// save article to database
 	if err := config.DB.Save(&article).Error; err != nil {
-		return echo.NewHTTPError(http.StatusInternalServerError, err.Error())
+		log.Print(color.RedString(err.Error()))
+		return echo.NewHTTPError(http.StatusInternalServerError)
 	}
 
 	return c.JSON(http.StatusOK, map[string]interface{}{
@@ -39,7 +43,8 @@ func GetArticles(c echo.Context) error {
 
 	// Get all articles
 	if err := config.DB.Find(&articles).Error; err != nil {
-		return echo.NewHTTPError(http.StatusInternalServerError, err.Error())
+		log.Print(color.RedString(err.Error()))
+		return echo.NewHTTPError(http.StatusInternalServerError)
 	}
 
 	//Populate Pictures field for each article
@@ -60,7 +65,8 @@ func GetArticlesByKeyword(c echo.Context) error {
 
 	// Retrieve articles by keyword
 	if err := config.DB.Where("title LIKE ?", "%"+keyword+"%").Find(&articles).Error; err != nil {
-		return echo.NewHTTPError(http.StatusInternalServerError, err.Error())
+		log.Print(color.RedString(err.Error()))
+		return echo.NewHTTPError(http.StatusInternalServerError)
 	}
 
 	//Populate Pictures field for each article

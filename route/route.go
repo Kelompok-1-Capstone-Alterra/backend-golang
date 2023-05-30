@@ -16,13 +16,13 @@ func New() *echo.Echo {
 
 	e.Use(middleware.MiddlewareLogging)
 	e.HTTPErrorHandler = middleware.ErrorHandler
-  
-  // ENDPOINT GLOBAL (no token)
-  e.GET("/hello", controller.Hello_World)
+
+	// ENDPOINT GLOBAL (no token)
+	e.GET("/hello", controller.Hello_World)
 	e.POST("/pictures", controller.Upload_pictures)
 	e.GET("/pictures/:url", controller.Get_picture)
-  
-  // ENDPOINT WEB (no token)
+
+	// ENDPOINT WEB (no token)
 	e.POST("/admins", admin.CreateAdmin)
 	e.GET("/admins", admin.GetAdmins)
 	e.POST("/admins/login", admin.LoginAdmin)
@@ -40,6 +40,16 @@ func New() *echo.Echo {
 	eAuth.POST("/admins/articles/add", admin.CreateArticle)
 	eAuth.GET("/admins/articles", admin.GetArticles)
 	eAuth.GET("/admins/articles/search", admin.GetArticlesByKeyword)
+
+	// Product
+	eAuth.POST("/admins/products/add", admin.CreateProduct)
+	eAuth.GET("/admins/products", admin.GetProducts)
+	eAuth.GET("/admins/products/display", admin.GetProductsDisplay)
+	eAuth.GET("/admins/products/archive", admin.GetProductsArchive)
+	eAuth.GET("/admins/products/:id/detail", admin.GetProductByID)
+	eAuth.DELETE("/admins/products/:id", admin.DeleteProductByID)
+	eAuth.PUT("/admins/products/:id", admin.UpdateProductByID)
+	eAuth.GET("/admins/products/search", admin.GetProductsByKeyword)
 
 	// ENDPOINT MOBILE (with token)
 
