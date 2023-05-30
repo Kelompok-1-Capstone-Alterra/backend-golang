@@ -3,9 +3,9 @@ package config
 import (
 	"fmt"
 
+	"github.com/agriplant/model"
 	"gorm.io/driver/mysql"
 	"gorm.io/gorm"
-	"github.com/agriplant/model"
 )
 
 var (
@@ -27,10 +27,10 @@ type Config struct {
 
 func InitDB() {
 	config_rds := Config{
-		DB_Username: "root",
-		DB_Password: "",
+		DB_Username: "developergolang",
+		DB_Password: "plantagridb123",
 		DB_Port:     "3306",
-		DB_Host:     "localhost",
+		DB_Host:     "database-agriplant.ctbpmx2n7zth.ap-southeast-2.rds.amazonaws.com",
 		DB_Name:     "agriplant_db",
 	}
 
@@ -50,5 +50,5 @@ func InitDB() {
 }
 
 func InitialMigration() {
-	DB.AutoMigrate(&model.Admin{})
+	DB.AutoMigrate(&model.Admin{}, &model.User{}, &model.Article{}, &model.Picture{})
 }
