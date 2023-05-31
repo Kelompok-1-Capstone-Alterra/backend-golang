@@ -3,6 +3,7 @@ package controller
 import (
 	"log"
 	"net/http"
+	"strconv"
 
 	"github.com/agriplant/config"
 	"github.com/agriplant/model"
@@ -91,5 +92,42 @@ func Login(c echo.Context) error {
 		"status":  200,
 		"message": "successfully login",
 		"token":   token,
+	})
+}
+
+func Reset_password(c echo.Context) error {
+	var user model.User
+	id, _ := strconv.Atoi(c.Param("id"))
+
+	if err_first := config.DB.First(&user, id).Error; err_first != nil {
+		return c.JSON((http.StatusNotFound), map[string]interface{}{
+			"status":  404,
+			"message": "not found",
+		})
+	}
+
+	// binding struct
+	if err_bind := c.Bind(&user); err_bind != nil {
+		log.Print(color.RedString(err_bind.Error()))
+		return c.JSON((http.StatusBadRequest), map[string]interface{}{
+			"status":  400,
+			"message": "bad request",
+		})
+	}
+
+	// hashing password
+	user.BeforeCreateUser(config.DB)
+	
+	if err_update := config.DB.Save(&user).Error; err_update != nil {
+		log.Print(color.RedString(err_update.Error()))
+		return c.JSON((http.StatusInternalServerError), map[string]interface{}{
+			"status":  500,
+			"message": "internal server error",
+		})
+	}
+
+	return c.JSON(http.StatusOK, map[string]interface{}{
+		"status":  200,
+		"message": "successfully reset password",
 	})
 }

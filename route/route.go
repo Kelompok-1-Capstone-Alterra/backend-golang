@@ -21,15 +21,16 @@ func New() *echo.Echo {
 	e.GET("/hello", controller.Hello_World)
 	e.POST("/pictures", controller.Upload_pictures)
 	e.GET("/pictures/:url", controller.Get_picture)
-
+	
 	// ENDPOINT WEB (no token)
 	e.POST("/admins", admin.CreateAdmin)
 	e.GET("/admins", admin.GetAdmins)
 	e.POST("/admins/login", admin.LoginAdmin)
-
+	
 	// ENDPOINT MOBILE (no token)
 	e.POST("/users/register", user.Register)
 	e.POST("/users/login", user.Login)
+	e.PUT("/users/:id/password", user.Reset_password)
 
 	// Protected route
 	eAuth := e.Group("/auth")
