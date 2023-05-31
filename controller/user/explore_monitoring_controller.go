@@ -5,14 +5,10 @@ import (
 	"fmt"
 	"io/ioutil"
 	"log"
-	"strings"
-
 	"net/http"
 	"net/url"
+	"strings"
 
-	// "github.com/agriplant/config"
-	// "github.com/agriplant/model"
-	// "github.com/agriplant/utils"
 	"github.com/agriplant/config"
 	"github.com/agriplant/model"
 	"github.com/agriplant/utils"
@@ -137,9 +133,7 @@ func Get_weather(c echo.Context) error {
 func save_weather_info(location, temperature, label string, user_id uint) bool {
 	var infoWeather model.InfoWeather
 	err_select := config.DB.Where("user_id=?", user_id).First(&infoWeather).Error
-	fmt.Println(infoWeather)
 	if err_select == nil {
-		fmt.Println("update")
 		// Query update
 		infoWeather.User_id = user_id
 		infoWeather.Location = location
@@ -151,7 +145,6 @@ func save_weather_info(location, temperature, label string, user_id uint) bool {
 		}
 		return true
 	}
-	fmt.Println("insert")
 	// Record not found
 	// Query insert
 	var infoWeather2 model.InfoWeather
