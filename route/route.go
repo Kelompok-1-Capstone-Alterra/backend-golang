@@ -51,6 +51,13 @@ func New() *echo.Echo {
 	eAuth.PUT("/admins/products/:id", admin.UpdateProductByID)
 	eAuth.GET("/admins/products/search", admin.GetProductsByKeyword)
 
+	// Weather Management
+	eAuth.POST("/admins/weathers/add", admin.CreateWeather)
+	eAuth.GET("/admins/weathers", admin.GetWeathers)
+	eAuth.GET("/admins/weathers/:id/detail", admin.GetWeatherByID)
+	eAuth.PUT("/admins/weathers/:id", admin.UpdateWeatherByID)
+	eAuth.DELETE("/admins/weathers/:id", admin.DeleteWeatherByID)
+
 	// ENDPOINT MOBILE (with token)
 
 	return e
