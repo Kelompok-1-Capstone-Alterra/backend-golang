@@ -117,5 +117,6 @@ func Check_email_valid(c echo.Context) error {
 	return c.JSON(http.StatusOK, map[string]interface{}{
 		"status":  200,
 		"message": "success to check email",
+		"user_id":      user.ID,
 	})
 }
