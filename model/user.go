@@ -31,3 +31,11 @@ type Coordinate struct {
 	Latitude  string `json:"latitude" form:"latitude"`
 	Longitude string `json:"longitude" form:"longitude"`
 }
+
+type InfoWeather struct {
+	gorm.Model
+	User_id     uint   `json:"user_id" form:"user_id" gorm:"unique"`
+	Location    string `json:"location" form:"location"`
+	Temperature string `json:"temperature" form:"temperature"`
+	Label       string `json:"label" form:"label"`
+}

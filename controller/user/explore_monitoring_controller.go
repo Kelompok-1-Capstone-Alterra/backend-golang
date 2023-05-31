@@ -2,8 +2,10 @@ package controller
 
 import (
 	"encoding/json"
+	"fmt"
 	"io/ioutil"
 	"log"
+	"strings"
 
 	"net/http"
 	"net/url"
@@ -11,7 +13,9 @@ import (
 	// "github.com/agriplant/config"
 	// "github.com/agriplant/model"
 	// "github.com/agriplant/utils"
+	"github.com/agriplant/config"
 	"github.com/agriplant/model"
+	"github.com/agriplant/utils"
 	"github.com/fatih/color"
 	"github.com/labstack/echo/v4"
 )
@@ -110,18 +114,56 @@ func Get_weather(c echo.Context) error {
 		}
 	}
 
+	city := fmt.Sprintf("%v", data["name"])
+	tempereture := fmt.Sprintf("%v", data["main"].(map[string]interface{})["temp"])
+
+	// Save weather info
+	token := strings.TrimPrefix(c.Request().Header.Get("Authorization"), "Bearer ")
+	user_id, _ := utils.GetUserIDFromToken(token)
+	save_weather_info(city, tempereture, label, user_id)
+
 	return c.JSON(http.StatusOK, map[string]interface{}{
 		"status":  200,
 		"message": "successfully obtained weather information",
 		"data": map[string]interface{}{
 			"label_id":    label_id,
 			"label":       label,
-			"city":        data["name"],
-			"temperature": data["main"].(map[string]interface{})["temp"],
+			"city":        city,
+			"temperature": tempereture,
 		},
 	})
 }
 
-func Get_label_of_weather(weather string) {
+func save_weather_info(location, temperature, label string, user_id uint) bool {
+	var infoWeather model.InfoWeather
+	err_select := config.DB.Where("user_id=?", user_id).First(&infoWeather).Error
+	fmt.Println(infoWeather)
+	if err_select == nil {
+		fmt.Println("update")
+		// Query update
+		infoWeather.User_id = user_id
+		infoWeather.Location = location
+		infoWeather.Temperature = temperature
+		infoWeather.Label = label
 
+		if err_update := config.DB.Save(&infoWeather).Error; err_update != nil {
+			log.Print(color.RedString(err_update.Error()))
+		}
+		return true
+	}
+	fmt.Println("insert")
+	// Record not found
+	// Query insert
+	var infoWeather2 model.InfoWeather
+
+	infoWeather2.User_id = user_id
+	infoWeather2.Location = location
+	infoWeather2.Temperature = temperature
+	infoWeather2.Label = label
+
+	if err_insert := config.DB.Save(&infoWeather2).Error; err_insert != nil {
+		log.Print(color.RedString(err_insert.Error()))
+	}
+
+	return true
 }
