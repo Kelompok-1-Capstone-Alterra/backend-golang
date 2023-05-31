@@ -63,8 +63,8 @@ func Login(c echo.Context) error {
 	if err_select := config.DB.Where("email=?", loginData.Email).First(&user).Error; err_select != nil {
 		log.Print(color.RedString(err_select.Error()))
 		return c.JSON(http.StatusInternalServerError, map[string]interface{}{
-			"status":  500,
-			"message": "internal server error",
+			"status":  401,
+			"message": "unauthorized",
 		})
 	}
 
