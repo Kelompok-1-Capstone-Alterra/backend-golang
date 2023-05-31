@@ -26,6 +26,7 @@ func New() *echo.Echo {
 	e.POST("/admins", admin.CreateAdmin)
 	e.GET("/admins", admin.GetAdmins)
 	e.POST("/admins/login", admin.LoginAdmin)
+	e.GET("/users/weather", user.Get_weather)
 
 	// ENDPOINT MOBILE (no token)
 	e.POST("/users/register", user.Register)
