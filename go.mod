@@ -4,6 +4,7 @@ go 1.20
 
 require (
 	github.com/dgrijalva/jwt-go v3.2.0+incompatible
+	github.com/joho/godotenv v1.5.1
 	golang.org/x/crypto v0.6.0
 	gorm.io/driver/mysql v1.5.1
 )
@@ -27,9 +28,7 @@ require (
 	github.com/google/uuid v1.3.0
 	github.com/jinzhu/inflection v1.0.0 // indirect
 	github.com/jinzhu/now v1.1.5 // indirect
-	github.com/labstack/echo v3.3.10+incompatible
 	github.com/labstack/echo/v4 v4.10.2
-	github.com/logrusorgru/aurora/v3 v3.0.0
 	github.com/sirupsen/logrus v1.9.2
 	gorm.io/gorm v1.25.1
 )

@@ -1,11 +1,13 @@
 package admin
 
 import (
+	"log"
 	"net/http"
 
 	"github.com/agriplant/config"
 	"github.com/agriplant/model"
 	"github.com/agriplant/utils"
+	"github.com/fatih/color"
 	"github.com/labstack/echo/v4"
 )
 
@@ -17,9 +19,9 @@ func CreateAdmin(c echo.Context) error {
 	admin.BeforeCreateAdmin(config.DB)
 
 	if err := config.DB.Save(&admin).Error; err != nil {
+		log.Print(color.RedString(err.Error()))
 		return c.JSON(500, map[string]interface{}{
 			"message": "Failed to create admin",
-			"error":   err.Error(),
 		})
 	}
 
@@ -33,9 +35,9 @@ func GetAdmins(c echo.Context) error {
 	admins := []model.Admin{}
 
 	if err := config.DB.Find(&admins).Error; err != nil {
+		log.Print(color.RedString(err.Error()))
 		return c.JSON(500, map[string]interface{}{
 			"message": "Failed to get admins",
-			"error":   err.Error(),
 		})
 	}
 
@@ -55,16 +57,16 @@ func LoginAdmin(c echo.Context) error {
 
 	err := c.Bind(&loginData)
 	if err != nil {
+		log.Print(color.RedString(err.Error()))
 		return c.JSON(500, map[string]interface{}{
 			"message": "Failed to bind data",
-			"error":   err.Error(),
 		})
 	}
 
 	if err := config.DB.Where("email = ?", loginData.Email).First(&admin).Error; err != nil {
+		log.Print(color.RedString(err.Error()))
 		return c.JSON(500, map[string]interface{}{
 			"message": "Failed to find admin",
-			"error":   err.Error(),
 		})
 	}
 
@@ -78,9 +80,9 @@ func LoginAdmin(c echo.Context) error {
 	// Create token
 	token, err := utils.CreateTokenAdmin(admin.ID, admin.Name)
 	if err != nil {
+		log.Print(color.RedString(err.Error()))
 		return c.JSON(500, map[string]interface{}{
 			"message": "Failed to create token",
-			"error":   err.Error(),
 		})
 	}
 

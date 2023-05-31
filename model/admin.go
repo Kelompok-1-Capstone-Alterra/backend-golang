@@ -8,9 +8,29 @@ import (
 type Admin struct {
 	gorm.Model
 	Name     string    `json:"admin_name"`
-	Email    string    `json:"admin_email"`
+	Email    string    `json:"admin_email" gorm:"unique"`
 	Password string    `json:"admin_password"`
 	Articles []Article `gorm:"foreignKey:AdminID"`
+	Products []Product `gorm:"foreignKey:AdminID"`
+	Weathers []Weather `gorm:"foreignKey:AdminID"`
+}
+
+type Product struct {
+	gorm.Model
+	Pictures    []Picture `json:"product_pictures" gorm:"foreignKey:ProductID"`
+	Name        string    `json:"product_name"`
+	Category    string    `json:"product_category"`
+	Description string    `json:"product_description"`
+	Price       int       `json:"product_price"`
+	Status      bool      `json:"product_status"`
+	Brand       string    `json:"product_brand"`
+	Condition   string    `json:"product_condition"`
+	Unit        int       `json:"product_unit"`
+	Weight      int       `json:"product_weight"`
+	Form        string    `json:"product_form"`
+	SellerName  string    `json:"product_seller_name"`
+	SellerPhone string    `json:"product_seller_phone"`
+	AdminID     uint      `json:"admin_id"`
 }
 
 type Article struct {
@@ -23,10 +43,21 @@ type Article struct {
 	AdminID     uint      `json:"admin_id"`
 }
 
+type Weather struct {
+	gorm.Model
+	Title       string    `json:"weather_title"`
+	Label       string    `json:"weather_label"`
+	Pictures    []Picture `json:"weather_pictures" gorm:"foreignKey:WeatherID"`
+	Description string    `json:"weather_description"`
+	AdminID     uint      `json:"admin_id"`
+}
+
 type Picture struct {
 	gorm.Model
-	URL       string `json:"article_url"`
-	ArticleID uint   `json:"article_id"`
+	URL       string `json:"url"`
+	ArticleID *uint  `json:"article_id" `
+	ProductID *uint  `json:"product_id"`
+	WeatherID *uint  `json:"weather_id"`
 }
 
 func (a *Admin) BeforeCreateAdmin(tx *gorm.DB) (err error) {

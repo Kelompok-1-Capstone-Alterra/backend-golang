@@ -2,8 +2,10 @@ package config
 
 import (
 	"fmt"
+	"os"
 
 	"github.com/agriplant/model"
+	"github.com/joho/godotenv"
 	"gorm.io/driver/mysql"
 	"gorm.io/gorm"
 )
@@ -13,6 +15,7 @@ var (
 )
 
 func init() {
+	godotenv.Load(".env")
 	InitDB()
 	InitialMigration()
 }
@@ -50,5 +53,12 @@ func InitDB() {
 }
 
 func InitialMigration() {
-	DB.AutoMigrate(&model.Admin{}, &model.User{}, &model.Article{}, &model.Picture{})
+	DB.AutoMigrate(
+		&model.Admin{},
+		&model.User{},
+		&model.Article{},
+		&model.Product{},
+		&model.Picture{},
+		&model.Weather{},
+	)
 }
