@@ -52,6 +52,7 @@ func New() *echo.Echo {
 	eAuth.GET("/admins/products/search", admin.GetProductsByKeyword)
 
 	// ENDPOINT MOBILE (with token)
+	eAuth.GET("/users/products", user.GetProducts)
 
 	return e
 }
