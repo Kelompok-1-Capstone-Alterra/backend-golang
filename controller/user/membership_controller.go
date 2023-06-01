@@ -93,3 +93,30 @@ func Login(c echo.Context) error {
 		"token":   token,
 	})
 }
+
+func Check_email_valid(c echo.Context) error {
+	var user model.User
+	if err_bind := c.Bind(&user); err_bind != nil {
+		log.Print(color.RedString(err_bind.Error()))
+		return c.JSON(http.StatusInternalServerError, map[string]interface{}{
+			"status":  400,
+			"message": "bad request",
+		})
+	}
+
+	if err_select := config.DB.Where("email=?", user.Email).First(&user).Error; err_select != nil {
+		// email not found
+		log.Print(color.RedString(err_select.Error()))
+		return c.JSON(http.StatusNotFound, map[string]interface{}{
+			"status":  404,
+			"message": "not found",
+		})
+	}
+
+	// email found
+	return c.JSON(http.StatusOK, map[string]interface{}{
+		"status":  200,
+		"message": "success to check email",
+		"user_id":      user.ID,
+	})
+}
