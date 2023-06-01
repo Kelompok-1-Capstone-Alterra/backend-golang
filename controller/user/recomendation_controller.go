@@ -15,7 +15,11 @@ func GetProducts(c echo.Context) error {
 
 	if err := config.DB.Find(&product).Error; err != nil {
 		log.Print(color.RedString(err.Error()))
-		return echo.NewHTTPError(http.StatusInternalServerError)
+		return c.JSON(http.StatusInternalServerError, map[string]interface{}{
+			"status":  500,
+			"message": "internal server error",
+		},
+		)
 	}
 
 	// Populate Pictures field for each product
@@ -101,4 +105,120 @@ func GetProducts(c echo.Context) error {
 		},
 	})
 
+}
+
+func GetProductsByCategory(c echo.Context) error {
+	category := c.Param("category")
+
+	product := []model.Product{}
+
+	if err := config.DB.Where("category = ?", category).Find(&product).Error; err != nil {
+		log.Print(color.RedString(err.Error()))
+		return c.JSON(http.StatusInternalServerError, map[string]interface{}{
+			"status":  500,
+			"message": "internal server error",
+		},
+		)
+	}
+
+	// Populate Pictures field for each product
+	for i := 0; i < len(product); i++ {
+		config.DB.Model(&product[i]).Association("Pictures").Find(&product[i].Pictures)
+	}
+
+	// use product response struct
+	var productResponse []model.ProductResponse
+
+	for i := 0; i < len(product); i++ {
+		productResponse = append(productResponse, model.ProductResponse{
+			ID:       product[i].ID,
+			Pictures: product[i].Pictures,
+			Name:     product[i].Name,
+			Price:    product[i].Price,
+			Seen:     product[i].Seen,
+		})
+	}
+
+	return c.JSON(http.StatusOK, map[string]interface{}{
+		"message": "success get products",
+		"data":    productResponse,
+	})
+
+}
+
+func GetProductsByCategoryAndName(c echo.Context) error {
+	category := c.Param("category")
+	name := c.QueryParam("name")
+
+	product := []model.Product{}
+
+	if err := config.DB.Where("category = ? AND name LIKE ?", category, "%"+name+"%").Find(&product).Error; err != nil {
+		log.Print(color.RedString(err.Error()))
+		return c.JSON(http.StatusInternalServerError, map[string]interface{}{
+			"status":  500,
+			"message": "internal server error",
+		},
+		)
+	}
+
+	// Populate Pictures field for each product
+	for i := 0; i < len(product); i++ {
+		config.DB.Model(&product[i]).Association("Pictures").Find(&product[i].Pictures)
+	}
+
+	// use product response struct
+	var productResponse []model.ProductResponse
+
+	for i := 0; i < len(product); i++ {
+		productResponse = append(productResponse, model.ProductResponse{
+			ID:       product[i].ID,
+			Pictures: product[i].Pictures,
+			Name:     product[i].Name,
+			Price:    product[i].Price,
+			Seen:     product[i].Seen,
+		})
+	}
+
+	return c.JSON(http.StatusOK, map[string]interface{}{
+		"message": "success get products by category and name",
+		"data": map[string]interface{}{
+			"category": category,
+			"products": productResponse,
+		},
+	})
+}
+
+func GetProductByID(c echo.Context) error {
+	id := c.Param("id")
+
+	product := model.Product{}
+
+	if err := config.DB.Where("id = ?", id).Find(&product).Error; err != nil {
+		log.Print(color.RedString(err.Error()))
+		return c.JSON(http.StatusInternalServerError, map[string]interface{}{
+			"status":  500,
+			"message": "internal server error",
+		})
+	}
+
+	// Increment the "seen" field by 1
+	product.Seen++
+	if err := config.DB.Model(&model.Product{}).Where("id = ?", id).Update("seen", product.Seen).Error; err != nil {
+		log.Print(color.RedString(err.Error()))
+		return c.JSON(http.StatusInternalServerError, map[string]interface{}{
+			"status":  500,
+			"message": "internal server error",
+		})
+	}
+
+	// Populate Pictures field for each product
+	config.DB.Model(&product).Association("Pictures").Find(&product.Pictures)
+
+	return c.JSON(http.StatusOK, map[string]interface{}{
+		"message": "success get product by id",
+		"data": map[string]interface{}{
+			"product":          product,
+			"related-products": "some products",
+		},
+	})
 }
