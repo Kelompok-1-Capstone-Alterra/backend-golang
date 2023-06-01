@@ -167,9 +167,17 @@ func Get_weather_article(c echo.Context) error {
 	id, _ := strconv.Atoi(c.Param("label_id"))
 
 	label := get_label_by_id(id)
-
 	if err_first := config.DB.Where("label=?", label).First(&weatherArticle).Error; err_first != nil {
 		log.Print(color.RedString(err_first.Error()))
+		return c.JSON(http.StatusBadRequest, map[string]interface{}{
+			"status":  404,
+			"message": "not found",
+		})
+	}
+
+	var picture model.Picture
+	if err_first2:= config.DB.Where("weather_id=?",weatherArticle.ID).First(&picture).Error; err_first2!=nil{
+		log.Print(color.RedString(err_first2.Error()))
 		return c.JSON(http.StatusBadRequest, map[string]interface{}{
 			"status":  404,
 			"message": "not found",
@@ -179,7 +187,7 @@ func Get_weather_article(c echo.Context) error {
 	result := map[string]interface{}{
 		"label_id": id,
 		"label":    label,
-		"picture":  weatherArticle.Pictures,
+		"picture":  picture.URL,
 		"title":    weatherArticle.Title,
 		"desc":     weatherArticle.Description,
 	}
@@ -204,4 +212,14 @@ func get_label_by_id(id int) string {
 	default:
 		return "Berawan"
 	}
+}
+
+func StringToUintPointer(value string) (*uint, error) {
+	intValue, err := strconv.ParseUint(value, 10, 0)
+	if err != nil {
+		return nil, err
+	}
+
+	uintValue := uint(intValue)
+	return &uintValue, nil
 }
