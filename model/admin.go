@@ -46,7 +46,7 @@ type Article struct {
 type Weather struct {
 	gorm.Model
 	Title       string    `json:"weather_title"`
-	Label       string    `json:"weather_label"`
+	Label       string    `json:"weather_label" gorm:"unique"`
 	Pictures    []Picture `json:"weather_pictures" gorm:"foreignKey:WeatherID"`
 	Description string    `json:"weather_description"`
 	AdminID     uint      `json:"admin_id"`
