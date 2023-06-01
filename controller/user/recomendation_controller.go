@@ -218,7 +218,40 @@ func GetProductByID(c echo.Context) error {
 		"message": "success get product by id",
 		"data": map[string]interface{}{
 			"product":          product,
-			"related-products": "some products",
+			"related-products": GetRelatedProducts(product.Category),
 		},
 	})
+}
+
+// GetRelatedProducts is a function to get related products by category
+// used to get related products in GetProductByID function
+func GetRelatedProducts(category string) []model.ProductResponse {
+	product := []model.Product{}
+
+	if err := config.DB.Where("category = ?", category).Find(&product).Error; err != nil {
+		log.Print(color.RedString(err.Error()))
+	}
+
+	// Populate Pictures field for each product
+	for i := 0; i < len(product); i++ {
+		config.DB.Model(&product[i]).Association("Pictures").Find(&product[i].Pictures)
+	}
+
+	// remove the first product (the product that is being viewed)
+	product = append(product[:0], product[1:]...)
+
+	// use product response struct
+	var productResponse []model.ProductResponse
+
+	for i := 0; i < len(product); i++ {
+		productResponse = append(productResponse, model.ProductResponse{
+			ID:       product[i].ID,
+			Pictures: product[i].Pictures,
+			Name:     product[i].Name,
+			Price:    product[i].Price,
+			Seen:     product[i].Seen,
+		})
+	}
+
+	return productResponse
 }
