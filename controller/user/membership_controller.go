@@ -28,6 +28,15 @@ func Register(c echo.Context) error {
 	// hashing password
 	user.BeforeCreateUser(config.DB)
 
+	var user2 model.User
+	if err_first := config.DB.Where("email=?", user.Email).First(&user2).Error; err_first == nil {
+		log.Print(color.RedString(err_first.Error()))
+		return c.JSON(http.StatusBadRequest, map[string]interface{}{
+			"status":  400,
+			"message": "bad request",
+		})
+	}
+
 	// register
 	if err_insert := config.DB.Save(&user).Error; err_insert != nil {
 		log.Print(color.RedString(err_insert.Error()))
@@ -63,7 +72,7 @@ func Login(c echo.Context) error {
 	// check email validity
 	if err_select := config.DB.Where("email=?", loginData.Email).First(&user).Error; err_select != nil {
 		log.Print(color.RedString(err_select.Error()))
-		return c.JSON(http.StatusInternalServerError, map[string]interface{}{
+		return c.JSON(http.StatusUnauthorized, map[string]interface{}{
 			"status":  401,
 			"message": "unauthorized",
 		})
@@ -110,14 +119,14 @@ func Reset_password(c echo.Context) error {
 	if err_bind := c.Bind(&user); err_bind != nil {
 		log.Print(color.RedString(err_bind.Error()))
 		return c.JSON((http.StatusBadRequest), map[string]interface{}{
-      "status":  400,
+			"status":  400,
 			"message": "bad request",
 		})
 	}
-  
-  // hashing password
+
+	// hashing password
 	user.BeforeCreateUser(config.DB)
-	
+
 	if err_update := config.DB.Save(&user).Error; err_update != nil {
 		log.Print(color.RedString(err_update.Error()))
 		return c.JSON((http.StatusInternalServerError), map[string]interface{}{
@@ -129,20 +138,20 @@ func Reset_password(c echo.Context) error {
 	return c.JSON(http.StatusOK, map[string]interface{}{
 		"status":  200,
 		"message": "successfully reset password",
-    })
+	})
 }
 
 func Check_email_valid(c echo.Context) error {
 	var user model.User
 	if err_bind := c.Bind(&user); err_bind != nil {
 		log.Print(color.RedString(err_bind.Error()))
-		return c.JSON(http.StatusInternalServerError, map[string]interface{}{
-      "status":  400,
+		return c.JSON(http.StatusBadRequest, map[string]interface{}{
+			"status":  400,
 			"message": "bad request",
 		})
 	}
-      
-  if err_select := config.DB.Where("email=?", user.Email).First(&user).Error; err_select != nil {
+
+	if err_select := config.DB.Where("email=?", user.Email).First(&user).Error; err_select != nil {
 		// email not found
 		log.Print(color.RedString(err_select.Error()))
 		return c.JSON(http.StatusNotFound, map[string]interface{}{
@@ -155,7 +164,6 @@ func Check_email_valid(c echo.Context) error {
 	return c.JSON(http.StatusOK, map[string]interface{}{
 		"status":  200,
 		"message": "success to check email",
-		"user_id":      user.ID,
-    })
+		"user_id": user.ID,
+	})
 }
-	
