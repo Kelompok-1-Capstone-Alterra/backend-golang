@@ -27,22 +27,13 @@ func Register(c echo.Context) error {
 
 	// hashing password
 	user.BeforeCreateUser(config.DB)
-
-	var user2 model.User
-	if err_first := config.DB.Where("email=?", user.Email).First(&user2).Error; err_first == nil {
-		log.Print(color.RedString(err_first.Error()))
-		return c.JSON(http.StatusBadRequest, map[string]interface{}{
-			"status":  400,
-			"message": "bad request",
-		})
-	}
-
+	
 	// register
 	if err_insert := config.DB.Save(&user).Error; err_insert != nil {
 		log.Print(color.RedString(err_insert.Error()))
-		return c.JSON(http.StatusInternalServerError, map[string]interface{}{
-			"status":  500,
-			"message": "internal server error",
+		return c.JSON(http.StatusBadRequest, map[string]interface{}{
+			"status":  400,
+			"message": "bad request",
 		})
 	}
 
