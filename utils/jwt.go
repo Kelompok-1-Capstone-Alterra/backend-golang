@@ -1,6 +1,8 @@
 package utils
 
 import (
+	"errors"
+
 	"github.com/agriplant/constant"
 	"github.com/dgrijalva/jwt-go"
 )
@@ -43,4 +45,30 @@ func CreateTokenUser(userId uint, name string) (string, error) {
 	}
 
 	return tokenString, nil
+}
+
+func GetUserIDFromToken(tokenString string) (uint, error) {
+	// Parse the token
+	token, err := jwt.Parse(tokenString, func(token *jwt.Token) (interface{}, error) {
+		// Validate the signing method
+		if _, ok := token.Method.(*jwt.SigningMethodHMAC); !ok {
+			return nil, errors.New("invalid token signing method")
+		}
+		// Return the secret key used for signing
+		return []byte(constant.SECRET_JWT), nil
+	})
+
+	if err != nil {
+		return 0, err
+	}
+
+	// Check if the token is valid
+	if claims, ok := token.Claims.(jwt.MapClaims); ok && token.Valid {
+		// Extract the user_id claim
+		if userID, ok := claims["user_id"].(float64); ok {
+			return uint(userID), nil
+		}
+	}
+
+	return 0, errors.New("unable to retrieve user_id from token")
 }

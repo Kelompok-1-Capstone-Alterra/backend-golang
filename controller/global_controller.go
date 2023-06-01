@@ -107,7 +107,10 @@ func Get_picture(c echo.Context) error {
 
 	if os.IsNotExist(err) {
 		// Jika file tidak ditemukan, kirimkan pesan error
-		return c.File("assets/dummy.png")
+		return c.JSON(http.StatusNotFound, map[string]interface{}{
+			"status":  404,
+			"message": "not found",
+		})
 	}
 
 	return c.File(url)
