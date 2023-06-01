@@ -7,6 +7,7 @@ import (
 	"log"
 	"net/http"
 	"net/url"
+	"strconv"
 	"strings"
 
 	"github.com/agriplant/config"
@@ -159,4 +160,48 @@ func save_weather_info(location, temperature, label string, user_id uint) bool {
 	}
 
 	return true
+}
+
+func Get_weather_article(c echo.Context) error {
+	var weatherArticle model.Weather
+	id, _ := strconv.Atoi(c.Param("label_id"))
+
+	label := get_label_by_id(id)
+
+	if err_first := config.DB.Where("label=?", label).First(&weatherArticle).Error; err_first != nil {
+		log.Print(color.RedString(err_first.Error()))
+		return c.JSON(http.StatusBadRequest, map[string]interface{}{
+			"status":  404,
+			"message": "not found",
+		})
+	}
+
+	result := map[string]interface{}{
+		"label_id": id,
+		"label":    label,
+		"picture":  weatherArticle.Pictures,
+		"title":    weatherArticle.Title,
+		"desc":     weatherArticle.Description,
+	}
+
+	return c.JSON(http.StatusOK, map[string]interface{}{
+		"status":  200,
+		"message": "success to retrieve current weather information detail",
+		"data":    result,
+	})
+}
+
+func get_label_by_id(id int) string {
+	switch id {
+	case 1:
+		return "Hujan"
+	case 2:
+		return "Mendung"
+	case 3:
+		return "Cerah"
+	case 4:
+		return "Berawan"
+	default:
+		return "Berawan"
+	}
 }

@@ -60,6 +60,7 @@ func New() *echo.Echo {
 	
 	// ENDPOINT MOBILE (with token)
 	eAuth.GET("/users/weather", user.Get_weather)
+	eAuth.GET("/users/weather/:label_id", user.Get_weather_article)
 	
 	return e
 }
