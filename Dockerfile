@@ -19,8 +19,5 @@ COPY . ./
 # compile application
 RUN go build -o /backend-golang
 
-# tells Docker that the container listens on specified network ports at runtime
-EXPOSE 8000
-
 # command to be used to execute when the image is used to start a container
 CMD [ "/backend-golang" ]

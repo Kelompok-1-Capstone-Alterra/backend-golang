@@ -60,5 +60,6 @@ func InitialMigration() {
 		&model.Product{},
 		&model.Picture{},
 		&model.Weather{},
+		&model.InfoWeather{},
 	)
 }
