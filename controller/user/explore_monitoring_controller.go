@@ -17,6 +17,7 @@ import (
 	"github.com/labstack/echo/v4"
 )
 
+// EXPLORE & MONITORING (Menu Home) - [Endpoint 1 : Get weather]
 func Get_weather(c echo.Context) error {
 	var coordinate model.Coordinate
 
@@ -131,6 +132,7 @@ func Get_weather(c echo.Context) error {
 	})
 }
 
+// HERLPER FUNCTION
 func save_weather_info(location, temperature, label string, user_id uint) bool {
 	var infoWeather model.InfoWeather
 	err_select := config.DB.Where("user_id=?", user_id).First(&infoWeather).Error
@@ -162,6 +164,7 @@ func save_weather_info(location, temperature, label string, user_id uint) bool {
 	return true
 }
 
+// EXPLORE & MONITORING (Menu Home) - [Endpoint 2 : Get weather article]
 func Get_weather_article(c echo.Context) error {
 	var weatherArticle model.Weather
 	id, _ := strconv.Atoi(c.Param("label_id"))
@@ -176,7 +179,7 @@ func Get_weather_article(c echo.Context) error {
 	}
 
 	var picture model.Picture
-	if err_first2:= config.DB.Where("weather_id=?",weatherArticle.ID).First(&picture).Error; err_first2!=nil{
+	if err_first2 := config.DB.Where("weather_id=?", weatherArticle.ID).First(&picture).Error; err_first2 != nil {
 		log.Print(color.RedString(err_first2.Error()))
 		return c.JSON(http.StatusBadRequest, map[string]interface{}{
 			"status":  404,
@@ -185,11 +188,12 @@ func Get_weather_article(c echo.Context) error {
 	}
 
 	result := map[string]interface{}{
-		"label_id": id,
-		"label":    label,
-		"picture":  picture.URL,
-		"title":    weatherArticle.Title,
-		"desc":     weatherArticle.Description,
+		"label_id":   id,
+		"label":      label,
+		"article_id": weatherArticle.ID,
+		"picture":    picture.URL,
+		"title":      weatherArticle.Title,
+		"desc":       weatherArticle.Description,
 	}
 
 	return c.JSON(http.StatusOK, map[string]interface{}{
@@ -199,6 +203,7 @@ func Get_weather_article(c echo.Context) error {
 	})
 }
 
+// HELPER FUNCTION
 func get_label_by_id(id int) string {
 	switch id {
 	case 1:
@@ -214,6 +219,7 @@ func get_label_by_id(id int) string {
 	}
 }
 
+// HELPER FUNCTION
 func StringToUintPointer(value string) (*uint, error) {
 	intValue, err := strconv.ParseUint(value, 10, 0)
 	if err != nil {
@@ -223,3 +229,6 @@ func StringToUintPointer(value string) (*uint, error) {
 	uintValue := uint(intValue)
 	return &uintValue, nil
 }
+
+
+
