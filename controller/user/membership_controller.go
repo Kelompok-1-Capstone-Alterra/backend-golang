@@ -44,8 +44,8 @@ func Register(c echo.Context) error {
 	}
 
 	// password validation
-	if len(user.Password) > 8 || len(user.Password) < 2 {
-		log.Print(color.RedString("password min 2 and max 8 character"))
+	if len(user.Password) > 20 || len(user.Password) < 8 {
+		log.Print(color.RedString("password min 8 and max 20 character"))
 		return c.JSON(http.StatusBadRequest, map[string]interface{}{
 			"status":  400,
 			"message": "bad request",
