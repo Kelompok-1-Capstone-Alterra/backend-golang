@@ -25,9 +25,27 @@ func Register(c echo.Context) error {
 		})
 	}
 
+	// request body validation
+	if user.Password == "" || user.Name == "" {
+		log.Print(color.RedString("request body can't empty"))
+		return c.JSON(http.StatusBadRequest, map[string]interface{}{
+			"status":  400,
+			"message": "bad request",
+		})
+	}
+
 	// email validation
-	if !utils.Is_email_valid(user.Email){
+	if !utils.Is_email_valid(user.Email) {
 		log.Print(color.RedString("email not valid"))
+		return c.JSON(http.StatusBadRequest, map[string]interface{}{
+			"status":  400,
+			"message": "bad request",
+		})
+	}
+
+	// password validation
+	if len(user.Password) > 8 || len(user.Password) < 2 {
+		log.Print(color.RedString("password min 2 and max 8 character"))
 		return c.JSON(http.StatusBadRequest, map[string]interface{}{
 			"status":  400,
 			"message": "bad request",
@@ -36,7 +54,7 @@ func Register(c echo.Context) error {
 
 	// hashing password
 	user.BeforeCreateUser(config.DB)
-	
+
 	// register
 	if err_insert := config.DB.Save(&user).Error; err_insert != nil {
 		log.Print(color.RedString(err_insert.Error()))
