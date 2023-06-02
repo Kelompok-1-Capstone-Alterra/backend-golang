@@ -31,7 +31,7 @@ func New() *echo.Echo {
 	e.POST("/users/register", user.Register)
 	e.POST("/users/login", user.Login)
 	e.PUT("/users/:id/password", user.Reset_password)
-	e.POST("/users/emails/check", user.Check_email_valid)
+	e.GET("/users/emails/check", user.Check_email_valid)
 
 	// Protected route
 	eAuth := e.Group("/auth")
