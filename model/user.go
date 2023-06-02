@@ -32,6 +32,7 @@ type Coordinate struct {
 	Longitude string `json:"longitude" form:"longitude"`
 }
 
+// Struct for save weather history for each user
 type InfoWeather struct {
 	gorm.Model
 	User_id     uint   `json:"user_id" form:"user_id" gorm:"unique"`

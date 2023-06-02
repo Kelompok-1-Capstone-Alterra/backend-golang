@@ -43,6 +43,7 @@ type Article struct {
 	AdminID     uint      `json:"admin_id"`
 }
 
+// Struct for save weather article made by admin
 type Weather struct {
 	gorm.Model
 	Title       string    `json:"weather_title"`
