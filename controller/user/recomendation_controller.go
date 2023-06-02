@@ -23,8 +23,10 @@ func GetProducts(c echo.Context) error {
 	}
 
 	// Populate Pictures field for each product
+	// limit the pictures to 1
 	for i := 0; i < len(product); i++ {
 		config.DB.Model(&product[i]).Association("Pictures").Find(&product[i].Pictures)
+		product[i].Pictures = product[i].Pictures[:1]
 	}
 
 	// split product by its category
@@ -56,9 +58,13 @@ func GetProducts(c echo.Context) error {
 	)
 
 	for i := 0; i < len(seeds); i++ {
+		seedPictures := make([]string, len(seeds[i].Pictures))
+		for j, pic := range seeds[i].Pictures {
+			seedPictures[j] = pic.URL
+		}
 		seedsResponse = append(seedsResponse, model.ProductResponse{
 			ID:       seeds[i].ID,
-			Pictures: seeds[i].Pictures,
+			Pictures: seedPictures,
 			Name:     seeds[i].Name,
 			Price:    seeds[i].Price,
 			Seen:     seeds[i].Seen,
@@ -66,9 +72,13 @@ func GetProducts(c echo.Context) error {
 	}
 
 	for i := 0; i < len(pesticides); i++ {
+		pesticidePictures := make([]string, len(pesticides[i].Pictures))
+		for j, pic := range pesticides[i].Pictures {
+			pesticidePictures[j] = pic.URL
+		}
 		pesticidesResponse = append(pesticidesResponse, model.ProductResponse{
 			ID:       pesticides[i].ID,
-			Pictures: pesticides[i].Pictures,
+			Pictures: pesticidePictures,
 			Name:     pesticides[i].Name,
 			Price:    pesticides[i].Price,
 			Seen:     pesticides[i].Seen,
@@ -76,9 +86,13 @@ func GetProducts(c echo.Context) error {
 	}
 
 	for i := 0; i < len(fertilizers); i++ {
+		fertilizerPictures := make([]string, len(fertilizers[i].Pictures))
+		for j, pic := range fertilizers[i].Pictures {
+			fertilizerPictures[j] = pic.URL
+		}
 		fertilizersResponse = append(fertilizersResponse, model.ProductResponse{
 			ID:       fertilizers[i].ID,
-			Pictures: fertilizers[i].Pictures,
+			Pictures: fertilizerPictures,
 			Name:     fertilizers[i].Name,
 			Price:    fertilizers[i].Price,
 			Seen:     fertilizers[i].Seen,
@@ -86,9 +100,13 @@ func GetProducts(c echo.Context) error {
 	}
 
 	for i := 0; i < len(tools); i++ {
+		toolPictures := make([]string, len(tools[i].Pictures))
+		for j, pic := range tools[i].Pictures {
+			toolPictures[j] = pic.URL
+		}
 		toolsResponse = append(toolsResponse, model.ProductResponse{
 			ID:       tools[i].ID,
-			Pictures: tools[i].Pictures,
+			Pictures: toolPictures,
 			Name:     tools[i].Name,
 			Price:    tools[i].Price,
 			Seen:     tools[i].Seen,
@@ -96,7 +114,7 @@ func GetProducts(c echo.Context) error {
 	}
 
 	return c.JSON(http.StatusOK, map[string]interface{}{
-		"message": "success get products",
+		"message": "success to retrieve products data",
 		"data": map[string]interface{}{
 			"seeds":       seedsResponse,
 			"pesticides":  pesticidesResponse,
@@ -122,17 +140,23 @@ func GetProductsByCategory(c echo.Context) error {
 	}
 
 	// Populate Pictures field for each product
+	// limit the pictures to 1
 	for i := 0; i < len(product); i++ {
 		config.DB.Model(&product[i]).Association("Pictures").Find(&product[i].Pictures)
+		product[i].Pictures = product[i].Pictures[:1]
 	}
 
 	// use product response struct
 	var productResponse []model.ProductResponse
 
 	for i := 0; i < len(product); i++ {
+		pictureURLs := make([]string, len(product[i].Pictures))
+		for j, pic := range product[i].Pictures {
+			pictureURLs[j] = pic.URL
+		}
 		productResponse = append(productResponse, model.ProductResponse{
 			ID:       product[i].ID,
-			Pictures: product[i].Pictures,
+			Pictures: pictureURLs,
 			Name:     product[i].Name,
 			Price:    product[i].Price,
 			Seen:     product[i].Seen,
@@ -140,10 +164,12 @@ func GetProductsByCategory(c echo.Context) error {
 	}
 
 	return c.JSON(http.StatusOK, map[string]interface{}{
-		"message": "success get products",
-		"data":    productResponse,
+		"message": "success get products by category",
+		"data": map[string]interface{}{
+			"category": category,
+			"products": productResponse,
+		},
 	})
-
 }
 
 func GetProductsByCategoryAndName(c echo.Context) error {
@@ -162,17 +188,23 @@ func GetProductsByCategoryAndName(c echo.Context) error {
 	}
 
 	// Populate Pictures field for each product
+	// limit the pictures to 1
 	for i := 0; i < len(product); i++ {
 		config.DB.Model(&product[i]).Association("Pictures").Find(&product[i].Pictures)
+		product[i].Pictures = product[i].Pictures[:1]
 	}
 
 	// use product response struct
 	var productResponse []model.ProductResponse
 
 	for i := 0; i < len(product); i++ {
+		pictureURLs := make([]string, len(product[i].Pictures))
+		for j, pic := range product[i].Pictures {
+			pictureURLs[j] = pic.URL
+		}
 		productResponse = append(productResponse, model.ProductResponse{
 			ID:       product[i].ID,
-			Pictures: product[i].Pictures,
+			Pictures: pictureURLs,
 			Name:     product[i].Name,
 			Price:    product[i].Price,
 			Seen:     product[i].Seen,
@@ -214,10 +246,47 @@ func GetProductByID(c echo.Context) error {
 	// Populate Pictures field for each product
 	config.DB.Model(&product).Association("Pictures").Find(&product.Pictures)
 
+	// Extract picture URLs
+	pictureURLs := make([]string, len(product.Pictures))
+	for i, pic := range product.Pictures {
+		pictureURLs[i] = pic.URL
+	}
+
+	// Use product response struct
+	productResponse := struct {
+		ID          uint     `json:"id"`
+		Pictures    []string `json:"product_pictures"`
+		Name        string   `json:"product_name"`
+		Category    string   `json:"product_category"`
+		Description string   `json:"product_description"`
+		Price       int      `json:"product_price"`
+		Seen        int      `json:"product_seen"`
+		Status      bool     `json:"product_status"`
+		Brand       string   `json:"product_brand"`
+		Condition   string   `json:"product_condition"`
+		Unit        int      `json:"product_unit"`
+		Weight      int      `json:"product_weight"`
+		Form        string   `json:"product_form"`
+	}{
+		ID:          product.ID,
+		Pictures:    pictureURLs,
+		Name:        product.Name,
+		Category:    product.Category,
+		Description: product.Description,
+		Price:       product.Price,
+		Seen:        product.Seen,
+		Status:      product.Status,
+		Brand:       product.Brand,
+		Condition:   product.Condition,
+		Unit:        product.Unit,
+		Weight:      product.Weight,
+		Form:        product.Form,
+	}
+
 	return c.JSON(http.StatusOK, map[string]interface{}{
 		"message": "success get product by id",
 		"data": map[string]interface{}{
-			"product":          product,
+			"product":          productResponse,
 			"related-products": GetRelatedProducts(product.Category),
 		},
 	})
@@ -233,8 +302,10 @@ func GetRelatedProducts(category string) []model.ProductResponse {
 	}
 
 	// Populate Pictures field for each product
+	// limit the pictures to 1
 	for i := 0; i < len(product); i++ {
 		config.DB.Model(&product[i]).Association("Pictures").Find(&product[i].Pictures)
+		product[i].Pictures = product[i].Pictures[:1]
 	}
 
 	// remove the first product (the product that is being viewed)
@@ -244,9 +315,13 @@ func GetRelatedProducts(category string) []model.ProductResponse {
 	var productResponse []model.ProductResponse
 
 	for i := 0; i < len(product); i++ {
+		pictureURLs := make([]string, len(product[i].Pictures))
+		for j, pic := range product[i].Pictures {
+			pictureURLs[j] = pic.URL
+		}
 		productResponse = append(productResponse, model.ProductResponse{
 			ID:       product[i].ID,
-			Pictures: product[i].Pictures,
+			Pictures: pictureURLs,
 			Name:     product[i].Name,
 			Price:    product[i].Price,
 			Seen:     product[i].Seen,

@@ -13,11 +13,11 @@ type User struct {
 }
 
 type ProductResponse struct {
-	ID       uint      `json:"id"`
-	Pictures []Picture `json:"product_pictures"`
-	Name     string    `json:"product_name"`
-	Price    int       `json:"product_price"`
-	Seen     int       `json:"product_seen"`
+	ID       uint     `json:"id"`
+	Pictures []string `json:"product_pictures"`
+	Name     string   `json:"product_name"`
+	Price    int      `json:"product_price"`
+	Seen     int      `json:"product_seen"`
 }
 
 func (u *User) BeforeCreateUser(tx *gorm.DB) (err error) {
