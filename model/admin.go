@@ -12,6 +12,7 @@ type Admin struct {
 	Password string    `json:"admin_password"`
 	Articles []Article `gorm:"foreignKey:AdminID"`
 	Products []Product `gorm:"foreignKey:AdminID"`
+	Weathers []Weather `gorm:"foreignKey:AdminID"`
 }
 
 type Product struct {
@@ -43,11 +44,21 @@ type Article struct {
 	AdminID     uint      `json:"admin_id"`
 }
 
+type Weather struct {
+	gorm.Model
+	Title       string    `json:"weather_title"`
+	Label       string    `json:"weather_label" gorm:"unique"`
+	Pictures    []Picture `json:"weather_pictures" gorm:"foreignKey:WeatherID"`
+	Description string    `json:"weather_description"`
+	AdminID     uint      `json:"admin_id"`
+}
+
 type Picture struct {
 	gorm.Model
 	URL       string `json:"url"`
 	ArticleID *uint  `json:"article_id" `
 	ProductID *uint  `json:"product_id"`
+	WeatherID *uint  `json:"weather_id"`
 }
 
 func (a *Admin) BeforeCreateAdmin(tx *gorm.DB) (err error) {
