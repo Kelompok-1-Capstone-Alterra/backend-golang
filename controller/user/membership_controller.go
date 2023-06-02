@@ -25,6 +25,15 @@ func Register(c echo.Context) error {
 		})
 	}
 
+	// email validation
+	if !utils.Is_email_valid(user.Email){
+		log.Print(color.RedString("email not valid"))
+		return c.JSON(http.StatusBadRequest, map[string]interface{}{
+			"status":  400,
+			"message": "bad request",
+		})
+	}
+
 	// hashing password
 	user.BeforeCreateUser(config.DB)
 	
