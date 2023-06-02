@@ -125,6 +125,50 @@ func GetProducts(c echo.Context) error {
 
 }
 
+func GetProductsByName(c echo.Context) error {
+	name := c.QueryParam("name")
+
+	product := []model.Product{}
+
+	if err := config.DB.Where("name LIKE ?", "%"+name+"%").Find(&product).Error; err != nil {
+		log.Print(color.RedString(err.Error()))
+		return c.JSON(http.StatusInternalServerError, map[string]interface{}{
+			"status":  500,
+			"message": "internal server error",
+		},
+		)
+	}
+
+	// Populate Pictures field for each product
+	// limit the pictures to 1
+	for i := 0; i < len(product); i++ {
+		config.DB.Model(&product[i]).Association("Pictures").Find(&product[i].Pictures)
+		product[i].Pictures = product[i].Pictures[:1]
+	}
+
+	// use product response struct
+	var productResponse []model.ProductResponse
+
+	for i := 0; i < len(product); i++ {
+		pictureURLs := make([]string, len(product[i].Pictures))
+		for j, pic := range product[i].Pictures {
+			pictureURLs[j] = pic.URL
+		}
+		productResponse = append(productResponse, model.ProductResponse{
+			ID:       product[i].ID,
+			Pictures: pictureURLs,
+			Name:     product[i].Name,
+			Price:    product[i].Price,
+			Seen:     product[i].Seen,
+		})
+	}
+
+	return c.JSON(http.StatusOK, map[string]interface{}{
+		"message": "success get products by name",
+		"data":    productResponse,
+	})
+}
+
 func GetProductsByCategory(c echo.Context) error {
 	category := c.Param("category")
 

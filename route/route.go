@@ -54,6 +54,7 @@ func New() *echo.Echo {
 	// ENDPOINT MOBILE (with token)
 	// Recomendation
 	eAuth.GET("/users/products", user.GetProducts)
+	eAuth.GET("/users/products/search", user.GetProductsByName)
 	eAuth.GET("/users/products/:category", user.GetProductsByCategory)
 	eAuth.GET("/users/products/:category/search", user.GetProductsByCategoryAndName)
 	eAuth.GET("/users/products/:id/detail", user.GetProductByID)
