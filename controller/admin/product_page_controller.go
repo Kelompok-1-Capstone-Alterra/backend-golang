@@ -305,33 +305,62 @@ func UpdateProductByID(c echo.Context) error {
 	})
 }
 
-func GetProductsByKeyword(c echo.Context) error {
-	product := []model.Product{}
+func GetProductsByName(c echo.Context) error {
+	products := []model.Product{}
 
-	keyword := c.QueryParam("keyword")
+	name := c.QueryParam("name")
 
 	// Get product by keyword
 	// If product not found, return error
-	if err := config.DB.Where("name LIKE ?", "%"+keyword+"%").Find(&product).Error; err != nil {
+	if err := config.DB.Where("name LIKE ?", "%"+name+"%").Find(&products).Error; err != nil {
 		log.Print(color.RedString(err.Error()))
-		return echo.NewHTTPError(http.StatusInternalServerError)
+		return c.JSON(http.StatusInternalServerError, map[string]interface{}{
+			"status":  500,
+			"message": "internal server error",
+		})
 	}
 
-	// Populate Pictures field for each product
-	for i := 0; i < len(product); i++ {
-		config.DB.Model(&product[i]).Association("Pictures").Find(&product[i].Pictures)
-	}
+	// Iterate over each product record and generate custom response
+	var responses []interface{}
+	for _, product := range products {
+		// Populate Pictures field for each product
+		config.DB.Model(&product).Association("Pictures").Find(&product.Pictures)
 
-	// remove article_id from product_pictures
-	for i := 0; i < len(product); i++ {
-		for j := 0; j < len(product[i].Pictures); j++ {
-			product[i].Pictures[j].ArticleID = nil
+		// Extract the first picture URL
+		pictureURL := ""
+		if len(product.Pictures) > 0 {
+			pictureURL = product.Pictures[0].URL
 		}
+
+		response := struct {
+			ID         uint   `json:"id"`
+			Created_at string `json:"created_at"`
+			Updated_at string `json:"updated_at"`
+			Deleted_at string `json:"deleted_at"`
+			Picture    string `json:"product_picture"`
+			Name       string `json:"product_name"`
+			SellerName string `json:"product_seller_name"`
+			Price      int    `json:"product_price"`
+			Category   string `json:"product_category"`
+			Status     bool   `json:"product_status"`
+		}{
+			ID:         product.ID,
+			Created_at: product.CreatedAt.String(),
+			Updated_at: product.UpdatedAt.String(),
+			Deleted_at: product.DeletedAt.Time.String(),
+			Picture:    pictureURL,
+			Name:       product.Name,
+			SellerName: product.SellerName,
+			Price:      product.Price,
+			Category:   product.Category,
+			Status:     product.Status,
+		}
+		responses = append(responses, response)
 	}
 
 	return c.JSON(http.StatusOK, map[string]interface{}{
 		"message": "success",
-		"data":    product,
+		"data":    responses,
 	})
 }
 
