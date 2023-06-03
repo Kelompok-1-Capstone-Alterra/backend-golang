@@ -158,10 +158,35 @@ func GetWeatherByID(c echo.Context) error {
 	for i := 0; i < len(weather.Pictures); i++ {
 		weather.Pictures[i].ArticleID = nil
 	}
+	// Extract picture URLs
+	pictureURLs := make([]string, len(weather.Pictures))
+	for i, pic := range weather.Pictures {
+		pictureURLs[i] = pic.URL
+	}
+
+	response := struct {
+		ID          uint     `json:"id"`
+		Created_at  string   `json:"created_at"`
+		Updated_at  string   `json:"updated_at"`
+		Deleted_at  string   `json:"deleted_at"`
+		Title       string   `json:"weather_title"`
+		Label       string   `json:"weather_label"`
+		Pictures    []string `json:"weather_pictures"`
+		Description string   `json:"weather_description"`
+	}{
+		ID:          weather.ID,
+		Created_at:  weather.CreatedAt.String(),
+		Updated_at:  weather.UpdatedAt.String(),
+		Deleted_at:  weather.DeletedAt.Time.String(),
+		Title:       weather.Title,
+		Label:       weather.Label,
+		Pictures:    pictureURLs,
+		Description: weather.Description,
+	}
 
 	return c.JSON(http.StatusOK, map[string]interface{}{
 		"message": "success",
-		"data":    weather,
+		"data":    response,
 	})
 }
 
