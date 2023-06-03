@@ -72,3 +72,29 @@ func GetUserIDFromToken(tokenString string) (uint, error) {
 
 	return 0, errors.New("unable to retrieve user_id from token")
 }
+
+func GetAdminIDFromToken(tokenString string) (uint, error) {
+	// Parse the token
+	token, err := jwt.Parse(tokenString, func(token *jwt.Token) (interface{}, error) {
+		// Validate the signing method
+		if _, ok := token.Method.(*jwt.SigningMethodHMAC); !ok {
+			return nil, errors.New("invalid token signing method")
+		}
+		// Return the secret key used for signing
+		return []byte(constant.SECRET_JWT), nil
+	})
+
+	if err != nil {
+		return 0, err
+	}
+
+	// Check if the token is valid
+	if claims, ok := token.Claims.(jwt.MapClaims); ok && token.Valid {
+		// Extract the user_id claim
+		if adminId, ok := claims["admin_id"].(float64); ok {
+			return uint(adminId), nil
+		}
+	}
+
+	return 0, errors.New("unable to retrieve admin_id from token")
+}
