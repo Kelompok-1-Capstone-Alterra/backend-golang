@@ -61,5 +61,6 @@ func InitialMigration() {
 		&model.Picture{},
 		&model.Weather{},
 		&model.InfoWeather{},
+		&model.LikedArticles{},
 	)
 }

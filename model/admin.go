@@ -39,7 +39,7 @@ type Article struct {
 	Pictures    []Picture `json:"article_pictures" gorm:"foreignKey:ArticleID"`
 	Description string    `json:"article_description"`
 	View        int       `json:"article_view"`
-	Like        int       `json:"article_like"`
+	Like        int       `json:"article_like" gorm:"like"`
 	AdminID     uint      `json:"admin_id"`
 }
 
