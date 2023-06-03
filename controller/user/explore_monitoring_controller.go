@@ -230,5 +230,41 @@ func StringToUintPointer(value string) (*uint, error) {
 	return &uintValue, nil
 }
 
+// EXPLORE & MONITORING (Menu Home) - [Endpoint 5 : Get available plants]
+func Get_available_plants(c echo.Context) error {
+	var plants []model.Plant
 
+	if err_find := config.DB.Find(&plants).Error; err_find != nil {
+		log.Print(color.RedString(err_find.Error()))
+		return c.JSON(http.StatusBadRequest, map[string]interface{}{
+			"status":  404,
+			"message": "not found",
+		})
+	}
+
+	var responses []map[string]interface{}
+	for _, plant := range plants {
+		config.DB.Model(&plant).Association("Pictures").Find(&plant.Pictures)
+
+		var url string
+		for _, picture := range plant.Pictures {
+			url = picture.URL
+			break
+		}
+
+		response := map[string]interface{}{
+			"plant_id": plant.ID,
+			"pictures": url,
+			"name":     plant.Name,
+			"latin":    plant.Latin,
+		}
+		responses = append(responses, response)
+	}
+
+	return c.JSON(http.StatusOK, map[string]interface{}{
+		"status":  200,
+		"message": "success to get list of plants",
+		"data":    responses,
+	})
+}
 
