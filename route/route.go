@@ -61,6 +61,14 @@ func New() *echo.Echo {
 	eAuth.DELETE("/admins/weathers/:id", admin.DeleteWeatherByID)
 	
 	// ENDPOINT MOBILE (with token)
+	// Recomendation
+	eAuth.GET("/users/products", user.GetProducts)
+	eAuth.GET("/users/products/search", user.GetProductsByName)
+	eAuth.GET("/users/products/:category", user.GetProductsByCategory)
+	eAuth.GET("/users/products/:category/search", user.GetProductsByCategoryAndName)
+	eAuth.GET("/users/products/:id/detail", user.GetProductByID)
+
+  // Explore & Monitoring
 	eAuth.GET("/users/weather", user.Get_weather)
 	eAuth.GET("/users/weather/:label_id", user.Get_weather_article)
 	

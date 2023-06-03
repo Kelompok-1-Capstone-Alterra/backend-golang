@@ -12,6 +12,14 @@ type User struct {
 	Password string `json:"password" form:"password" validate:"required"`
 }
 
+type ProductResponse struct {
+	ID       uint     `json:"id"`
+	Pictures []string `json:"product_pictures"`
+	Name     string   `json:"product_name"`
+	Price    int      `json:"product_price"`
+	Seen     int      `json:"product_seen"`
+}
+
 func (u *User) BeforeCreateUser(tx *gorm.DB) (err error) {
 	hashPassword, err := utils.HashPassword(u.Password)
 	if err != nil {
