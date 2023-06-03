@@ -15,7 +15,7 @@ func CreateWeather(c echo.Context) error {
 	admin := model.Admin{}
 
 	if err := c.Bind(&weather); err != nil {
-		log.Printf("Error binding weather data: %s", err.Error())
+		log.Print(color.RedString(err.Error()))
 		return c.JSON(http.StatusBadRequest, map[string]interface{}{
 			"status":  400,
 			"message": "bad request",
@@ -28,14 +28,14 @@ func CreateWeather(c echo.Context) error {
 	if result.Error == nil {
 		return c.JSON(http.StatusBadRequest, map[string]interface{}{
 			"status":  400,
-			"message": "error: label already exists",
+			"message": "bad request, label already exists",
 		})
 	}
 
 	// Get admin by ID
 	// If admin not found, return error
 	if err := config.DB.First(&admin, weather.AdminID).Error; err != nil {
-		log.Printf("Error fetching admin data: %s", err.Error())
+		log.Print(color.RedString(err.Error()))
 		return c.JSON(http.StatusInternalServerError, map[string]interface{}{
 			"status":  500,
 			"message": "internal server error",
@@ -47,7 +47,7 @@ func CreateWeather(c echo.Context) error {
 
 	// Save weather to database
 	if err := config.DB.Save(&weather).Error; err != nil {
-		log.Printf("Error saving weather to database: %s", err.Error())
+		log.Print(color.RedString(err.Error()))
 		return c.JSON(http.StatusInternalServerError, map[string]interface{}{
 			"status":  500,
 			"message": "internal server error",
