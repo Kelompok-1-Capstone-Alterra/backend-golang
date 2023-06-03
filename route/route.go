@@ -13,6 +13,8 @@ import (
 func New() *echo.Echo {
 
 	e := echo.New()
+	
+	e.Use(mid.CORS())
 
 	e.Use(middleware.MiddlewareLogging)
 	e.HTTPErrorHandler = middleware.ErrorHandler
