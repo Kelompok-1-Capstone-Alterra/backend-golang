@@ -22,6 +22,7 @@ type Product struct {
 	Category    string    `json:"product_category"`
 	Description string    `json:"product_description"`
 	Price       int       `json:"product_price"`
+	Seen        int       `json:"product_seen"`
 	Status      bool      `json:"product_status"`
 	Brand       string    `json:"product_brand"`
 	Condition   string    `json:"product_condition"`
@@ -43,10 +44,11 @@ type Article struct {
 	AdminID     uint      `json:"admin_id"`
 }
 
+// Struct for save weather article made by admin
 type Weather struct {
 	gorm.Model
 	Title       string    `json:"weather_title"`
-	Label       string    `json:"weather_label"`
+	Label       string    `json:"weather_label" gorm:"unique"`
 	Pictures    []Picture `json:"weather_pictures" gorm:"foreignKey:WeatherID"`
 	Description string    `json:"weather_description"`
 	AdminID     uint      `json:"admin_id"`

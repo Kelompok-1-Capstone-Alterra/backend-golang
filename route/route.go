@@ -14,6 +14,8 @@ func New() *echo.Echo {
 
 	e := echo.New()
 
+	e.Use(mid.CORS())
+
 	e.Use(middleware.MiddlewareLogging)
 	e.HTTPErrorHandler = middleware.ErrorHandler
 
@@ -30,6 +32,8 @@ func New() *echo.Echo {
 	// ENDPOINT MOBILE (no token)
 	e.POST("/users/register", user.Register)
 	e.POST("/users/login", user.Login)
+	e.PUT("/users/:user_id/password", user.Reset_password)
+	e.GET("/users/emails/check", user.Check_email_valid)
 
 	// Protected route
 	eAuth := e.Group("/auth")
@@ -59,6 +63,14 @@ func New() *echo.Echo {
 	eAuth.DELETE("/admins/weathers/:id", admin.DeleteWeatherByID)
 
 	// ENDPOINT MOBILE (with token)
+	// Recomendation
+	eAuth.GET("/users/products", user.GetProducts)
+	eAuth.GET("/users/products/search", user.GetProductsByName)
+	eAuth.GET("/users/products/:category", user.GetProductsByCategory)
+	eAuth.GET("/users/products/:category/search", user.GetProductsByCategoryAndName)
+	eAuth.GET("/users/products/:id/detail", user.GetProductByID)
+
+	// Explore & Monitoring
 	eAuth.GET("/users/weather", user.Get_weather)
 	eAuth.GET("/users/weather/:label_id", user.Get_weather_article)
 
@@ -67,6 +79,8 @@ func New() *echo.Echo {
 	eAuth.GET("/users/articles/latest", user.GetArticlesLatest)
 	eAuth.GET("/users/articles/:id", user.GetArticlesbyID)
 	eAuth.GET("/users/articles/liked", user.GetArticlesLiked)
+	eAuth.POST("/users/articles/:article_id/liked", user.AddLikes)
+	eAuth.DELETE("/users/articles/:article_id/liked", user.DeleteLikes)
 	return e
 }
 

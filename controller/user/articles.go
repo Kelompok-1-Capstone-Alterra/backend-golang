@@ -4,9 +4,7 @@ import (
 	"log"
 	"net/http"
 
-	//"strconv"
 	"strings"
-	//"strconv"
 
 	"github.com/agriplant/config"
 	"github.com/agriplant/model"
@@ -125,31 +123,61 @@ func GetArticlesbyID(c echo.Context) error {
 	})
 }
 
-// func AddLikes(c echo.Context) error {
-// 	like := model.LikedArticles{}
-// 	articles_id,_ := strconv.Atoi(c.Param("article_id"))
+func AddLikes(c echo.Context) error {
+	like := model.LikedArticles{}
+	articles_id, _ := StringToUintPointer(c.Param("article_id"))
+	token := strings.TrimPrefix(c.Request().Header.Get("Authorization"), "Bearer ")
+	user_id, _ := utils.GetUserIDFromToken(token)
+	// Get product by id
+	// If product not found, return error
+	like.Articles_id = *articles_id
+	like.User_id = user_id
+	if err := config.DB.Save(&like).Error; err != nil {
+		log.Print(color.RedString(err.Error()))
+		return c.JSON(http.StatusBadRequest, map[string]interface{}{
+			"status":  400,
+			"message": "bad request",
+		})
+	}
 
-// 	// Get product by id
-// 	// If product not found, return error
-// 	like.Articles_id = articles_id;
-// 	if err := config.DB.Save(&like).Error; err != nil {
-// 		log.Print(color.RedString(err.Error()))
-// 		return c.JSON(http.StatusBadRequest, map[string]interface{}{
-// 			"status":  400,
-// 			"message": "bad request",
-// 		})
-// 	}
+	// // Populate Pictures field for each product
+	// config.DB.Model(&articles).Association("Pictures").Find(&articles.Pictures)
 
-// 	// Populate Pictures field for each product
-// 	config.DB.Model(&articles).Association("Pictures").Find(&articles.Pictures)
+	// // remove article_id from articles_pictures
+	// for i := 0; i < len(articles.Pictures); i++ {
+	// 	articles.Pictures[i].ArticleID = nil
+	// }
 
-// 	// remove article_id from articles_pictures
-// 	for i := 0; i < len(articles.Pictures); i++ {
-// 		articles.Pictures[i].ArticleID = nil
-// 	}
+	return c.JSON(http.StatusOK, map[string]interface{}{
+		"message": "success to give like",
+	})
+}
 
-// 	return c.JSON(http.StatusOK, map[string]interface{}{
-// 		"message": "success to retrieve latest articles data",
-// 		"data":    articles,
-// 	})
-// }
+func DeleteLikes(c echo.Context) error {
+	like := model.LikedArticles{}
+	articles_id, _ := StringToUintPointer(c.Param("article_id"))
+	token := strings.TrimPrefix(c.Request().Header.Get("Authorization"), "Bearer ")
+	user_id, _ := utils.GetUserIDFromToken(token)
+	// Get product by id
+	// If product not found, return error
+
+	if err := config.DB.Where("articles_id =?", *articles_id).Where("user_id=?", user_id).Delete(&like).Error; err != nil {
+		log.Print(color.RedString(err.Error()))
+		return c.JSON(http.StatusBadRequest, map[string]interface{}{
+			"status":  400,
+			"message": "bad request",
+		})
+	}
+
+	// // Populate Pictures field for each product
+	// config.DB.Model(&articles).Association("Pictures").Find(&articles.Pictures)
+
+	// // remove article_id from articles_pictures
+	// for i := 0; i < len(articles.Pictures); i++ {
+	// 	articles.Pictures[i].ArticleID = nil
+	// }
+
+	return c.JSON(http.StatusOK, map[string]interface{}{
+		"message": "success to unlike",
+	})
+}
