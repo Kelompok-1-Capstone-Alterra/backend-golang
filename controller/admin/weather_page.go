@@ -197,19 +197,51 @@ func UpdateWeatherByID(c echo.Context) error {
 
 	if err := config.DB.First(&weather, weatherID).Error; err != nil {
 		log.Print(color.RedString(err.Error()))
-		return echo.NewHTTPError(http.StatusInternalServerError)
+		return c.JSON(http.StatusInternalServerError, map[string]interface{}{
+			"status":  500,
+			"message": "internal server error",
+		})
 	}
 
 	c.Bind(&weather)
 
 	if err := config.DB.Save(&weather).Error; err != nil {
 		log.Print(color.RedString(err.Error()))
-		return echo.NewHTTPError(http.StatusInternalServerError)
+		return c.JSON(http.StatusInternalServerError, map[string]interface{}{
+			"status":  500,
+			"message": "internal server error",
+		})
+	}
+
+	// Extract picture URLs
+	pictureURLs := make([]string, len(weather.Pictures))
+	for i, pic := range weather.Pictures {
+		pictureURLs[i] = pic.URL
+	}
+
+	response := struct {
+		ID          uint     `json:"id"`
+		Created_at  string   `json:"created_at"`
+		Updated_at  string   `json:"updated_at"`
+		Deleted_at  string   `json:"deleted_at"`
+		Title       string   `json:"weather_title"`
+		Label       string   `json:"weather_label"`
+		Pictures    []string `json:"weather_pictures"`
+		Description string   `json:"weather_description"`
+	}{
+		ID:          weather.ID,
+		Created_at:  weather.CreatedAt.String(),
+		Updated_at:  weather.UpdatedAt.String(),
+		Deleted_at:  weather.DeletedAt.Time.String(),
+		Title:       weather.Title,
+		Label:       weather.Label,
+		Pictures:    pictureURLs,
+		Description: weather.Description,
 	}
 
 	return c.JSON(http.StatusOK, map[string]interface{}{
 		"message": "success",
-		"data":    weather,
+		"data":    response,
 	})
 }
 
