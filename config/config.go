@@ -2,7 +2,6 @@ package config
 
 import (
 	"fmt"
-	"os"
 
 	"github.com/agriplant/model"
 	"github.com/joho/godotenv"
@@ -30,11 +29,11 @@ type Config struct {
 
 func InitDB() {
 	config := Config{
-		DB_Username: os.Getenv("DB_USERNAME"),
-		DB_Password: os.Getenv("DB_PASSWORD"),
-		DB_Port:     os.Getenv("DB_PORT"),
-		DB_Host:     os.Getenv("DB_HOST"),
-		DB_Name:     os.Getenv("DB_DB"),
+		DB_Username: "developergolang",
+		DB_Password: "plantagridb123",
+		DB_Port:     "3306",
+		DB_Host:     "mysql",
+		DB_Name:     "agriplant_db",
 	}
 
 	connectionString := fmt.Sprintf("%s:%s@tcp(%s:%s)/%s?charset=utf8mb4&parseTime=True&loc=Local",
@@ -68,6 +67,5 @@ func InitialMigration() {
 		&model.PlantingInfo{},
 		&model.ContainerInfo{},
 		&model.GroundInfo{},
-		&model.MyPlant{},
 	)
 }
