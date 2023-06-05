@@ -268,3 +268,23 @@ func Get_available_plants(c echo.Context) error {
 	})
 }
 
+// EXPLORE & MONITORING (Menu Home) - [Endpoint 6 : Search available plants]
+func Search_available_plants(c echo.Context) error {
+	name := c.FormValue("name")
+	name = "%" + name + "%"
+	var plants []model.Plant
+
+	if err_find := config.DB.Where("name LIKE ?", name).Find(&plants).Error; err_find != nil {
+		log.Print(color.RedString(err_find.Error()))
+		return c.JSON(http.StatusBadRequest, map[string]interface{}{
+			"status":  404,
+			"message": "not found",
+		})
+	}
+
+	return c.JSON(http.StatusOK, map[string]interface{}{
+		"status":  200,
+		"message": "success to search available plants by name",
+		"data":    plants,
+	})
+}
