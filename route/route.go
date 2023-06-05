@@ -23,12 +23,12 @@ func New() *echo.Echo {
 	e.GET("/hello", controller.Hello_World)
 	e.POST("/pictures", controller.Upload_pictures)
 	e.GET("/pictures/:url", controller.Get_picture)
-	
+
 	// ENDPOINT WEB (no token)
 	e.POST("/admins", admin.CreateAdmin)
 	e.GET("/admins", admin.GetAdmins)
 	e.POST("/admins/login", admin.LoginAdmin)
-	
+
 	// ENDPOINT MOBILE (no token)
 	e.POST("/users/register", user.Register)
 	e.POST("/users/login", user.Login)
@@ -38,7 +38,7 @@ func New() *echo.Echo {
 	// Protected route
 	eAuth := e.Group("/auth")
 	eAuth.Use(JWTMiddleware())
-	
+
 	// ENDPOINT WEB (with token)
 	// Article
 	eAuth.POST("/admins/articles/add", admin.CreateArticle)
@@ -54,14 +54,22 @@ func New() *echo.Echo {
 	eAuth.DELETE("/admins/products/:id", admin.DeleteProductByID)
 	eAuth.PUT("/admins/products/:id", admin.UpdateProductByID)
 	eAuth.GET("/admins/products/search", admin.GetProductsByKeyword)
-	
+
 	// Weather Management
 	eAuth.POST("/admins/weathers/add", admin.CreateWeather)
 	eAuth.GET("/admins/weathers", admin.GetWeathers)
 	eAuth.GET("/admins/weathers/:id/detail", admin.GetWeatherByID)
 	eAuth.PUT("/admins/weathers/:id", admin.UpdateWeatherByID)
 	eAuth.DELETE("/admins/weathers/:id", admin.DeleteWeatherByID)
-	
+
+	// Plant
+	eAuth.GET("/admins/plants/search", admin.GetPlantsByKeyword)
+	eAuth.GET("/admins/plants", admin.GetPlants)
+	eAuth.GET("/admins/plants/:id/detail", admin.GetPlantDetails)
+	eAuth.PUT("/admins/plants/:id/detail", admin.UpdatePlantDetails)
+	eAuth.DELETE("/admins/plants/:id/detail", admin.DeletePlantDetails)
+	eAuth.POST("/admins/plants/add", admin.CreatePlant)
+
 	// ENDPOINT MOBILE (with token)
 	// Recomendation
 	eAuth.GET("/users/products", user.GetProducts)

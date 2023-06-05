@@ -10,9 +10,9 @@ type Admin struct {
 	Name     string    `json:"admin_name"`
 	Email    string    `json:"admin_email" gorm:"unique"`
 	Password string    `json:"admin_password"`
-	Articles []Article `gorm:"foreignKey:AdminID"`
-	Products []Product `gorm:"foreignKey:AdminID"`
-	Weathers []Weather `gorm:"foreignKey:AdminID"`
+	Articles []Article `json:"-" gorm:"foreignKey:AdminID"`
+	Products []Product `json:"-" gorm:"foreignKey:AdminID"`
+	Weathers []Weather `json:"-" gorm:"foreignKey:AdminID"`
 	Plants   []Plant   `json:"-" gorm:"foreignKey:AdminID"`
 }
 
