@@ -26,4 +26,3 @@ jobs:
 
       - name: Push Docker image
         run: docker push widhofaisal/backend-golang:latest
-
