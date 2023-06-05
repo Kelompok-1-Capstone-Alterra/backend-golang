@@ -53,7 +53,8 @@ func New() *echo.Echo {
 	eAuth.GET("/admins/products/:id/detail", admin.GetProductByID)
 	eAuth.DELETE("/admins/products/:id", admin.DeleteProductByID)
 	eAuth.PUT("/admins/products/:id", admin.UpdateProductByID)
-	eAuth.GET("/admins/products/search", admin.GetProductsByKeyword)
+	eAuth.GET("/admins/products/search", admin.GetProductsByName)
+
 
 	// Weather Management
 	eAuth.POST("/admins/weathers/add", admin.CreateWeather)

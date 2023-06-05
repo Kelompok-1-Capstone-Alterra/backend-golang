@@ -14,13 +14,23 @@ func CreateArticle(c echo.Context) error {
 	article := model.Article{}
 
 	c.Bind(&article)
+	if err := config.DB.Save(&article).Error; err != nil {
+		log.Print(color.RedString(err.Error()))
+		return c.JSON(http.StatusBadRequest, map[string]interface{}{
+			"status":  400,
+			"message": "bad request",
+		})
+	}
 
 	admin := model.Admin{}
 	// Get user by id
 	// If user not found, return error
 	if err := config.DB.First(&admin, article.AdminID).Error; err != nil {
 		log.Print(color.RedString(err.Error()))
-		return echo.NewHTTPError(http.StatusInternalServerError)
+		return c.JSON(http.StatusInternalServerError, map[string]interface{}{
+			"status":  500,
+			"message": "internal server error",
+		})
 	}
 
 	// set admin id to article
@@ -29,8 +39,14 @@ func CreateArticle(c echo.Context) error {
 	// save article to database
 	if err := config.DB.Save(&article).Error; err != nil {
 		log.Print(color.RedString(err.Error()))
-		return echo.NewHTTPError(http.StatusInternalServerError)
+		return c.JSON(http.StatusInternalServerError, map[string]interface{}{
+			"status":  500,
+			"message": "internal server error",
+		})
 	}
+
+	// Populate Pictures field for each article
+	config.DB.Model(&article).Association("Pictures").Find(&article.Pictures)
 
 	return c.JSON(http.StatusOK, map[string]interface{}{
 		"message": "success",
