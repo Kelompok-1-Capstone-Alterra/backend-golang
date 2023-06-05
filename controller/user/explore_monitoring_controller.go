@@ -282,9 +282,61 @@ func Search_available_plants(c echo.Context) error {
 		})
 	}
 
+	var responses []map[string]interface{}
+	for _, plant := range plants {
+		config.DB.Model(&plant).Association("Pictures").Find(&plant.Pictures)
+
+		var url string
+		for _, picture := range plant.Pictures {
+			url = picture.URL
+			break
+		}
+
+		response := map[string]interface{}{
+			"plant_id": plant.ID,
+			"picture":  url,
+			"name":     plant.Name,
+			"latin":    plant.Latin,
+		}
+		responses = append(responses, response)
+	}
+
 	return c.JSON(http.StatusOK, map[string]interface{}{
 		"status":  200,
 		"message": "success to search available plants by name",
-		"data":    plants,
+		"data":    responses,
+	})
+}
+
+// EXPLORE & MONITORING (Menu Home) - [Endpoint 7 : Get plant detail]
+func Get_plant_detail(c echo.Context) error {
+	plant_id, _ := strconv.Atoi(c.Param("plant_id"))
+	var plant model.Plant
+
+	if err_first := config.DB.First(&plant, plant_id).Error; err_first != nil {
+		log.Print(color.RedString(err_first.Error()))
+		return c.JSON(http.StatusBadRequest, map[string]interface{}{
+			"status":  404,
+			"message": "not found",
+		})
+	}
+
+	config.DB.Model(&plant).Association("Pictures").Find(&plant.Pictures)
+	var url string
+	for _, picture := range plant.Pictures {
+		url = picture.URL
+		break
+	}
+
+	return c.JSON(http.StatusOK, map[string]interface{}{
+		"status":  200,
+		"message": "success to get plant detail",
+		"data": map[string]interface{}{
+			"plant_id":    plant.ID,
+			"picture":     url,
+			"name":        plant.Name,
+			"latin":       plant.Latin,
+			"description": plant.Description,
+		},
 	})
 }
