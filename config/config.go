@@ -29,7 +29,7 @@ type Config struct {
 }
 
 func InitDB() {
-	config_rds := Config{
+	config := Config{
 		DB_Username: os.Getenv("DB_USERNAME"),
 		DB_Password: os.Getenv("DB_PASSWORD"),
 		DB_Port:     os.Getenv("DB_PORT"),
@@ -38,11 +38,11 @@ func InitDB() {
 	}
 
 	connectionString := fmt.Sprintf("%s:%s@tcp(%s:%s)/%s?charset=utf8mb4&parseTime=True&loc=Local",
-		config_rds.DB_Username,
-		config_rds.DB_Password,
-		config_rds.DB_Host,
-		config_rds.DB_Port,
-		config_rds.DB_Name,
+		config.DB_Username,
+		config.DB_Password,
+		config.DB_Host,
+		config.DB_Port,
+		config.DB_Name,
 	)
 
 	var err error
@@ -61,5 +61,13 @@ func InitialMigration() {
 		&model.Picture{},
 		&model.Weather{},
 		&model.InfoWeather{},
+		&model.Plant{},
+		&model.WateringInfo{},
+		&model.TemperatureInfo{},
+		&model.FertilizingInfo{},
+		&model.PlantingInfo{},
+		&model.ContainerInfo{},
+		&model.GroundInfo{},
+		&model.MyPlant{},
 	)
 }

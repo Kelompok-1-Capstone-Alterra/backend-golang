@@ -17,6 +17,7 @@ import (
 	"github.com/labstack/echo/v4"
 )
 
+// EXPLORE & MONITORING (Menu Home) - [Endpoint 1 : Get weather]
 func Get_weather(c echo.Context) error {
 	var coordinate model.Coordinate
 
@@ -131,6 +132,7 @@ func Get_weather(c echo.Context) error {
 	})
 }
 
+// HERLPER FUNCTION
 func save_weather_info(location, temperature, label string, user_id uint) bool {
 	var infoWeather model.InfoWeather
 	err_select := config.DB.Where("user_id=?", user_id).First(&infoWeather).Error
@@ -162,6 +164,7 @@ func save_weather_info(location, temperature, label string, user_id uint) bool {
 	return true
 }
 
+// EXPLORE & MONITORING (Menu Home) - [Endpoint 2 : Get weather article]
 func Get_weather_article(c echo.Context) error {
 	var weatherArticle model.Weather
 	id, _ := strconv.Atoi(c.Param("label_id"))
@@ -176,7 +179,7 @@ func Get_weather_article(c echo.Context) error {
 	}
 
 	var picture model.Picture
-	if err_first2:= config.DB.Where("weather_id=?",weatherArticle.ID).First(&picture).Error; err_first2!=nil{
+	if err_first2 := config.DB.Where("weather_id=?", weatherArticle.ID).First(&picture).Error; err_first2 != nil {
 		log.Print(color.RedString(err_first2.Error()))
 		return c.JSON(http.StatusBadRequest, map[string]interface{}{
 			"status":  404,
@@ -185,11 +188,12 @@ func Get_weather_article(c echo.Context) error {
 	}
 
 	result := map[string]interface{}{
-		"label_id": id,
-		"label":    label,
-		"picture":  picture.URL,
-		"title":    weatherArticle.Title,
-		"desc":     weatherArticle.Description,
+		"label_id":   id,
+		"label":      label,
+		"article_id": weatherArticle.ID,
+		"picture":    picture.URL,
+		"title":      weatherArticle.Title,
+		"desc":       weatherArticle.Description,
 	}
 
 	return c.JSON(http.StatusOK, map[string]interface{}{
@@ -199,6 +203,7 @@ func Get_weather_article(c echo.Context) error {
 	})
 }
 
+// HELPER FUNCTION
 func get_label_by_id(id int) string {
 	switch id {
 	case 1:
@@ -214,6 +219,7 @@ func get_label_by_id(id int) string {
 	}
 }
 
+// HELPER FUNCTION
 func StringToUintPointer(value string) (*uint, error) {
 	intValue, err := strconv.ParseUint(value, 10, 0)
 	if err != nil {
@@ -222,4 +228,220 @@ func StringToUintPointer(value string) (*uint, error) {
 
 	uintValue := uint(intValue)
 	return &uintValue, nil
+}
+
+// EXPLORE & MONITORING (Menu Home) - [Endpoint 5 : Get available plants]
+func Get_available_plants(c echo.Context) error {
+	var plants []model.Plant
+
+	if err_find := config.DB.Find(&plants).Error; err_find != nil {
+		log.Print(color.RedString(err_find.Error()))
+		return c.JSON(http.StatusBadRequest, map[string]interface{}{
+			"status":  404,
+			"message": "not found",
+		})
+	}
+
+	var responses []map[string]interface{}
+	for _, plant := range plants {
+		config.DB.Model(&plant).Association("Pictures").Find(&plant.Pictures)
+
+		var url string
+		for _, picture := range plant.Pictures {
+			url = picture.URL
+			break
+		}
+
+		response := map[string]interface{}{
+			"plant_id": plant.ID,
+			"pictures": url,
+			"name":     plant.Name,
+			"latin":    plant.Latin,
+		}
+		responses = append(responses, response)
+	}
+
+	return c.JSON(http.StatusOK, map[string]interface{}{
+		"status":  200,
+		"message": "success to get list of plants",
+		"data":    responses,
+	})
+}
+
+// EXPLORE & MONITORING (Menu Home) - [Endpoint 6 : Search available plants]
+func Search_available_plants(c echo.Context) error {
+	name := c.FormValue("name")
+	name = "%" + name + "%"
+	var plants []model.Plant
+
+	if err_find := config.DB.Where("name LIKE ?", name).Find(&plants).Error; err_find != nil {
+		log.Print(color.RedString(err_find.Error()))
+		return c.JSON(http.StatusBadRequest, map[string]interface{}{
+			"status":  404,
+			"message": "not found",
+		})
+	}
+
+	var responses []map[string]interface{}
+	for _, plant := range plants {
+		config.DB.Model(&plant).Association("Pictures").Find(&plant.Pictures)
+
+		var url string
+		for _, picture := range plant.Pictures {
+			url = picture.URL
+			break
+		}
+
+		response := map[string]interface{}{
+			"plant_id": plant.ID,
+			"picture":  url,
+			"name":     plant.Name,
+			"latin":    plant.Latin,
+		}
+		responses = append(responses, response)
+	}
+
+	return c.JSON(http.StatusOK, map[string]interface{}{
+		"status":  200,
+		"message": "success to search available plants by name",
+		"data":    responses,
+	})
+}
+
+// EXPLORE & MONITORING (Menu Home) - [Endpoint 7 : Get plant detail]
+func Get_plant_detail(c echo.Context) error {
+	plant_id, _ := strconv.Atoi(c.Param("plant_id"))
+	var plant model.Plant
+
+	if err_first := config.DB.First(&plant, plant_id).Error; err_first != nil {
+		log.Print(color.RedString(err_first.Error()))
+		return c.JSON(http.StatusBadRequest, map[string]interface{}{
+			"status":  404,
+			"message": "not found",
+		})
+	}
+
+	config.DB.Model(&plant).Association("Pictures").Find(&plant.Pictures)
+	var url string
+	for _, picture := range plant.Pictures {
+		url = picture.URL
+		break
+	}
+
+	return c.JSON(http.StatusOK, map[string]interface{}{
+		"status":  200,
+		"message": "success to get plant detail",
+		"data": map[string]interface{}{
+			"plant_id":    plant.ID,
+			"picture":     url,
+			"name":        plant.Name,
+			"latin":       plant.Latin,
+			"description": plant.Description,
+		},
+	})
+}
+
+// EXPLORE & MONITORING (Menu Home) - [Endpoint 8 : Get plant location]
+func Get_plant_location(c echo.Context) error {
+	plant_id, _ := strconv.Atoi(c.Param("plant_id"))
+
+	var planting_info model.PlantingInfo
+	if err_first := config.DB.Where("plant_id=?", plant_id).First(&planting_info).Error; err_first != nil {
+		log.Print(color.RedString(err_first.Error()))
+		return c.JSON(http.StatusBadRequest, map[string]interface{}{
+			"status":  404,
+			"message": "not found",
+		})
+	}
+
+	var container_info model.ContainerInfo
+	config.DB.Model(&container_info).Association("Pictures").Find(&container_info.Pictures)
+
+	var url_container string
+	for _, picture := range container_info.Pictures {
+		url_container = picture.URL
+		break
+	}
+
+	if err_container := config.DB.Where("planting_info_id=?", planting_info.ID).First(&container_info).Error; err_container != nil {
+		log.Print(color.RedString(err_container.Error()))
+		return c.JSON(http.StatusBadRequest, map[string]interface{}{
+			"status":  404,
+			"message": "not found",
+		})
+	}
+
+	var ground_info model.GroundInfo
+	config.DB.Model(&ground_info).Association("Pictures").Find(&ground_info.Pictures)
+
+	var url_ground string
+	for _, picture := range container_info.Pictures {
+		url_ground = picture.URL
+		break
+	}
+
+	if err_ground := config.DB.Where("planting_info_id=?", planting_info.ID).First(&ground_info).Error; err_ground != nil {
+		log.Print(color.RedString(err_ground.Error()))
+		return c.JSON(http.StatusBadRequest, map[string]interface{}{
+			"status":  404,
+			"message": "not found",
+		})
+	}
+
+	data := []map[string]interface{}{
+		{
+			"container":           planting_info.Container,
+			"planting_article_id": container_info.ID,
+			"picture":             url_container,
+		},
+		{
+			"ground":              planting_info.Ground,
+			"planting_article_id": ground_info.ID,
+			"picture":             url_ground,
+		},
+	}
+
+	return c.JSON(http.StatusOK, map[string]interface{}{
+		"status":  200,
+		"message": "success to get planting location",
+		"data":    data,
+	})
+}
+
+// EXPLORE & MONITORING (Menu Home) - [Endpoint 8 : Get plant location]
+func Add_my_plant(c echo.Context) error {
+	plant_id, _ := strconv.Atoi(c.Param("plant_id"))
+	var myplant model.MyPlant
+
+	if err_bind := c.Bind(&myplant); err_bind != nil {
+		log.Print(color.RedString(err_bind.Error()))
+		return c.JSON(http.StatusBadRequest, map[string]interface{}{
+			"status":  400,
+			"message": "bad request",
+		})
+	}
+
+	token := strings.TrimPrefix(c.Request().Header.Get("Authorization"), "Bearer ")
+	user_id, _ := utils.GetUserIDFromToken(token)
+
+	myplant.UserID = user_id
+	myplant.PlantID = uint(plant_id)
+	myplant.IsStartPlanting = false
+
+	if err_save := config.DB.Save(&myplant).Error; err_save != nil {
+		return c.JSON(http.StatusInternalServerError, map[string]interface{}{
+			"status":  500,
+			"message": "internal server error",
+		})
+	}
+
+	return c.JSON(http.StatusOK, map[string]interface{}{
+		"status":  200,
+		"message": "success to add user plant",
+		"data": map[string]interface{}{
+			"myplant_id": myplant.ID,
+			"plant_id":   plant_id,
+		},
+	})
+
 }

@@ -14,6 +14,8 @@ func New() *echo.Echo {
 
 	e := echo.New()
 
+	e.Use(mid.CORS())
+
 	e.Use(middleware.MiddlewareLogging)
 	e.HTTPErrorHandler = middleware.ErrorHandler
 
@@ -30,8 +32,8 @@ func New() *echo.Echo {
 	// ENDPOINT MOBILE (no token)
 	e.POST("/users/register", user.Register)
 	e.POST("/users/login", user.Login)
-	e.PUT("/users/:id/password", user.Reset_password)
-	e.POST("/users/emails/check", user.Check_email_valid)
+	e.PUT("/users/:user_id/password", user.Reset_password)
+	e.GET("/users/emails/check", user.Check_email_valid)
 
 	// Protected route
 	eAuth := e.Group("/auth")
@@ -53,6 +55,7 @@ func New() *echo.Echo {
 	eAuth.PUT("/admins/products/:id", admin.UpdateProductByID)
 	eAuth.GET("/admins/products/search", admin.GetProductsByName)
 
+
 	// Weather Management
 	eAuth.POST("/admins/weathers/add", admin.CreateWeather)
 	eAuth.GET("/admins/weathers", admin.GetWeathers)
@@ -60,9 +63,30 @@ func New() *echo.Echo {
 	eAuth.PUT("/admins/weathers/:id", admin.UpdateWeatherByID)
 	eAuth.DELETE("/admins/weathers/:id", admin.DeleteWeatherByID)
 
+	// Plant
+	eAuth.GET("/admins/plants/search", admin.GetPlantsByKeyword)
+	eAuth.GET("/admins/plants", admin.GetPlants)
+	eAuth.GET("/admins/plants/:id/detail", admin.GetPlantDetails)
+	eAuth.PUT("/admins/plants/:id/detail", admin.UpdatePlantDetails)
+	eAuth.DELETE("/admins/plants/:id/detail", admin.DeletePlantDetails)
+	eAuth.POST("/admins/plants/add", admin.CreatePlant)
+
 	// ENDPOINT MOBILE (with token)
+	// Recomendation
+	eAuth.GET("/users/products", user.GetProducts)
+	eAuth.GET("/users/products/search", user.GetProductsByName)
+	eAuth.GET("/users/products/:category", user.GetProductsByCategory)
+	eAuth.GET("/users/products/:category/search", user.GetProductsByCategoryAndName)
+	eAuth.GET("/users/products/:id/detail", user.GetProductByID)
+
+	// Explore & Monitoring
 	eAuth.GET("/users/weather", user.Get_weather)
 	eAuth.GET("/users/weather/:label_id", user.Get_weather_article)
+	eAuth.GET("/plants", user.Get_available_plants)
+	eAuth.GET("/plants/search", user.Search_available_plants)
+	eAuth.GET("/plants/:plant_id", user.Get_plant_detail)
+	eAuth.GET("/plants/:plant_id/location", user.Get_plant_location)
+	eAuth.POST("/plants/:plant_id", user.Add_my_plant)
 
 	return e
 }
