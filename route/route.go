@@ -13,7 +13,7 @@ import (
 func New() *echo.Echo {
 
 	e := echo.New()
-	
+
 	e.Use(mid.CORS())
 
 	e.Use(middleware.MiddlewareLogging)
@@ -78,9 +78,14 @@ func New() *echo.Echo {
 	eAuth.GET("/users/products/:category/search", user.GetProductsByCategoryAndName)
 	eAuth.GET("/users/products/:id/detail", user.GetProductByID)
 
-  // Explore & Monitoring
+	// Explore & Monitoring
 	eAuth.GET("/users/weather", user.Get_weather)
 	eAuth.GET("/users/weather/:label_id", user.Get_weather_article)
+	eAuth.GET("/plants", user.Get_available_plants)
+	eAuth.GET("/plants/search", user.Search_available_plants)
+	eAuth.GET("/plants/:plant_id", user.Get_plant_detail)
+	eAuth.GET("/plants/:plant_id/location", user.Get_plant_location)
+	eAuth.POST("/plants/:plant_id", user.Add_my_plant)
 
 	return e
 }

@@ -65,6 +65,7 @@ type Plant struct {
 	TemperatureInfo TemperatureInfo `json:"temperature_info" gorm:"foreignKey:PlantID"`
 	FertilizingInfo FertilizingInfo `json:"fertilizing_info" gorm:"foreignKey:PlantID"`
 	PlantingInfo    PlantingInfo    `json:"planting_info" gorm:"foreignKey:PlantID"`
+	MyPlant         MyPlant         `json:"my_plant" gorm:"foreignKey:PlantID"`
 	AdminID         uint            `json:"-"`
 }
 
