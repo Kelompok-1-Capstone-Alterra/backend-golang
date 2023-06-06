@@ -451,6 +451,9 @@ func GetPlantingArticle(c echo.Context) error {
 	location := c.Param("location")
 	plantID := c.Param("plant_id")
 
+	// make location to lowercase
+	location = strings.ToLower(location)
+
 	// check if plant id is valid
 	plantIDUint, err := StringToUintPointer(plantID)
 	if err != nil {
