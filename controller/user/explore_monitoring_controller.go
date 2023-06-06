@@ -533,3 +533,67 @@ func GetPlantingArticle(c echo.Context) error {
 		"message": "bad request",
 	})
 }
+
+func GetFertilizingArticle(c echo.Context) error {
+	plantID := c.Param("plant_id")
+
+	// check if plant id is valid
+	plantIDUint, err := StringToUintPointer(plantID)
+	if err != nil {
+		log.Print(color.RedString(err.Error()))
+		return c.JSON(http.StatusBadRequest, map[string]interface{}{
+			"status":  400,
+			"message": "bad request",
+		})
+	}
+
+	var plant model.Plant
+	if err_first := config.DB.First(&plant, plantIDUint).Error; err_first != nil {
+		log.Print(color.RedString(err_first.Error()))
+		return c.JSON(http.StatusBadRequest, map[string]interface{}{
+			"status":  404,
+			"message": "not found",
+		})
+	}
+
+	var fertilizingInfo model.FertilizingInfo
+	if err_first := config.DB.Where("plant_id=?", plantIDUint).First(&fertilizingInfo).Error; err_first != nil {
+		log.Print(color.RedString(err_first.Error()))
+		return c.JSON(http.StatusBadRequest, map[string]interface{}{
+			"status":  404,
+			"message": "not found",
+		})
+	}
+
+	// get the picture from picture by fertilizing info id
+	var picture model.Picture
+	if err_first := config.DB.Where("fertilizing_info_id=?", fertilizingInfo.ID).First(&picture).Error; err_first != nil {
+		log.Print(color.RedString(err_first.Error()))
+		return c.JSON(http.StatusBadRequest, map[string]interface{}{
+			"status":  404,
+			"message": "not found",
+		})
+	}
+
+	// get products with fertilizing category
+	var products []model.Product
+	if err_find := config.DB.Where("category=?", "fertilizing").Find(&products).Error; err_find != nil {
+		log.Print(color.RedString(err_find.Error()))
+		return c.JSON(http.StatusBadRequest, map[string]interface{}{
+			"status":  404,
+			"message": "not found",
+		})
+	}
+
+	return c.JSON(http.StatusOK, map[string]interface{}{
+		"status":  200,
+		"message": "success to get fertilizing article",
+		"data": map[string]interface{}{
+			"plant_id":    plant.ID,
+			"name":        plant.Name,
+			"picture":     picture.URL,
+			"description": fertilizingInfo.Description,
+		},
+		"products": GetRelatedProducts("fertilizing"),
+	})
+}
