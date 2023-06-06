@@ -575,25 +575,15 @@ func GetFertilizingArticle(c echo.Context) error {
 		})
 	}
 
-	// get products with fertilizing category
-	var products []model.Product
-	if err_find := config.DB.Where("category=?", "fertilizing").Find(&products).Error; err_find != nil {
-		log.Print(color.RedString(err_find.Error()))
-		return c.JSON(http.StatusBadRequest, map[string]interface{}{
-			"status":  404,
-			"message": "not found",
-		})
-	}
-
 	return c.JSON(http.StatusOK, map[string]interface{}{
 		"status":  200,
 		"message": "success to get fertilizing article",
 		"data": map[string]interface{}{
-			"plant_id":    plant.ID,
-			"name":        plant.Name,
-			"picture":     picture.URL,
-			"description": fertilizingInfo.Description,
+			"plant_id":               plant.ID,
+			"name":                   plant.Name,
+			"picture":                picture.URL,
+			"description":            fertilizingInfo.Description,
+			"products_recomendation": GetRelatedProducts("pupuk"),
 		},
-		"products": GetRelatedProducts("fertilizing"),
 	})
 }
