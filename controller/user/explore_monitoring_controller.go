@@ -452,7 +452,18 @@ func Start_planting(c echo.Context) error {
 	myplant_id, _ := strconv.Atoi(c.Param("myplant_id"))
 	var myplant model.MyPlant
 
+	// VALIDATION1
+	var watering_check model.Watering
+	if err_first := config.DB.Where("my_plant_id=? AND week=?", myplant_id, 1).First(&watering_check).Error; err_first == nil {
+		log.Print(color.RedString(echo.ErrBadRequest.Error()), " is already start planting")
+		return c.JSON(http.StatusInternalServerError, map[string]interface{}{
+			"status":  400,
+			"message": "bad request",
+		})
+	}
+
 	if err_first := config.DB.First(&myplant, myplant_id).Error; err_first != nil {
+		log.Print(color.RedString(err_first.Error()))
 		return c.JSON(http.StatusNotFound, map[string]interface{}{
 			"status":  404,
 			"message": "not found",
@@ -468,25 +479,169 @@ func Start_planting(c echo.Context) error {
 		})
 	}
 
+	// START SET1 - myplant table : longitude(current), latitude(current), is_start_planting(true), is_start_planting(current date)
 	myplant.Longitude = myplant_binding.Longitude
 	myplant.Latitude = myplant_binding.Latitude
-	layout := "2-1-2006"
-	currentTime := time.Now()
-	currentDate := currentTime.Format(layout)
-
 	myplant.IsStartPlanting = true
-	myplant.StartPlantingDate, _ = time.Parse(layout, currentDate)
+	myplant.StartPlantingDate = time.Now()
 	myplant.Status = "planting"
 
-	if err_save := config.DB.Save(&myplant).Error; err_save != nil {
+	if err_save1 := config.DB.Save(&myplant).Error; err_save1 != nil {
+		log.Print(color.RedString(err_save1.Error()))
+		return c.JSON(http.StatusInternalServerError, map[string]interface{}{
+			"status":  500,
+			"message": "internal server error",
+		})
+	}
+	// END SET1
+
+	// START SET2 - watering table : all columns
+	watering := model.Watering{
+		MyPlantID: uint(myplant_id),
+		Week:      1,
+		Day1:      0,
+		Day2:      0,
+		Day3:      0,
+		Day4:      0,
+		Day5:      0,
+		Day6:      0,
+		Day7:      0,
+	}
+
+	watering.Week = 1
+	if err_save2 := config.DB.Save(&watering).Error; err_save2 != nil {
+		return c.JSON(http.StatusInternalServerError, map[string]interface{}{
+			"status":  500,
+			"message": "internal server error",
+		})
+	}
+	// END SET2
+
+	return c.JSON(http.StatusOK, map[string]interface{}{
+		"status":  200,
+		"message": "success to start planting",
+	})
+}
+
+// EXPLORE & MONITORING (Menu Home) - [Endpoint 17 : Get my plant overview]
+func Get_myplant_overview(c echo.Context) error {
+	myplant_id, _ := strconv.Atoi(c.Param("myplant_id"))
+	var myplant model.MyPlant
+
+	if err_first := config.DB.First(&myplant, myplant_id).Error; err_first != nil {
+		log.Print(color.RedString(err_first.Error()))
+		return c.JSON(http.StatusBadRequest, map[string]interface{}{
+			"status":  400,
+			"message": "bad request",
+		})
+	}
+
+	diff := time.Now().Sub(myplant.StartPlantingDate)
+
+	day := int(diff.Hours()/24) + 1
+	week := int(diff.Hours()/(24*7)) + 1
+	if day > 7 {
+		day = day % 7
+		var wateringCheck model.Watering
+		if err_first_check_watering := config.DB.Where("my_plant_id=? AND week=?", myplant_id, week).First(&wateringCheck).Error; err_first_check_watering != nil {
+			wateringCheck.MyPlantID = uint(myplant_id)
+			wateringCheck.Week = week
+			wateringCheck.Day1 = 0
+			wateringCheck.Day2 = 0
+			wateringCheck.Day3 = 0
+			wateringCheck.Day4 = 0
+			wateringCheck.Day5 = 0
+			wateringCheck.Day6 = 0
+			wateringCheck.Day7 = 0
+
+			if err_save2 := config.DB.Save(&wateringCheck).Error; err_save2 != nil {
+				return c.JSON(http.StatusInternalServerError, map[string]interface{}{
+					"status":  500,
+					"message": "internal server error",
+				})
+			}
+		}
+	}
+	fmt.Println(week, day)
+	// get plant fertilizing period
+
+	// START GET WATERING ------------------------------------------------------------------------------
+	// get watering period
+	var wateringInfo model.WateringInfo
+	if err_first2 := config.DB.Where("plant_id=?", myplant.PlantID).First(&wateringInfo).Error; err_first2 != nil {
+		log.Print(color.RedString(err_first2.Error()))
 		return c.JSON(http.StatusInternalServerError, map[string]interface{}{
 			"status":  500,
 			"message": "internal server error",
 		})
 	}
 
+	var watering model.Watering
+	if err_first4 := config.DB.Where("my_plant_id=? AND week=?", myplant_id, week).First(&watering).Error; err_first4 != nil {
+		log.Print(color.RedString(err_first4.Error()))
+		return c.JSON(http.StatusInternalServerError, map[string]interface{}{
+			"status":  500,
+			"message": "internal server error",
+		})
+	}
+	watering_history := []int{watering.Day1, watering.Day2, watering.Day3, watering.Day4, watering.Day5, watering.Day6, watering.Day7}
+
+	// get watering is_active
+	is_active_watering := true
+	fmt.Println(watering_history[day])
+	if watering_history[day-1] >= 2 {
+		is_active_watering = false
+	}
+
+	response_watering := map[string]interface{}{
+		"week":      watering.Week,
+		"day":       day,
+		"period":    wateringInfo.Period,
+		"is_active": is_active_watering,
+		"history":   watering_history,
+	}
+	// END GET WATERING --------------------------------------------------------------------------------------
+
+	// START GET FERTILIZING ---------------------------------------------------------------------------------
+	// get fertilizing period
+	var fertilizingInfo model.FertilizingInfo
+	if err_first3 := config.DB.Where("plant_id=?", myplant.PlantID).First(&fertilizingInfo).Error; err_first3 != nil {
+		log.Print(color.RedString(err_first3.Error()))
+		return c.JSON(http.StatusInternalServerError, map[string]interface{}{
+			"status":  500,
+			"message": "internal server error",
+		})
+	}
+
+	day_fertilizing := int(diff.Hours()/24) + 1
+	fmt.Println(day_fertilizing, fertilizingInfo.Period)
+	is_active_fertilizing := false
+	if week == 1 && day == 1 {
+		is_active_fertilizing = true
+	} else if day_fertilizing%fertilizingInfo.Period == 0 {
+		is_active_fertilizing = true
+	}
+
+	is_enabled_fertilizing := false
+	if is_active_fertilizing {
+		var fertilizing model.Fertilizing
+		if err_first_fertilizing := config.DB.Where("my_plant_id=? AND week=?", myplant_id, week).First(&fertilizing).Error; err_first_fertilizing != nil {
+			is_enabled_fertilizing = true
+		}
+	}
+
+	response_fertilizing := map[string]interface{}{
+		"is_active":  is_active_fertilizing,
+		"is_enabled": is_enabled_fertilizing,
+	}
+	// END GET FERTILIZING ----------------------------------------------------------------------------------
+
 	return c.JSON(http.StatusOK, map[string]interface{}{
 		"status":  200,
-		"message": "success to start planting",
+		"message": "success to get my plant overview",
+		"data": map[string]interface{}{
+			"watering":    response_watering,
+			"fertilizing": response_fertilizing,
+		},
 	})
 }
