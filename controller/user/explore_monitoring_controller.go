@@ -562,8 +562,6 @@ func Get_myplant_overview(c echo.Context) error {
 			}
 		}
 	}
-	fmt.Println(week, day)
-	// get plant fertilizing period
 
 	// START GET WATERING ------------------------------------------------------------------------------
 	// get watering period
@@ -588,7 +586,6 @@ func Get_myplant_overview(c echo.Context) error {
 
 	// get watering is_active
 	is_active_watering := true
-	fmt.Println(watering_history[day])
 	if watering_history[day-1] >= 2 {
 		is_active_watering = false
 	}
@@ -614,7 +611,6 @@ func Get_myplant_overview(c echo.Context) error {
 	}
 
 	day_fertilizing := int(diff.Hours()/24) + 1
-	fmt.Println(day_fertilizing, fertilizingInfo.Period)
 	is_active_fertilizing := false
 	if week == 1 && day == 1 {
 		is_active_fertilizing = true
