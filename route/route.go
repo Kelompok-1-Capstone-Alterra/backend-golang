@@ -90,6 +90,7 @@ func New() *echo.Echo {
 	eAuth.GET("/articles/planting/:plant_id/:location", user.GetPlantingArticle)
 	eAuth.GET("/articles/fertilizing/:plant_id", user.GetFertilizingArticle)
 	eAuth.GET("/articles/watering/:plant_id", user.GetWateringArticle)
+	eAuth.GET("/articles/temperature/:plant_id", user.GetTemperatureArticle)
 
 	return e
 }

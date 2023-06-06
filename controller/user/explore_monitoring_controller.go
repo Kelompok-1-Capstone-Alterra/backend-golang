@@ -640,3 +640,56 @@ func GetWateringArticle(c echo.Context) error {
 		},
 	})
 }
+
+func GetTemperatureArticle(c echo.Context) error {
+	plantID := c.Param("plant_id")
+
+	// check if plant id is valid
+	plantIDUint, err := StringToUintPointer(plantID)
+	if err != nil {
+		log.Print(color.RedString(err.Error()))
+		return c.JSON(http.StatusBadRequest, map[string]interface{}{
+			"status":  400,
+			"message": "bad request",
+		})
+	}
+
+	var plant model.Plant
+	if err_first := config.DB.First(&plant, plantIDUint).Error; err_first != nil {
+		log.Print(color.RedString(err_first.Error()))
+		return c.JSON(http.StatusBadRequest, map[string]interface{}{
+			"status":  404,
+			"message": "not found",
+		})
+	}
+
+	var temperatureInfo model.TemperatureInfo
+	if err_first := config.DB.Where("plant_id=?", plantIDUint).First(&temperatureInfo).Error; err_first != nil {
+		log.Print(color.RedString(err_first.Error()))
+		return c.JSON(http.StatusBadRequest, map[string]interface{}{
+			"status":  404,
+			"message": "not found",
+		})
+	}
+
+	// get the picture from picture by temperature info id
+	var picture model.Picture
+	if err_first := config.DB.Where("temperature_info_id=?", temperatureInfo.ID).First(&picture).Error; err_first != nil {
+		log.Print(color.RedString(err_first.Error()))
+		return c.JSON(http.StatusBadRequest, map[string]interface{}{
+			"status":  404,
+			"message": "not found",
+		})
+	}
+
+	return c.JSON(http.StatusOK, map[string]interface{}{
+		"status":  200,
+		"message": "success to get temperature article",
+		"data": map[string]interface{}{
+			"plant_id":    plant.ID,
+			"name":        plant.Name,
+			"picture":     picture.URL,
+			"description": temperatureInfo.Description,
+		},
+	})
+}
