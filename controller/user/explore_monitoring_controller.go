@@ -604,7 +604,7 @@ func GetWateringArticle(c echo.Context) error {
 	var plant model.Plant
 	if err_first := config.DB.First(&plant, plantIDUint).Error; err_first != nil {
 		log.Print(color.RedString(err_first.Error()))
-		return c.JSON(http.StatusBadRequest, map[string]interface{}{
+		return c.JSON(http.StatusNotFound, map[string]interface{}{
 			"status":  404,
 			"message": "not found",
 		})
@@ -613,7 +613,7 @@ func GetWateringArticle(c echo.Context) error {
 	var wateringInfo model.WateringInfo
 	if err_first := config.DB.Where("plant_id=?", plantIDUint).First(&wateringInfo).Error; err_first != nil {
 		log.Print(color.RedString(err_first.Error()))
-		return c.JSON(http.StatusBadRequest, map[string]interface{}{
+		return c.JSON(http.StatusNotFound, map[string]interface{}{
 			"status":  404,
 			"message": "not found",
 		})
@@ -623,7 +623,7 @@ func GetWateringArticle(c echo.Context) error {
 	var picture model.Picture
 	if err_first := config.DB.Where("watering_info_id=?", wateringInfo.ID).First(&picture).Error; err_first != nil {
 		log.Print(color.RedString(err_first.Error()))
-		return c.JSON(http.StatusBadRequest, map[string]interface{}{
+		return c.JSON(http.StatusNotFound, map[string]interface{}{
 			"status":  404,
 			"message": "not found",
 		})
@@ -657,7 +657,7 @@ func GetTemperatureArticle(c echo.Context) error {
 	var plant model.Plant
 	if err_first := config.DB.First(&plant, plantIDUint).Error; err_first != nil {
 		log.Print(color.RedString(err_first.Error()))
-		return c.JSON(http.StatusBadRequest, map[string]interface{}{
+		return c.JSON(http.StatusNotFound, map[string]interface{}{
 			"status":  404,
 			"message": "not found",
 		})
@@ -666,7 +666,7 @@ func GetTemperatureArticle(c echo.Context) error {
 	var temperatureInfo model.TemperatureInfo
 	if err_first := config.DB.Where("plant_id=?", plantIDUint).First(&temperatureInfo).Error; err_first != nil {
 		log.Print(color.RedString(err_first.Error()))
-		return c.JSON(http.StatusBadRequest, map[string]interface{}{
+		return c.JSON(http.StatusNotFound, map[string]interface{}{
 			"status":  404,
 			"message": "not found",
 		})
@@ -676,7 +676,7 @@ func GetTemperatureArticle(c echo.Context) error {
 	var picture model.Picture
 	if err_first := config.DB.Where("temperature_info_id=?", temperatureInfo.ID).First(&picture).Error; err_first != nil {
 		log.Print(color.RedString(err_first.Error()))
-		return c.JSON(http.StatusBadRequest, map[string]interface{}{
+		return c.JSON(http.StatusNotFound, map[string]interface{}{
 			"status":  404,
 			"message": "not found",
 		})
