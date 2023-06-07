@@ -40,6 +40,8 @@ func New() *echo.Echo {
 	eAuth.Use(JWTMiddleware())
 
 	// ENDPOINT WEB (with token)
+	// Landing Page
+	eAuth.GET("/admins/overview", admin.GetOverview)
 	// Article
 	eAuth.POST("/admins/articles/add", admin.CreateArticle)
 	eAuth.GET("/admins/articles", admin.GetArticles)
@@ -54,7 +56,6 @@ func New() *echo.Echo {
 	eAuth.DELETE("/admins/products/:id", admin.DeleteProductByID)
 	eAuth.PUT("/admins/products/:id", admin.UpdateProductByID)
 	eAuth.GET("/admins/products/search", admin.GetProductsByName)
-
 
 	// Weather Management
 	eAuth.POST("/admins/weathers/add", admin.CreateWeather)

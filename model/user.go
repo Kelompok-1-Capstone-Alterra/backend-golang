@@ -65,3 +65,7 @@ type MyPlant struct {
 	Longitude         string    `json:"longitude"`
 	Latitude          string    `json:"latitude"`
 }
+
+type CountUserPlant struct {
+	Count int `json:"count"`
+}

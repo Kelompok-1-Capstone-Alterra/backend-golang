@@ -9,6 +9,7 @@ import (
 	"net/url"
 	"strconv"
 	"strings"
+	"time"
 
 	"github.com/agriplant/config"
 	"github.com/agriplant/model"
@@ -427,6 +428,9 @@ func Add_my_plant(c echo.Context) error {
 	myplant.UserID = user_id
 	myplant.PlantID = uint(plant_id)
 	myplant.IsStartPlanting = false
+
+	// Set the current time as the start_planting_date
+	myplant.StartPlantingDate = time.Now()
 
 	if err_save := config.DB.Save(&myplant).Error; err_save != nil {
 		return c.JSON(http.StatusInternalServerError, map[string]interface{}{

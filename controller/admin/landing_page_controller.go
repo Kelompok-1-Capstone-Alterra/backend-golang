@@ -94,3 +94,121 @@ func LoginAdmin(c echo.Context) error {
 		},
 	})
 }
+
+func GetOverview(c echo.Context) error {
+	// Count how many users are registered
+	var countUser int64
+	if err := config.DB.Model(&model.User{}).Count(&countUser).Error; err != nil {
+		log.Print(color.RedString(err.Error()))
+		return c.JSON(http.StatusInternalServerError, map[string]interface{}{
+			"status":  500,
+			"message": "internal server error",
+		})
+	}
+
+	// Count how many plants are created
+	var countPlant int64
+	if err := config.DB.Model(&model.Plant{}).Count(&countPlant).Error; err != nil {
+		log.Print(color.RedString(err.Error()))
+		return c.JSON(http.StatusInternalServerError, map[string]interface{}{
+			"status":  500,
+			"message": "internal server error",
+		})
+	}
+
+	// Count how many articles are created
+	var countArticle int64
+	if err := config.DB.Model(&model.Article{}).Count(&countArticle).Error; err != nil {
+		log.Print(color.RedString(err.Error()))
+		return c.JSON(http.StatusInternalServerError, map[string]interface{}{
+			"status":  500,
+			"message": "internal server error",
+		})
+	}
+
+	// Count how many products are created
+	var countProduct int64
+	if err := config.DB.Model(&model.Product{}).Count(&countProduct).Error; err != nil {
+		log.Print(color.RedString(err.Error()))
+		return c.JSON(http.StatusInternalServerError, map[string]interface{}{
+			"status":  500,
+			"message": "internal server error",
+		})
+	}
+
+	// Retrieve plant summaries
+	var plantSummaries []struct {
+		PlantID    uint
+		PlantName  string
+		TotalUsers int64
+	}
+	if err := config.DB.
+		Model(&model.MyPlant{}).
+		Select("plant_id, name AS plant_name, COUNT(DISTINCT user_id) AS total_users").
+		Group("plant_id, name").
+		Order("total_users DESC").
+		Find(&plantSummaries).Error; err != nil {
+		log.Print(color.RedString(err.Error()))
+		return c.JSON(http.StatusInternalServerError, map[string]interface{}{
+			"status":  500,
+			"message": "internal server error",
+		})
+	}
+
+	// Check if plantSummaries is empty
+	if len(plantSummaries) == 0 {
+		// Handle the case where there are no plant summaries
+		return c.JSON(http.StatusOK, map[string]interface{}{
+			"message": "Success get overview",
+			"data": map[string]interface{}{
+				"metrics_summary": map[string]interface{}{
+					"total_users":    countUser,
+					"total_plants":   countPlant,
+					"total_articles": countArticle,
+					"total_products": countProduct,
+				},
+				"weather_summary": map[string]interface{}{
+					"location":    "Jakarta",
+					"temperature": "30",
+					"weather":     "Rainy",
+				},
+				"plant_summary": map[string]interface{}{
+					"plant": map[string]interface{}{
+						"plant_name":  "",
+						"total_users": 0,
+					},
+				},
+			},
+		})
+	}
+
+	// Prepare the response data
+	response := map[string]interface{}{
+		"message": "Success get overview",
+		"data": map[string]interface{}{
+			"metrics_summary": map[string]interface{}{
+				"total_users":    countUser,
+				"total_plants":   countPlant,
+				"total_articles": countArticle,
+				"total_products": countProduct,
+			},
+			"weather_summary": map[string]interface{}{
+				"location":    "Jakarta",
+				"temperature": "30",
+				"weather":     "Rainy",
+			},
+			"plant_summary": map[string]interface{}{
+				"plant": map[string]interface{}{
+					"plant_name":  plantSummaries[0].PlantName,
+					"total_users": plantSummaries[0].TotalUsers,
+				},
+			},
+		},
+	}
+
+	return c.JSON(200, map[string]interface{}{
+		"status":  200,
+		"message": "Success get overview",
+		"data":    response,
+	})
+}
