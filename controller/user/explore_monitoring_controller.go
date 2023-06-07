@@ -467,7 +467,7 @@ func GetPlantingArticle(c echo.Context) error {
 	var plant model.Plant
 	if err_first := config.DB.First(&plant, plantIDUint).Error; err_first != nil {
 		log.Print(color.RedString(err_first.Error()))
-		return c.JSON(http.StatusBadRequest, map[string]interface{}{
+		return c.JSON(http.StatusNotFound, map[string]interface{}{
 			"status":  404,
 			"message": "not found",
 		})
@@ -476,7 +476,7 @@ func GetPlantingArticle(c echo.Context) error {
 	var plantingInfo model.PlantingInfo
 	if err_first := config.DB.Where("plant_id=?", plantIDUint).First(&plantingInfo).Error; err_first != nil {
 		log.Print(color.RedString(err_first.Error()))
-		return c.JSON(http.StatusBadRequest, map[string]interface{}{
+		return c.JSON(http.StatusNotFound, map[string]interface{}{
 			"status":  404,
 			"message": "not found",
 		})
@@ -486,7 +486,7 @@ func GetPlantingArticle(c echo.Context) error {
 	if location == "container" {
 		if err_first := config.DB.Where("planting_info_id=?", plantingInfo.ID).First(&plantingArticle).Error; err_first != nil {
 			log.Print(color.RedString(err_first.Error()))
-			return c.JSON(http.StatusBadRequest, map[string]interface{}{
+			return c.JSON(http.StatusNotFound, map[string]interface{}{
 				"status":  404,
 				"message": "not found",
 			})
@@ -508,7 +508,7 @@ func GetPlantingArticle(c echo.Context) error {
 	} else if location == "ground" {
 		if err_first := config.DB.Where("planting_info_id=?", plantingInfo.ID).First(&plantingArticle).Error; err_first != nil {
 			log.Print(color.RedString(err_first.Error()))
-			return c.JSON(http.StatusBadRequest, map[string]interface{}{
+			return c.JSON(http.StatusNotFound, map[string]interface{}{
 				"status":  404,
 				"message": "not found",
 			})
