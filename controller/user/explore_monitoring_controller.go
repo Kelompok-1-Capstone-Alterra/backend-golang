@@ -769,7 +769,6 @@ func Add_fertilizing(c echo.Context) error {
 		})
 	}
 
-	
 	// get fertilizing period
 	var fertilizingInfo model.FertilizingInfo
 	if err_first3 := config.DB.Where("plant_id=?", myplant.PlantID).First(&fertilizingInfo).Error; err_first3 != nil {
@@ -779,10 +778,10 @@ func Add_fertilizing(c echo.Context) error {
 			"message": "internal server error",
 		})
 	}
-	
+
 	diff := time.Now().Sub(myplant.StartPlantingDate)
 	day := int(diff.Hours()/24) + 1
-	
+
 	week := int(diff.Hours()/(24*7)) + 1
 	is_active_fertilizing := false
 	if week == 1 && day == 1 {
@@ -896,5 +895,47 @@ func Add_weekly_progress(c echo.Context) error {
 	return c.JSON(http.StatusOK, map[string]interface{}{
 		"status":  200,
 		"message": "success to add my plant weekly progress",
+	})
+}
+
+// EXPLORE & MONITORING (Menu Home) - [Endpoint 21 : Get all myplant weekly progress]
+func Get_all_myplant_weekly_progress(c echo.Context) error {
+	myplant_id, _ := strconv.Atoi(c.Param("myplant_id"))
+	var weeklyProgresses []model.WeeklyProgress
+
+	if err_find := config.DB.Where("my_plant_id=?", myplant_id).Find(&weeklyProgresses).Error; err_find != nil {
+		log.Print(color.RedString(err_find.Error()))
+		return c.JSON(http.StatusBadRequest, map[string]interface{}{
+			"status":  400,
+			"message": "bad request",
+		})
+	}
+
+	var responses []map[string]interface{}
+	for _, weeklyProgress := range weeklyProgresses {
+		config.DB.Model(&weeklyProgress).Association("Pictures").Find(&weeklyProgress.Pictures)
+
+		var url_ground string
+		for _, picture := range weeklyProgress.Pictures {
+			url_ground = picture.URL
+			break
+		}
+
+		response := map[string]interface{}{
+			"weekly_progress_id": weeklyProgress.ID,
+			"week":               weeklyProgress.Week,
+			"picture":            url_ground,
+			"from":               weeklyProgress.From,
+			"to":                 weeklyProgress.To,
+			"status":             weeklyProgress.Status,
+		}
+
+		responses = append(responses, response)
+	}
+
+	return c.JSON(http.StatusOK, map[string]interface{}{
+		"status":  200,
+		"message": "success to get all my plant weekly progress",
+		"data":    responses,
 	})
 }
