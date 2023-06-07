@@ -939,3 +939,88 @@ func Get_all_myplant_weekly_progress(c echo.Context) error {
 		"data":    responses,
 	})
 }
+
+// EXPLORE & MONITORING (Menu Home) - [Endpoint 22 : Get myplant weekly progress by id]
+func Get_my_plant_weekly_progress_by_id(c echo.Context) error {
+	myplant_id, _ := strconv.Atoi(c.Param("myplant_id"))
+	weekly_progress_id, _ := strconv.Atoi(c.Param("weekly_progress_id"))
+	var myPlant model.MyPlant
+	var weeklyProgress model.WeeklyProgress
+
+	// Get MyPlant
+	if err_first := config.DB.First(&myPlant, myplant_id).Error; err_first != nil {
+		log.Print(color.RedString(err_first.Error()))
+		return c.JSON(http.StatusBadRequest, map[string]interface{}{
+			"status":  400,
+			"message": "bad request",
+		})
+	}
+
+	// Get WeeklyProgress
+	if err_first2 := config.DB.First(&weeklyProgress, weekly_progress_id).Error; err_first2 != nil {
+		log.Print(color.RedString(err_first2.Error()))
+		return c.JSON(http.StatusBadRequest, map[string]interface{}{
+			"status":  400,
+			"message": "bad request",
+		})
+	}
+
+	var urls []string
+	config.DB.Model(&weeklyProgress).Association("Pictures").Find(&weeklyProgress.Pictures)
+	for _, picture := range weeklyProgress.Pictures {
+		urls = append(urls, picture.URL)
+	}
+
+	// Get Watering
+	var watering model.Watering
+	var response_watering map[string]interface{}
+	if err_first3 := config.DB.Where("my_plant_id=? AND week=?", myplant_id, weeklyProgress.Week).First(&watering).Error; err_first3 != nil {
+		log.Print(color.RedString(err_first3.Error(), "this is not planting weekly progress"))
+		response_watering = nil
+
+	} else {
+		wateringHistory := []int{watering.Day1, watering.Day2, watering.Day3, watering.Day4, watering.Day5, watering.Day6, watering.Day7}
+		response_watering = map[string]interface{}{
+			"watering_id": watering.ID,
+			"week": watering.Week,
+			"history": wateringHistory,
+		}
+	}
+	
+	// Get fertilizing
+	var fertilizing model.Fertilizing
+	var response_fertilizing map[string]interface{}
+	if err_first4 := config.DB.Where("my_plant_id=? AND week=?", myplant_id, weeklyProgress.Week).First(&fertilizing).Error; err_first4 != nil {
+		log.Print(color.RedString(err_first4.Error(), "this is not planting weekly progress"))
+		response_fertilizing = nil
+
+	} else {
+		response_fertilizing = map[string]interface{}{
+			"fertilizing_id": fertilizing.ID,
+			"week": watering.Week,
+			"history": 1,
+		}
+	}
+
+
+	response := map[string]interface{}{
+		"status": myPlant.Status,
+		"progress": map[string]interface{}{
+			"weekly":      weeklyProgress.ID,
+			"week":        weeklyProgress.Week,
+			"pictures":    urls,
+			"from":        weeklyProgress.From,
+			"to":          weeklyProgress.To,
+			"condition":   weeklyProgress.Condition,
+			"description": weeklyProgress.Description,
+		},
+		"watering":    response_watering,
+		"fertilizing": response_fertilizing,
+	}
+
+	return c.JSON(http.StatusOK, map[string]interface{}{
+		"status":  200,
+		"message": "success to get all my plant weekly progress",
+		"data":    response,
+	})
+}
