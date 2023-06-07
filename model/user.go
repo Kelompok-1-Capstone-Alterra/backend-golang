@@ -95,5 +95,5 @@ type Fertilizing struct {
 	gorm.Model
 	MyPlantID uint `json:"myplant_id"`
 	Week      int  `json:"week"`
-	Status    int  `json:"status"`
+	Status    bool `json:"status"`
 }

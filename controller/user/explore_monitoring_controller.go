@@ -726,3 +726,54 @@ func Add_watering(c echo.Context) error {
 		},
 	})
 }
+
+// EXPLORE & MONITORING (Menu Home) - [Endpoint 19 : Add fertilizing]
+func Add_fertilizing(c echo.Context) error {
+	myplant_id, _ := strconv.Atoi(c.Param("myplant_id"))
+	var fertilizing model.Fertilizing
+	var myplant model.MyPlant
+
+	if err_first := config.DB.First(&myplant, myplant_id).Error; err_first != nil {
+		log.Print(color.RedString(err_first.Error()))
+		return c.JSON(http.StatusNotFound, map[string]interface{}{
+			"status":  404,
+			"message": "not found",
+		})
+	}
+
+	diff := time.Now().Sub(myplant.StartPlantingDate)
+
+	day := int(diff.Hours()/24) + 1
+	if day > 7 {
+		day = day % 7
+	}
+	week := int(diff.Hours()/(24*7)) + 1
+
+	if err_first2 := config.DB.Where("my_plant_id=? AND week=?", myplant_id, week).First(&fertilizing).Error; err_first2 == nil {
+		log.Print(color.RedString("already fertilizing in this week"))
+		return c.JSON(http.StatusTooManyRequests, map[string]interface{}{
+			"status":  429,
+			"message": "too many request",
+		})
+	} else {
+		fertilizing.MyPlantID = uint(myplant_id)
+		fertilizing.Week = week
+		fertilizing.Status = true
+		if err_insert := config.DB.Save(&fertilizing).Error; err_insert != nil {
+			log.Print(color.RedString(err_insert.Error()))
+			return c.JSON(http.StatusInternalServerError, map[string]interface{}{
+				"status":  500,
+				"message": "internal server error",
+			})
+		}
+	}
+
+	return c.JSON(http.StatusOK, map[string]interface{}{
+		"status":  200,
+		"message": "success to add my plant watering",
+		"data": map[string]interface{}{
+			"week": week,
+			"day":  day,
+		},
+	})
+}
