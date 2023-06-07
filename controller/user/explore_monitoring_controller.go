@@ -550,7 +550,7 @@ func GetFertilizingArticle(c echo.Context) error {
 	var plant model.Plant
 	if err_first := config.DB.First(&plant, plantIDUint).Error; err_first != nil {
 		log.Print(color.RedString(err_first.Error()))
-		return c.JSON(http.StatusBadRequest, map[string]interface{}{
+		return c.JSON(http.StatusNotFound, map[string]interface{}{
 			"status":  404,
 			"message": "not found",
 		})
@@ -559,7 +559,7 @@ func GetFertilizingArticle(c echo.Context) error {
 	var fertilizingInfo model.FertilizingInfo
 	if err_first := config.DB.Where("plant_id=?", plantIDUint).First(&fertilizingInfo).Error; err_first != nil {
 		log.Print(color.RedString(err_first.Error()))
-		return c.JSON(http.StatusBadRequest, map[string]interface{}{
+		return c.JSON(http.StatusNotFound, map[string]interface{}{
 			"status":  404,
 			"message": "not found",
 		})
@@ -569,7 +569,7 @@ func GetFertilizingArticle(c echo.Context) error {
 	var picture model.Picture
 	if err_first := config.DB.Where("fertilizing_info_id=?", fertilizingInfo.ID).First(&picture).Error; err_first != nil {
 		log.Print(color.RedString(err_first.Error()))
-		return c.JSON(http.StatusBadRequest, map[string]interface{}{
+		return c.JSON(http.StatusNotFound, map[string]interface{}{
 			"status":  404,
 			"message": "not found",
 		})
