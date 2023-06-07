@@ -138,14 +138,14 @@ func GetOverview(c echo.Context) error {
 
 	// Retrieve plant summaries
 	var plantSummaries []struct {
-		PlantID    uint
 		PlantName  string
 		TotalUsers int64
 	}
 	if err := config.DB.
-		Model(&model.MyPlant{}).
-		Select("plant_id, name AS plant_name, COUNT(DISTINCT user_id) AS total_users").
-		Group("plant_id, name").
+		Table("my_plants").
+		Select("plants.name AS plant_name, COUNT(DISTINCT my_plants.user_id) AS total_users").
+		Joins("JOIN plants ON my_plants.plant_id = plants.id").
+		Group("my_plants.plant_id").
 		Order("total_users DESC").
 		Find(&plantSummaries).Error; err != nil {
 		log.Print(color.RedString(err.Error()))
@@ -155,58 +155,34 @@ func GetOverview(c echo.Context) error {
 		})
 	}
 
-	// Check if plantSummaries is empty
-	if len(plantSummaries) == 0 {
-		// Handle the case where there are no plant summaries
-		return c.JSON(http.StatusOK, map[string]interface{}{
-			"message": "Success get overview",
-			"data": map[string]interface{}{
-				"metrics_summary": map[string]interface{}{
-					"total_users":    countUser,
-					"total_plants":   countPlant,
-					"total_articles": countArticle,
-					"total_products": countProduct,
-				},
-				"weather_summary": map[string]interface{}{
-					"location":    "Jakarta",
-					"temperature": "30",
-					"weather":     "Rainy",
-				},
-				"plant_summary": map[string]interface{}{
-					"plant": map[string]interface{}{
-						"plant_name":  "",
-						"total_users": 0,
-					},
-				},
-			},
+	// Prepare the plant summaries
+	plantData := make([]map[string]interface{}, 0)
+	for _, plantSummary := range plantSummaries {
+		plantData = append(plantData, map[string]interface{}{
+			"plant_name":  plantSummary.PlantName,
+			"total_users": plantSummary.TotalUsers,
 		})
 	}
 
 	// Prepare the response data
 	response := map[string]interface{}{
-		"message": "Success get overview",
-		"data": map[string]interface{}{
-			"metrics_summary": map[string]interface{}{
-				"total_users":    countUser,
-				"total_plants":   countPlant,
-				"total_articles": countArticle,
-				"total_products": countProduct,
-			},
-			"weather_summary": map[string]interface{}{
-				"location":    "Jakarta",
-				"temperature": "30",
-				"weather":     "Rainy",
-			},
-			"plant_summary": map[string]interface{}{
-				"plant": map[string]interface{}{
-					"plant_name":  plantSummaries[0].PlantName,
-					"total_users": plantSummaries[0].TotalUsers,
-				},
-			},
+		"metrics_summary": map[string]interface{}{
+			"total_users":    countUser,
+			"total_plants":   countPlant,
+			"total_articles": countArticle,
+			"total_products": countProduct,
+		},
+		"weather_summary": map[string]interface{}{
+			"location":    "Jakarta",
+			"temperature": "30",
+			"weather":     "Rainy",
+		},
+		"plant_summary": map[string]interface{}{
+			"plant": plantData,
 		},
 	}
 
-	return c.JSON(200, map[string]interface{}{
+	return c.JSON(http.StatusOK, map[string]interface{}{
 		"status":  200,
 		"message": "Success get overview",
 		"data":    response,
