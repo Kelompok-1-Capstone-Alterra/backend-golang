@@ -641,3 +641,88 @@ func Get_myplant_overview(c echo.Context) error {
 		},
 	})
 }
+
+// EXPLORE & MONITORING (Menu Home) - [Endpoint 18 : Add watering]
+func Add_watering(c echo.Context) error {
+	myplant_id, _ := strconv.Atoi(c.Param("myplant_id"))
+	var myplant model.MyPlant
+
+	if err_first := config.DB.First(&myplant, myplant_id).Error; err_first != nil {
+		log.Print(color.RedString(err_first.Error()))
+		return c.JSON(http.StatusBadRequest, map[string]interface{}{
+			"status":  400,
+			"message": "bad request",
+		})
+	}
+
+	diff := time.Now().Sub(myplant.StartPlantingDate)
+
+	day := int(diff.Hours()/24) + 1
+	if day > 7 {
+		day = day % 7
+	}
+	week := int(diff.Hours()/(24*7)) + 1
+
+	var watering model.Watering
+	if err_first2 := config.DB.Where("my_plant_id=? AND week=?", myplant_id, week).First(&watering).Error; err_first2 != nil {
+		log.Print(color.RedString(err_first2.Error()))
+		return c.JSON(http.StatusInternalServerError, map[string]interface{}{
+			"status":  500,
+			"message": "internal server error",
+		})
+	}
+
+	watering_history := []int{watering.Day1, watering.Day2, watering.Day3, watering.Day4, watering.Day5, watering.Day6, watering.Day7}
+
+	var wateringInfo model.WateringInfo
+	if err_first2 := config.DB.Where("plant_id=?", myplant.PlantID).First(&wateringInfo).Error; err_first2 != nil {
+		log.Print(color.RedString(err_first2.Error()))
+		return c.JSON(http.StatusInternalServerError, map[string]interface{}{
+			"status":  500,
+			"message": "internal server error",
+		})
+	}
+
+	if watering_history[day-1] < wateringInfo.Period {
+
+		switch day {
+		case 1:
+			watering.Day1 = watering.Day1 + 1
+		case 2:
+			watering.Day2 = watering.Day2 + 1
+		case 3:
+			watering.Day3 = watering.Day3 + 1
+		case 4:
+			watering.Day4 = watering.Day4 + 1
+		case 5:
+			watering.Day5 = watering.Day5 + 1
+		case 6:
+			watering.Day6 = watering.Day6 + 1
+		case 7:
+			watering.Day7 = watering.Day7 + 1
+		}
+
+		if err_update := config.DB.Save(&watering).Error; err_update != nil {
+			log.Print(color.RedString(err_update.Error()))
+			return c.JSON(http.StatusInternalServerError, map[string]interface{}{
+				"status":  500,
+				"message": "internal server error",
+			})
+		}
+	} else {
+		log.Print(color.RedString("already do the watering according to the period"))
+		return c.JSON(http.StatusTooManyRequests, map[string]interface{}{
+			"status":  429,
+			"message": "too many request",
+		})
+	}
+
+	return c.JSON(http.StatusOK, map[string]interface{}{
+		"status":  200,
+		"message": "success to add my plant watering",
+		"data": map[string]interface{}{
+			"week": week,
+			"day":  day,
+		},
+	})
+}
