@@ -537,11 +537,14 @@ func Get_myplant_overview(c echo.Context) error {
 	}
 
 	diff := time.Now().Sub(myplant.StartPlantingDate)
-
 	day := int(diff.Hours()/24) + 1
 	week := int(diff.Hours()/(24*7)) + 1
-	if day > 7 {
+
+	if day > 6 {
 		day = day % 7
+		if day == 0 {
+			day = 7
+		}
 		var wateringCheck model.Watering
 		if err_first_check_watering := config.DB.Where("my_plant_id=? AND week=?", myplant_id, week).First(&wateringCheck).Error; err_first_check_watering != nil {
 			wateringCheck.MyPlantID = uint(myplant_id)
@@ -629,15 +632,37 @@ func Get_myplant_overview(c echo.Context) error {
 	response_fertilizing := map[string]interface{}{
 		"is_active":  is_active_fertilizing,
 		"is_enabled": is_enabled_fertilizing,
+		"period":     fertilizingInfo.Period,
 	}
 	// END GET FERTILIZING ----------------------------------------------------------------------------------
+
+	// START GET WEEKLY PROGRESS ---------------------------------------------------------------------------------
+	isActiveWeeklyProgress := false
+	isEnabledWeeklyProgress := false
+	var weeklyProgress model.WeeklyProgress
+
+	if day == 7 {
+		isActiveWeeklyProgress = true
+		if err_first4 := config.DB.Where("my_plant_id=? AND week=?", myplant_id, week).First(&weeklyProgress).Error; err_first4 != nil {
+			isEnabledWeeklyProgress = true
+		}
+	}
+
+	response_weekly_progress := map[string]interface{}{
+		"is_active":  isActiveWeeklyProgress,
+		"from":       myplant.StartPlantingDate,
+		"to":         myplant.StartPlantingDate.Add(168 * time.Hour),
+		"is_enabled": isEnabledWeeklyProgress,
+	}
+	// END GET WEEKLY PROGRESS ---------------------------------------------------------------------------------
 
 	return c.JSON(http.StatusOK, map[string]interface{}{
 		"status":  200,
 		"message": "success to get my plant overview",
 		"data": map[string]interface{}{
-			"watering":    response_watering,
-			"fertilizing": response_fertilizing,
+			"watering":        response_watering,
+			"fertilizing":     response_fertilizing,
+			"weekly_progress": response_weekly_progress,
 		},
 	})
 }
@@ -658,8 +683,11 @@ func Add_watering(c echo.Context) error {
 	diff := time.Now().Sub(myplant.StartPlantingDate)
 
 	day := int(diff.Hours()/24) + 1
-	if day > 7 {
+	if day > 6 {
 		day = day % 7
+		if day == 0 {
+			day = 7
+		}
 	}
 	week := int(diff.Hours()/(24*7)) + 1
 
@@ -741,39 +769,132 @@ func Add_fertilizing(c echo.Context) error {
 		})
 	}
 
-	diff := time.Now().Sub(myplant.StartPlantingDate)
-
-	day := int(diff.Hours()/24) + 1
-	if day > 7 {
-		day = day % 7
-	}
-	week := int(diff.Hours()/(24*7)) + 1
-
-	if err_first2 := config.DB.Where("my_plant_id=? AND week=?", myplant_id, week).First(&fertilizing).Error; err_first2 == nil {
-		log.Print(color.RedString("already fertilizing in this week"))
-		return c.JSON(http.StatusTooManyRequests, map[string]interface{}{
-			"status":  429,
-			"message": "too many request",
+	
+	// get fertilizing period
+	var fertilizingInfo model.FertilizingInfo
+	if err_first3 := config.DB.Where("plant_id=?", myplant.PlantID).First(&fertilizingInfo).Error; err_first3 != nil {
+		log.Print(color.RedString(err_first3.Error()))
+		return c.JSON(http.StatusInternalServerError, map[string]interface{}{
+			"status":  500,
+			"message": "internal server error",
 		})
-	} else {
-		fertilizing.MyPlantID = uint(myplant_id)
-		fertilizing.Week = week
-		fertilizing.Status = true
-		if err_insert := config.DB.Save(&fertilizing).Error; err_insert != nil {
-			log.Print(color.RedString(err_insert.Error()))
-			return c.JSON(http.StatusInternalServerError, map[string]interface{}{
-				"status":  500,
-				"message": "internal server error",
+	}
+	
+	diff := time.Now().Sub(myplant.StartPlantingDate)
+	day := int(diff.Hours()/24) + 1
+	
+	week := int(diff.Hours()/(24*7)) + 1
+	is_active_fertilizing := false
+	if week == 1 && day == 1 {
+		is_active_fertilizing = true
+	} else if day%fertilizingInfo.Period == 0 {
+		is_active_fertilizing = true
+	}
+
+	if is_active_fertilizing {
+		if err_first2 := config.DB.Where("my_plant_id=? AND week=?", myplant_id, week).First(&fertilizing).Error; err_first2 == nil {
+			log.Print(color.RedString("already fertilizing in this week"))
+			return c.JSON(http.StatusTooManyRequests, map[string]interface{}{
+				"status":  429,
+				"message": "too many request",
 			})
+		} else {
+			fertilizing.MyPlantID = uint(myplant_id)
+			fertilizing.Week = week
+			fertilizing.Status = true
+			if err_insert := config.DB.Save(&fertilizing).Error; err_insert != nil {
+				log.Print(color.RedString(err_insert.Error()))
+				return c.JSON(http.StatusInternalServerError, map[string]interface{}{
+					"status":  500,
+					"message": "internal server error",
+				})
+			}
 		}
+	} else {
+		log.Print(color.RedString("today is not fertilizing period"))
+		return c.JSON(http.StatusBadRequest, map[string]interface{}{
+			"status":  400,
+			"message": "bad request",
+		})
 	}
 
 	return c.JSON(http.StatusOK, map[string]interface{}{
 		"status":  200,
-		"message": "success to add my plant watering",
+		"message": "success to add my plant fertilizing",
 		"data": map[string]interface{}{
 			"week": week,
 			"day":  day,
 		},
+	})
+}
+
+// EXPLORE & MONITORING (Menu Home) - [Endpoint 20 : Add weekly progress]
+func Add_weekly_progress(c echo.Context) error {
+	myplant_id, _ := strconv.Atoi(c.Param("myplant_id"))
+	var myplant model.MyPlant
+
+	if err_first := config.DB.First(&myplant, myplant_id).Error; err_first != nil {
+		log.Print(color.RedString(err_first.Error()))
+		return c.JSON(http.StatusBadRequest, map[string]interface{}{
+			"status":  400,
+			"message": "bad request",
+		})
+	}
+
+	diff := time.Now().Sub(myplant.StartPlantingDate)
+
+	day := int(diff.Hours()/24) + 1
+	if day > 6 {
+		day = day % 7
+		if day == 0 {
+			day = 7
+		}
+	}
+	week := int(diff.Hours()/(24*7)) + 1
+
+	if day == 7 {
+		var weeklyProgress model.WeeklyProgress
+		if err_first2 := config.DB.Where("my_plant_id=? AND week=?", myplant_id, week).First(&weeklyProgress).Error; err_first2 == nil {
+			log.Print(color.RedString("already report weekly progress for this week"))
+			return c.JSON(http.StatusBadRequest, map[string]interface{}{
+				"status":  400,
+				"message": "bad request",
+			})
+
+		} else {
+			if err_bind := c.Bind(&weeklyProgress); err_bind != nil {
+				log.Print(color.RedString(err_bind.Error()))
+				return c.JSON(http.StatusBadRequest, map[string]interface{}{
+					"status":  400,
+					"message": "bad request",
+				})
+			}
+
+			weeklyProgress.MyPlantID = uint(myplant_id)
+			weeklyProgress.Week = week
+			weeklyProgress.From = myplant.StartPlantingDate
+			weeklyProgress.To = myplant.StartPlantingDate.Add(168 * time.Hour)
+			weeklyProgress.Status = "planting"
+
+			if err_insert := config.DB.Save(&weeklyProgress).Error; err_insert != nil {
+				log.Print(color.RedString(err_insert.Error()))
+				return c.JSON(http.StatusInternalServerError, map[string]interface{}{
+					"status":  500,
+					"message": "internal server error",
+				})
+			}
+
+		}
+	} else {
+		log.Print(color.RedString("already report weekly progress for this week"))
+		return c.JSON(http.StatusBadRequest, map[string]interface{}{
+			"status":  400,
+			"message": "bad request",
+		})
+	}
+
+	return c.JSON(http.StatusOK, map[string]interface{}{
+		"status":  200,
+		"message": "success to add my plant weekly progress",
 	})
 }

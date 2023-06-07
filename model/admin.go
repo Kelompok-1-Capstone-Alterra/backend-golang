@@ -1,6 +1,8 @@
 package model
 
 import (
+	"time"
+
 	"github.com/agriplant/utils"
 	"gorm.io/gorm"
 )
@@ -122,6 +124,18 @@ type GroundInfo struct {
 	PlantingInfoID uint      `json:"-"`
 }
 
+type WeeklyProgress struct {
+	gorm.Model
+	MyPlantID   uint      `json:"myplant_id"`
+	Week        int       `json:"week"`
+	From        time.Time `json:"from"`
+	To          time.Time `json:"to"`
+	Condition   string    `json:"condition"`
+	Description string    `json:"description"`
+	Pictures    []Picture `json:"weekly_pictures" gorm:"foreignKey:WeeklyProgressID"`
+	Status      string    `json:"status"`
+}
+
 type Picture struct {
 	gorm.Model        `json:"-"`
 	URL               string `json:"url"`
@@ -134,6 +148,7 @@ type Picture struct {
 	FertilizingInfoID *uint  `json:"-"`
 	ContainerInfoID   *uint  `json:"-"`
 	GroundInfoID      *uint  `json:"-"`
+	WeeklyProgressID  *uint  `json:"-"`
 }
 
 func (a *Admin) BeforeCreateAdmin(tx *gorm.DB) (err error) {

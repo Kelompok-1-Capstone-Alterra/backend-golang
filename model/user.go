@@ -66,18 +66,6 @@ type MyPlant struct {
 	Latitude          string    `json:"latitude"`
 }
 
-type WeeklyPorgress struct {
-	gorm.Model
-	MyPlantID   uint      `json:"myplant_id"`
-	Week        int       `json:"week"`
-	From        time.Time `json:"from"`
-	To          time.Time `json:"to"`
-	Condition   string    `json:"condition"`
-	Description string    `json:"description"`
-	Picture     string    `json:"picture"`
-	Status      string    `json:"status"`
-}
-
 type Watering struct {
 	gorm.Model
 	MyPlantID uint `json:"myplant_id"`
@@ -97,3 +85,5 @@ type Fertilizing struct {
 	Week      int  `json:"week"`
 	Status    bool `json:"status"`
 }
+
+
