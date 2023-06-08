@@ -127,7 +127,7 @@ type Picture struct {
 	URL               string `json:"url"`
 	ArticleID         *uint  `json:"-"`
 	ProductID         *uint  `json:"-"`
-	WeatherID         *uint  `json:"-"`
+	WeatherID         *uint  `json:"-" gorm:"index"`
 	PlantID           *uint  `json:"-"`
 	WateringInfoID    *uint  `json:"-"`
 	TemperatureInfoID *uint  `json:"-"`

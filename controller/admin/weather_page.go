@@ -206,9 +206,8 @@ func GetWeatherByID(c echo.Context) error {
 func UpdateWeatherByID(c echo.Context) error {
 	weather := model.Weather{}
 
-	weatherID := c.Param("id")
-
-	if err := config.DB.First(&weather, weatherID).Error; err != nil {
+	// delete existing pictures
+	if err := config.DB.Model(&weather).Association("Pictures").Clear(); err != nil {
 		log.Print(color.RedString(err.Error()))
 		return c.JSON(http.StatusInternalServerError, map[string]interface{}{
 			"status":  500,
@@ -216,8 +215,40 @@ func UpdateWeatherByID(c echo.Context) error {
 		})
 	}
 
-	c.Bind(&weather)
+	if err := c.Bind(&weather); err != nil {
+		log.Print(color.RedString(err.Error()))
+		return c.JSON(http.StatusBadRequest, map[string]interface{}{
+			"status":  http.StatusBadRequest,
+			"message": "bad request",
+		})
+	}
 
+	// Validation for weather label
+	// Check if the label is valid
+	validLabels := []string{"Cerah", "Hujan", "Mendung", "Berawan"}
+	isValidLabel := false
+	for _, label := range validLabels {
+		if strings.EqualFold(weather.Label, label) {
+			isValidLabel = true
+			break
+		}
+	}
+
+	if !isValidLabel {
+		return c.JSON(http.StatusBadRequest, map[string]interface{}{
+			"status":  http.StatusBadRequest,
+			"message": "bad request, invalid label",
+		})
+	}
+
+	// Get admin id from JWT token
+	token := strings.TrimPrefix(c.Request().Header.Get("Authorization"), "Bearer ")
+	adminId, _ := utils.GetAdminIDFromToken(token)
+
+	// Set admin ID to weather
+	weather.AdminID = adminId
+
+	// Save weather to database
 	if err := config.DB.Save(&weather).Error; err != nil {
 		log.Print(color.RedString(err.Error()))
 		return c.JSON(http.StatusInternalServerError, map[string]interface{}{
@@ -225,6 +256,9 @@ func UpdateWeatherByID(c echo.Context) error {
 			"message": "internal server error",
 		})
 	}
+
+	// Populate Pictures field for each weather
+	config.DB.Model(&weather).Association("Pictures").Find(&weather.Pictures)
 
 	// Extract picture URLs
 	pictureURLs := make([]string, len(weather.Pictures))
