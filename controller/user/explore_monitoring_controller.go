@@ -982,11 +982,11 @@ func Get_my_plant_weekly_progress_by_id(c echo.Context) error {
 		wateringHistory := []int{watering.Day1, watering.Day2, watering.Day3, watering.Day4, watering.Day5, watering.Day6, watering.Day7}
 		response_watering = map[string]interface{}{
 			"watering_id": watering.ID,
-			"week": watering.Week,
-			"history": wateringHistory,
+			"week":        watering.Week,
+			"history":     wateringHistory,
 		}
 	}
-	
+
 	// Get fertilizing
 	var fertilizing model.Fertilizing
 	var response_fertilizing map[string]interface{}
@@ -997,11 +997,10 @@ func Get_my_plant_weekly_progress_by_id(c echo.Context) error {
 	} else {
 		response_fertilizing = map[string]interface{}{
 			"fertilizing_id": fertilizing.ID,
-			"week": watering.Week,
-			"history": 1,
+			"week":           watering.Week,
+			"history":        1,
 		}
 	}
-
 
 	response := map[string]interface{}{
 		"status": myPlant.Status,
@@ -1022,5 +1021,54 @@ func Get_my_plant_weekly_progress_by_id(c echo.Context) error {
 		"status":  200,
 		"message": "success to get all my plant weekly progress",
 		"data":    response,
+	})
+}
+
+// EXPLORE & MONITORING (Menu Home) - [Endpoint 23 : Update weekly progress]
+func Update_weekly_progress(c echo.Context) error {
+	weekly_progress_id, _ := strconv.Atoi(c.Param("weekly_progress_id"))
+	var weeklyProgress model.WeeklyProgress
+
+	if err_first := config.DB.First(&weeklyProgress, weekly_progress_id).Error; err_first != nil {
+		log.Print(color.RedString(err_first.Error()))
+		return c.JSON(http.StatusBadRequest, map[string]interface{}{
+			"status":  400,
+			"message": "bad request",
+		})
+	}
+
+	var weeklyProgress_bind model.WeeklyProgress
+	if err_bind := c.Bind(&weeklyProgress_bind); err_bind != nil {
+		log.Print(color.RedString(err_bind.Error()))
+		return c.JSON(http.StatusBadRequest, map[string]interface{}{
+			"status":  400,
+			"message": "bad request",
+		})
+	}
+
+	config.DB.Model(&weeklyProgress).Association("Pictures").Find(&weeklyProgress.Pictures)
+	for _, picture := range weeklyProgress.Pictures{
+		if err_delete_picture := utils.Delete_picture(picture.URL); err_delete_picture!=nil{
+			log.Print(color.RedString(err_delete_picture.Error()))
+		}
+	}
+
+	config.DB.Model(&weeklyProgress).Association("Pictures").Clear()
+
+	weeklyProgress.Condition = weeklyProgress_bind.Condition
+	weeklyProgress.Description = weeklyProgress_bind.Description
+	weeklyProgress.Pictures = weeklyProgress_bind.Pictures
+
+	if err_update := config.DB.Save(&weeklyProgress).Error; err_update != nil {
+		log.Print(color.RedString(err_update.Error()))
+		return c.JSON(http.StatusInternalServerError, map[string]interface{}{
+			"status":  500,
+			"message": "internal server error",
+		})
+	}
+
+	return c.JSON(http.StatusOK, map[string]interface{}{
+		"status":  200,
+		"message": "success to update my plant weekly progress",
 	})
 }

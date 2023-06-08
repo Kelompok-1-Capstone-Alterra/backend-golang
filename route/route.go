@@ -93,6 +93,7 @@ func New() *echo.Echo {
 	eAuth.POST("/users/plants/:myplant_id/progress", user.Add_weekly_progress)
 	eAuth.GET("/users/plants/:myplant_id/progress", user.Get_all_myplant_weekly_progress)
 	eAuth.GET("/users/plants/:myplant_id/progress/:weekly_progress_id", user.Get_my_plant_weekly_progress_by_id)
+	eAuth.PUT("/users/plants/progress/:weekly_progress_id", user.Update_weekly_progress)
 
 	return e
 }
