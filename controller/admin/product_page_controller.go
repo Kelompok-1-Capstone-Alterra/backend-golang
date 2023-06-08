@@ -198,7 +198,6 @@ func GetProductByID(c echo.Context) error {
 		Form        string   `json:"product_form"`
 		SellerName  string   `json:"product_seller_name"`
 		SellerPhone string   `json:"product_seller_phone"`
-		AdminID     uint     `json:"admin_id"`
 	}{
 		ID:          product.ID,
 		Pictures:    pictureURLs,
@@ -214,7 +213,6 @@ func GetProductByID(c echo.Context) error {
 		Form:        product.Form,
 		SellerName:  product.SellerName,
 		SellerPhone: product.SellerPhone,
-		AdminID:     product.AdminID,
 	}
 
 	return c.JSON(http.StatusOK, map[string]interface{}{
