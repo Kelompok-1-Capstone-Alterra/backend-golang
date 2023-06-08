@@ -93,14 +93,45 @@ func GetArticles(c echo.Context) error {
 		return echo.NewHTTPError(http.StatusInternalServerError)
 	}
 
-	//Populate Pictures field for each article
-	for i := 0; i < len(articles); i++ {
-		config.DB.Model(&articles[i]).Association("Pictures").Find(&articles[i].Pictures)
+	// Iterate over each weather record and generate custom response
+	var responses []interface{}
+	for _, article := range articles {
+		// Populate Pictures field for each weather
+		config.DB.Model(&article).Association("Pictures").Find(&article.Pictures)
+
+		// Extract picture URLs
+		pictureURLs := make([]string, len(article.Pictures))
+		for i, pic := range article.Pictures {
+			pictureURLs[i] = pic.URL
+		}
+
+		response := struct {
+			ID          uint     `json:"id"`
+			Created_at  string   `json:"created_at"`
+			Updated_at  string   `json:"updated_at"`
+			Deleted_at  string   `json:"deleted_at"`
+			Title       string   `json:"article_title"`
+			Pictures    []string `json:"article_pictures"`
+			Description string   `json:"article_description"`
+			View        int      `json:"article_view"`
+			Like        int      `json:"article_like"`
+		}{
+			ID:         article.ID,
+			Created_at: article.CreatedAt.String(),
+			Updated_at: article.UpdatedAt.String(),
+			Deleted_at: article.DeletedAt.Time.String(),
+			Title:      article.Title,
+			Pictures:   pictureURLs,
+			View:       article.View,
+			Like:       article.Like,
+		}
+
+		responses = append(responses, response)
 	}
 
 	return c.JSON(http.StatusOK, map[string]interface{}{
 		"message": "success",
-		"data":    articles,
+		"data":    responses,
 	})
 }
 
