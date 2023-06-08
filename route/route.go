@@ -44,6 +44,7 @@ func New() *echo.Echo {
 	eAuth.POST("/admins/articles/add", admin.CreateArticle)
 	eAuth.GET("/admins/articles", admin.GetArticles)
 	eAuth.GET("/admins/articles/search", admin.GetArticlesByTitle)
+	eAuth.GET("/admins/articles/:id/detail", admin.GetArticleByID)
 
 	// Product
 	eAuth.POST("/admins/products/add", admin.CreateProduct)
