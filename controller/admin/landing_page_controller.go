@@ -164,6 +164,28 @@ func GetOverview(c echo.Context) error {
 		})
 	}
 
+	// Retrieve weather data from InfoWeather table, sort from the newest
+	var weatherData []model.InfoWeather
+	if err := config.DB.
+		Order("created_at DESC").
+		Find(&weatherData).Error; err != nil {
+		log.Print(color.RedString(err.Error()))
+		return c.JSON(http.StatusInternalServerError, map[string]interface{}{
+			"status":  500,
+			"message": "internal server error",
+		})
+	}
+
+	// Prepare the weather data response with selected fields
+	var weatherResponse []map[string]interface{}
+	for _, weather := range weatherData {
+		weatherResponse = append(weatherResponse, map[string]interface{}{
+			"location":    weather.Location,
+			"temperature": weather.Temperature,
+			"label":       weather.Label,
+		})
+	}
+
 	// Prepare the response data
 	response := map[string]interface{}{
 		"metrics_summary": map[string]interface{}{
@@ -172,11 +194,7 @@ func GetOverview(c echo.Context) error {
 			"total_articles": countArticle,
 			"total_products": countProduct,
 		},
-		"weather_summary": map[string]interface{}{
-			"location":    "Jakarta",
-			"temperature": "30",
-			"weather":     "Rainy",
-		},
+		"weather_summary": weatherResponse,
 		"plant_summary": map[string]interface{}{
 			"plant": plantData,
 		},
