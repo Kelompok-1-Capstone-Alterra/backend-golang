@@ -276,6 +276,13 @@ func UpdateArticleByID(c echo.Context) error {
 		})
 	}
 
+	// Get admin id from JWT token
+	token := strings.TrimPrefix(c.Request().Header.Get("Authorization"), "Bearer ")
+	adminId, _ := utils.GetAdminIDFromToken(token)
+
+	// Set admin ID to article
+	article.AdminID = adminId
+
 	// Save article to database
 	if err := config.DB.Save(&article).Error; err != nil {
 		log.Print(color.RedString(err.Error()))
