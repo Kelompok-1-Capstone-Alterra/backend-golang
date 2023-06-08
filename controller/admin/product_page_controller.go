@@ -3,9 +3,11 @@ package admin
 import (
 	"log"
 	"net/http"
+	"strings"
 
 	"github.com/agriplant/config"
 	"github.com/agriplant/model"
+	"github.com/agriplant/utils"
 	"github.com/fatih/color"
 	"github.com/labstack/echo/v4"
 )
@@ -68,24 +70,40 @@ func GetProducts(c echo.Context) error {
 func CreateProduct(c echo.Context) error {
 	product := model.Product{}
 
-	c.Bind(&product)
-
-	admin := model.Admin{}
-
-	// Get user by id
-	// If user not found, return error
-	if err := config.DB.First(&admin, product.AdminID).Error; err != nil {
+	if err := c.Bind(&product); err != nil {
 		log.Print(color.RedString(err.Error()))
-		return c.JSON(http.StatusInternalServerError, map[string]interface{}{
-			"status":  500,
-			"message": "internal server error",
+		return c.JSON(http.StatusBadRequest, map[string]interface{}{
+			"status":  400,
+			"message": "bad request",
 		})
 	}
 
-	// set admin id to article
-	product.AdminID = admin.ID
+	// validation for product category
+	// Check if the category is valid
+	validCategory := []string{"Alat tani", "Bibit", "Pestisida", "Pupuk"}
+	isValidcategory := false
+	for _, category := range validCategory {
+		if strings.EqualFold(product.Category, category) {
+			isValidcategory = true
+			break
+		}
+	}
 
-	// save article to database
+	if !isValidcategory {
+		return c.JSON(http.StatusBadRequest, map[string]interface{}{
+			"status":  400,
+			"message": "bad request, invalid category",
+		})
+	}
+
+	// Get admin id from JWT token
+	token := strings.TrimPrefix(c.Request().Header.Get("Authorization"), "Bearer ")
+	adminId, _ := utils.GetAdminIDFromToken(token)
+
+	// Set admin ID to weather
+	product.AdminID = adminId
+
+	// save product to database
 	if err := config.DB.Save(&product).Error; err != nil {
 		log.Print(color.RedString(err.Error()))
 		return c.JSON(http.StatusInternalServerError, map[string]interface{}{
@@ -93,6 +111,9 @@ func CreateProduct(c echo.Context) error {
 			"message": "internal server error",
 		})
 	}
+
+	// Populate Pictures field for each weather
+	config.DB.Model(&product).Association("Pictures").Find(&product.Pictures)
 
 	// Extract picture URLs
 	pictureURLs := make([]string, len(product.Pictures))
@@ -115,7 +136,6 @@ func CreateProduct(c echo.Context) error {
 		Form        string   `json:"product_form"`
 		SellerName  string   `json:"product_seller_name"`
 		SellerPhone string   `json:"product_seller_phone"`
-		AdminID     uint     `json:"admin_id"`
 	}{
 		ID:          product.ID,
 		Pictures:    pictureURLs,
@@ -131,7 +151,6 @@ func CreateProduct(c echo.Context) error {
 		Form:        product.Form,
 		SellerName:  product.SellerName,
 		SellerPhone: product.SellerPhone,
-		AdminID:     product.AdminID,
 	}
 
 	return c.JSON(http.StatusOK, map[string]interface{}{
@@ -179,7 +198,6 @@ func GetProductByID(c echo.Context) error {
 		Form        string   `json:"product_form"`
 		SellerName  string   `json:"product_seller_name"`
 		SellerPhone string   `json:"product_seller_phone"`
-		AdminID     uint     `json:"admin_id"`
 	}{
 		ID:          product.ID,
 		Pictures:    pictureURLs,
@@ -195,7 +213,6 @@ func GetProductByID(c echo.Context) error {
 		Form:        product.Form,
 		SellerName:  product.SellerName,
 		SellerPhone: product.SellerPhone,
-		AdminID:     product.AdminID,
 	}
 
 	return c.JSON(http.StatusOK, map[string]interface{}{
@@ -218,6 +235,15 @@ func DeleteProductByID(c echo.Context) error {
 			"message": "internal server error",
 		})
 	}
+
+	config.DB.Model(&product).Association("Pictures").Find(&product.Pictures)
+	for _, picture := range product.Pictures {
+		if err_delete_picture := utils.Delete_picture(picture.URL); err_delete_picture != nil {
+			log.Print(color.RedString(err_delete_picture.Error()))
+		}
+	}
+
+	config.DB.Model(&product).Association("Pictures").Clear()
 
 	// Delete product
 	if err := config.DB.Delete(&product).Error; err != nil {
@@ -248,7 +274,47 @@ func UpdateProductByID(c echo.Context) error {
 		})
 	}
 
-	c.Bind(&product)
+	config.DB.Model(&product).Association("Pictures").Find(&product.Pictures)
+	for _, picture := range product.Pictures {
+		if err_delete_picture := utils.Delete_picture(picture.URL); err_delete_picture != nil {
+			log.Print(color.RedString(err_delete_picture.Error()))
+		}
+	}
+
+	config.DB.Model(&product).Association("Pictures").Clear()
+
+	if err := c.Bind(&product); err != nil {
+		log.Print(color.RedString(err.Error()))
+		return c.JSON(http.StatusBadRequest, map[string]interface{}{
+			"status":  400,
+			"message": "bad request",
+		})
+	}
+
+	// validation for product category
+	// Check if the category is valid
+	validCategory := []string{"Alat tani", "Bibit", "Pestisida", "Pupuk"}
+	isValidcategory := false
+	for _, category := range validCategory {
+		if strings.EqualFold(product.Category, category) {
+			isValidcategory = true
+			break
+		}
+	}
+
+	if !isValidcategory {
+		return c.JSON(http.StatusBadRequest, map[string]interface{}{
+			"status":  400,
+			"message": "bad request, invalid category",
+		})
+	}
+
+	// Get admin id from JWT token
+	token := strings.TrimPrefix(c.Request().Header.Get("Authorization"), "Bearer ")
+	adminId, _ := utils.GetAdminIDFromToken(token)
+
+	// Set admin ID to weather
+	product.AdminID = adminId
 
 	// save product to database
 	if err := config.DB.Save(&product).Error; err != nil {
@@ -258,6 +324,9 @@ func UpdateProductByID(c echo.Context) error {
 			"message": "internal server error",
 		})
 	}
+
+	// Populate Pictures field for each weather
+	config.DB.Model(&product).Association("Pictures").Find(&product.Pictures)
 
 	// Extract picture URLs
 	pictureURLs := make([]string, len(product.Pictures))
@@ -280,7 +349,6 @@ func UpdateProductByID(c echo.Context) error {
 		Form        string   `json:"product_form"`
 		SellerName  string   `json:"product_seller_name"`
 		SellerPhone string   `json:"product_seller_phone"`
-		AdminID     uint     `json:"admin_id"`
 	}{
 		ID:          product.ID,
 		Pictures:    pictureURLs,
@@ -296,7 +364,6 @@ func UpdateProductByID(c echo.Context) error {
 		Form:        product.Form,
 		SellerName:  product.SellerName,
 		SellerPhone: product.SellerPhone,
-		AdminID:     product.AdminID,
 	}
 
 	return c.JSON(http.StatusOK, map[string]interface{}{
