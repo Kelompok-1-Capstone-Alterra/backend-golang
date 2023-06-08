@@ -52,7 +52,7 @@ type Weather struct {
 	Label       string    `json:"weather_label"`
 	Pictures    []Picture `json:"weather_pictures" gorm:"foreignKey:WeatherID"`
 	Description string    `json:"weather_description"`
-	AdminID     uint      `json:"admin_id"`
+	AdminID     uint      `json:"-"`
 }
 
 type Plant struct {

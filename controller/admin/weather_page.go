@@ -7,13 +7,13 @@ import (
 
 	"github.com/agriplant/config"
 	"github.com/agriplant/model"
+	"github.com/agriplant/utils"
 	"github.com/fatih/color"
 	"github.com/labstack/echo/v4"
 )
 
 func CreateWeather(c echo.Context) error {
 	weather := model.Weather{}
-	admin := model.Admin{}
 
 	if err := c.Bind(&weather); err != nil {
 		log.Print(color.RedString(err.Error()))
@@ -51,18 +51,12 @@ func CreateWeather(c echo.Context) error {
 		})
 	}
 
-	// Get admin by ID
-	// If admin not found, return error
-	if err := config.DB.First(&admin, weather.AdminID).Error; err != nil {
-		log.Print(color.RedString(err.Error()))
-		return c.JSON(http.StatusInternalServerError, map[string]interface{}{
-			"status":  500,
-			"message": "internal server error",
-		})
-	}
+	// Get admin id from JWT token
+	token := strings.TrimPrefix(c.Request().Header.Get("Authorization"), "Bearer ")
+	adminId, _ := utils.GetAdminIDFromToken(token)
 
 	// Set admin ID to weather
-	weather.AdminID = admin.ID
+	weather.AdminID = adminId
 
 	// Save weather to database
 	if err := config.DB.Save(&weather).Error; err != nil {
