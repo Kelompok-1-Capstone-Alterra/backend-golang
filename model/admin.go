@@ -32,7 +32,7 @@ type Product struct {
 	Form        string    `json:"product_form"`
 	SellerName  string    `json:"product_seller_name"`
 	SellerPhone string    `json:"product_seller_phone"`
-	AdminID     uint      `json:"admin_id"`
+	AdminID     uint      `json:"-"`
 }
 
 type Article struct {
