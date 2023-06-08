@@ -32,7 +32,7 @@ type Product struct {
 	Form        string    `json:"product_form"`
 	SellerName  string    `json:"product_seller_name"`
 	SellerPhone string    `json:"product_seller_phone"`
-	AdminID     uint      `json:"admin_id"`
+	AdminID     uint      `json:"-"`
 }
 
 type Article struct {
@@ -42,7 +42,7 @@ type Article struct {
 	Description string    `json:"article_description"`
 	View        int       `json:"article_view"`
 	Like        int       `json:"article_like"`
-	AdminID     uint      `json:"admin_id"`
+	AdminID     uint      `json:"-"`
 }
 
 // Struct for save weather article made by admin
@@ -52,7 +52,7 @@ type Weather struct {
 	Label       string    `json:"weather_label"`
 	Pictures    []Picture `json:"weather_pictures" gorm:"foreignKey:WeatherID"`
 	Description string    `json:"weather_description"`
-	AdminID     uint      `json:"admin_id"`
+	AdminID     uint      `json:"-"`
 }
 
 type Plant struct {
@@ -127,7 +127,7 @@ type Picture struct {
 	URL               string `json:"url"`
 	ArticleID         *uint  `json:"-"`
 	ProductID         *uint  `json:"-"`
-	WeatherID         *uint  `json:"-"`
+	WeatherID         *uint  `json:"-" gorm:"index"`
 	PlantID           *uint  `json:"-"`
 	WateringInfoID    *uint  `json:"-"`
 	TemperatureInfoID *uint  `json:"-"`
