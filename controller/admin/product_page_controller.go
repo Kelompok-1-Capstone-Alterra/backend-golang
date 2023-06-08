@@ -265,7 +265,47 @@ func UpdateProductByID(c echo.Context) error {
 		})
 	}
 
-	c.Bind(&product)
+	config.DB.Model(&product).Association("Pictures").Find(&product.Pictures)
+	for _, picture := range product.Pictures {
+		if err_delete_picture := utils.Delete_picture(picture.URL); err_delete_picture != nil {
+			log.Print(color.RedString(err_delete_picture.Error()))
+		}
+	}
+
+	config.DB.Model(&product).Association("Pictures").Clear()
+
+	if err := c.Bind(&product); err != nil {
+		log.Print(color.RedString(err.Error()))
+		return c.JSON(http.StatusBadRequest, map[string]interface{}{
+			"status":  400,
+			"message": "bad request",
+		})
+	}
+
+	// validation for product category
+	// Check if the category is valid
+	validCategory := []string{"Alat tani", "Bibit", "Pestisida", "Pupuk"}
+	isValidcategory := false
+	for _, category := range validCategory {
+		if strings.EqualFold(product.Category, category) {
+			isValidcategory = true
+			break
+		}
+	}
+
+	if !isValidcategory {
+		return c.JSON(http.StatusBadRequest, map[string]interface{}{
+			"status":  400,
+			"message": "bad request, invalid category",
+		})
+	}
+
+	// Get admin id from JWT token
+	token := strings.TrimPrefix(c.Request().Header.Get("Authorization"), "Bearer ")
+	adminId, _ := utils.GetAdminIDFromToken(token)
+
+	// Set admin ID to weather
+	product.AdminID = adminId
 
 	// save product to database
 	if err := config.DB.Save(&product).Error; err != nil {
@@ -275,6 +315,9 @@ func UpdateProductByID(c echo.Context) error {
 			"message": "internal server error",
 		})
 	}
+
+	// Populate Pictures field for each weather
+	config.DB.Model(&product).Association("Pictures").Find(&product.Pictures)
 
 	// Extract picture URLs
 	pictureURLs := make([]string, len(product.Pictures))
@@ -297,7 +340,6 @@ func UpdateProductByID(c echo.Context) error {
 		Form        string   `json:"product_form"`
 		SellerName  string   `json:"product_seller_name"`
 		SellerPhone string   `json:"product_seller_phone"`
-		AdminID     uint     `json:"admin_id"`
 	}{
 		ID:          product.ID,
 		Pictures:    pictureURLs,
@@ -313,7 +355,6 @@ func UpdateProductByID(c echo.Context) error {
 		Form:        product.Form,
 		SellerName:  product.SellerName,
 		SellerPhone: product.SellerPhone,
-		AdminID:     product.AdminID,
 	}
 
 	return c.JSON(http.StatusOK, map[string]interface{}{
