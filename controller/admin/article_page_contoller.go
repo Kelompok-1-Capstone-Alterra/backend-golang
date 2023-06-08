@@ -250,14 +250,22 @@ func UpdateArticleByID(c echo.Context) error {
 
 	article := model.Article{}
 
-	// Get article by ID
-	if err := config.DB.Where("id = ?", id).First(&article).Error; err != nil {
+	if err := config.DB.First(&article, id).Error; err != nil {
 		log.Print(color.RedString(err.Error()))
 		return c.JSON(http.StatusNotFound, map[string]interface{}{
 			"status":  404,
 			"message": "not found",
 		})
 	}
+
+	config.DB.Model(&article).Association("Pictures").Find(&article.Pictures)
+	for _, picture := range article.Pictures {
+		if err_delete_picture := utils.Delete_picture(picture.URL); err_delete_picture != nil {
+			log.Print(color.RedString(err_delete_picture.Error()))
+		}
+	}
+
+	config.DB.Model(&article).Association("Pictures").Clear()
 
 	// Bind new data to article
 	if err := c.Bind(&article); err != nil {
