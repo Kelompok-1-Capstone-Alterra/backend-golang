@@ -90,7 +90,10 @@ func GetArticles(c echo.Context) error {
 	// Get all articles
 	if err := config.DB.Find(&articles).Error; err != nil {
 		log.Print(color.RedString(err.Error()))
-		return echo.NewHTTPError(http.StatusInternalServerError)
+		return c.JSON(http.StatusInternalServerError, map[string]interface{}{
+			"status":  500,
+			"message": "internal server error",
+		})
 	}
 
 	// Iterate over each weather record and generate custom response
