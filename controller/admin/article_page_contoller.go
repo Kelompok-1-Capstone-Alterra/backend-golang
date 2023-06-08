@@ -321,3 +321,39 @@ func UpdateArticleByID(c echo.Context) error {
 		"data":    response,
 	})
 }
+
+func DeleteArticleByID(c echo.Context) error {
+	id := c.Param("id")
+
+	article := model.Article{}
+
+	if err := config.DB.First(&article, id).Error; err != nil {
+		log.Print(color.RedString(err.Error()))
+		return c.JSON(http.StatusNotFound, map[string]interface{}{
+			"status":  404,
+			"message": "not found",
+		})
+	}
+
+	config.DB.Model(&article).Association("Pictures").Find(&article.Pictures)
+	for _, picture := range article.Pictures {
+		if err_delete_picture := utils.Delete_picture(picture.URL); err_delete_picture != nil {
+			log.Print(color.RedString(err_delete_picture.Error()))
+		}
+	}
+
+	config.DB.Model(&article).Association("Pictures").Clear()
+
+	// Delete article from database
+	if err := config.DB.Delete(&article).Error; err != nil {
+		log.Print(color.RedString(err.Error()))
+		return c.JSON(http.StatusInternalServerError, map[string]interface{}{
+			"status":  500,
+			"message": "internal server error",
+		})
+	}
+
+	return c.JSON(http.StatusOK, map[string]interface{}{
+		"message": "success",
+	})
+}
