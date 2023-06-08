@@ -206,6 +206,16 @@ func GetWeatherByID(c echo.Context) error {
 func UpdateWeatherByID(c echo.Context) error {
 	weather := model.Weather{}
 
+	weatherID := c.Param("id")
+
+	if err := config.DB.First(&weather, weatherID).Error; err != nil {
+		log.Print(color.RedString(err.Error()))
+		return c.JSON(http.StatusInternalServerError, map[string]interface{}{
+			"status":  500,
+			"message": "internal server error",
+		})
+	}
+
 	// delete existing pictures
 	if err := config.DB.Model(&weather).Association("Pictures").Clear(); err != nil {
 		log.Print(color.RedString(err.Error()))
@@ -218,7 +228,7 @@ func UpdateWeatherByID(c echo.Context) error {
 	if err := c.Bind(&weather); err != nil {
 		log.Print(color.RedString(err.Error()))
 		return c.JSON(http.StatusBadRequest, map[string]interface{}{
-			"status":  http.StatusBadRequest,
+			"status":  400,
 			"message": "bad request",
 		})
 	}
@@ -236,7 +246,7 @@ func UpdateWeatherByID(c echo.Context) error {
 
 	if !isValidLabel {
 		return c.JSON(http.StatusBadRequest, map[string]interface{}{
-			"status":  http.StatusBadRequest,
+			"status":  400,
 			"message": "bad request, invalid label",
 		})
 	}
