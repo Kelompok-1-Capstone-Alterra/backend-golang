@@ -55,7 +55,6 @@ func New() *echo.Echo {
 	eAuth.PUT("/admins/products/:id", admin.UpdateProductByID)
 	eAuth.GET("/admins/products/search", admin.GetProductsByName)
 
-
 	// Weather Management
 	eAuth.POST("/admins/weathers/add", admin.CreateWeather)
 	eAuth.GET("/admins/weathers", admin.GetWeathers)
@@ -87,6 +86,11 @@ func New() *echo.Echo {
 	eAuth.GET("/plants/:plant_id", user.Get_plant_detail)
 	eAuth.GET("/plants/:plant_id/location", user.Get_plant_location)
 	eAuth.POST("/plants/:plant_id", user.Add_my_plant)
+
+	eAuth.GET("/articles/planting/:plant_id/:location", user.GetPlantingArticle)
+	eAuth.GET("/articles/fertilizing/:plant_id", user.GetFertilizingArticle)
+	eAuth.GET("/articles/watering/:plant_id", user.GetWateringArticle)
+	eAuth.GET("/articles/temperature/:plant_id", user.GetTemperatureArticle)
 
 	return e
 }
