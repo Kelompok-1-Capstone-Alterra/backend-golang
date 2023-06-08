@@ -1047,8 +1047,8 @@ func Update_weekly_progress(c echo.Context) error {
 	}
 
 	config.DB.Model(&weeklyProgress).Association("Pictures").Find(&weeklyProgress.Pictures)
-	for _, picture := range weeklyProgress.Pictures{
-		if err_delete_picture := utils.Delete_picture(picture.URL); err_delete_picture!=nil{
+	for _, picture := range weeklyProgress.Pictures {
+		if err_delete_picture := utils.Delete_picture(picture.URL); err_delete_picture != nil {
 			log.Print(color.RedString(err_delete_picture.Error()))
 		}
 	}
@@ -1070,5 +1070,64 @@ func Update_weekly_progress(c echo.Context) error {
 	return c.JSON(http.StatusOK, map[string]interface{}{
 		"status":  200,
 		"message": "success to update my plant weekly progress",
+	})
+}
+
+// EXPLORE & MONITORING (Menu Home) - [Endpoint 24 : Add dead plant progress]
+func Add_dead_plant_progress(c echo.Context) error {
+	myplant_id, _ := strconv.Atoi(c.Param("myplant_id"))
+
+	var myplant model.MyPlant
+
+	if err_first := config.DB.First(&myplant, myplant_id).Error; err_first != nil {
+		log.Print(color.RedString(err_first.Error()))
+		return c.JSON(http.StatusBadRequest, map[string]interface{}{
+			"status":  400,
+			"message": "bad request",
+		})
+	}
+
+	var weeklyProgress_bind model.WeeklyProgress
+	if err_bind := c.Bind(&weeklyProgress_bind); err_bind != nil {
+		log.Print(color.RedString(err_bind.Error()))
+		return c.JSON(http.StatusBadRequest, map[string]interface{}{
+			"status":  400,
+			"message": "bad request",
+		})
+	}
+
+	diff := time.Now().Sub(myplant.StartPlantingDate)
+	week := int(diff.Hours()/(24*7)) + 1
+
+	var weeklyProgress model.WeeklyProgress
+
+	if err_first2 := config.DB.Where("my_plant_id=? AND week=?", myplant_id, week).First(&weeklyProgress).Error; err_first2 == nil {
+		log.Print(color.RedString("already add dead plant progress"))
+		return c.JSON(http.StatusBadRequest, map[string]interface{}{
+			"status":  400,
+			"message": "bad request",
+		})
+	}
+
+	weeklyProgress.MyPlantID = uint(myplant_id)
+	weeklyProgress.Week = week
+	weeklyProgress.From = time.Now()
+	weeklyProgress.Status = "dead"
+
+	weeklyProgress.Condition = weeklyProgress_bind.Condition
+	weeklyProgress.Description = weeklyProgress_bind.Description
+	weeklyProgress.Pictures = weeklyProgress_bind.Pictures
+
+	if err_insert := config.DB.Save(&weeklyProgress).Error; err_insert != nil {
+		log.Print(color.RedString(err_insert.Error()))
+		return c.JSON(http.StatusInternalServerError, map[string]interface{}{
+			"status":  500,
+			"message": "internal server error",
+		})
+	}
+
+	return c.JSON(http.StatusOK, map[string]interface{}{
+		"status":  200,
+		"message": "success to add dead plant progress",
 	})
 }
