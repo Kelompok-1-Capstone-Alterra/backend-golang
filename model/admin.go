@@ -42,7 +42,7 @@ type Article struct {
 	Description string    `json:"article_description"`
 	View        int       `json:"article_view"`
 	Like        int       `json:"article_like"`
-	AdminID     uint      `json:"admin_id"`
+	AdminID     uint      `json:"-"`
 }
 
 // Struct for save weather article made by admin
