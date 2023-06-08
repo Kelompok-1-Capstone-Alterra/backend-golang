@@ -3,6 +3,7 @@ package admin
 import (
 	"log"
 	"net/http"
+	"strings"
 
 	"github.com/agriplant/config"
 	"github.com/agriplant/model"
@@ -22,9 +23,27 @@ func CreateWeather(c echo.Context) error {
 		})
 	}
 
+	// validation for weather label
+	// Check if the label is valid
+	validLabels := []string{"Cerah", "Hujan", "Mendung", "Berawan"}
+	isValidLabel := false
+	for _, label := range validLabels {
+		if strings.EqualFold(weather.Label, label) {
+			isValidLabel = true
+			break
+		}
+	}
+
+	if !isValidLabel {
+		return c.JSON(http.StatusBadRequest, map[string]interface{}{
+			"status":  400,
+			"message": "bad request, invalid label",
+		})
+	}
+
 	// Check if the label already exists
 	existingWeather := model.Weather{}
-	result := config.DB.Where("label = ?", weather.Label).First(&existingWeather)
+	result := config.DB.Where("label = ? AND deleted_at IS NULL", weather.Label).First(&existingWeather)
 	if result.Error == nil {
 		return c.JSON(http.StatusBadRequest, map[string]interface{}{
 			"status":  400,
