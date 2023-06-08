@@ -244,3 +244,72 @@ func GetArticleByID(c echo.Context) error {
 		"data":    response,
 	})
 }
+
+func UpdateArticleByID(c echo.Context) error {
+	id := c.Param("id")
+
+	article := model.Article{}
+
+	// Get article by ID
+	if err := config.DB.Where("id = ?", id).First(&article).Error; err != nil {
+		log.Print(color.RedString(err.Error()))
+		return c.JSON(http.StatusNotFound, map[string]interface{}{
+			"status":  404,
+			"message": "not found",
+		})
+	}
+
+	// Bind new data to article
+	if err := c.Bind(&article); err != nil {
+		log.Print(color.RedString(err.Error()))
+		return c.JSON(http.StatusBadRequest, map[string]interface{}{
+			"status":  400,
+			"message": "bad request",
+		})
+	}
+
+	// Save article to database
+	if err := config.DB.Save(&article).Error; err != nil {
+		log.Print(color.RedString(err.Error()))
+		return c.JSON(http.StatusInternalServerError, map[string]interface{}{
+			"status":  500,
+			"message": "internal server error",
+		})
+	}
+
+	// Populate Pictures field for each article
+	config.DB.Model(&article).Association("Pictures").Find(&article.Pictures)
+
+	// Extract picture URLs
+	pictureURLs := make([]string, len(article.Pictures))
+	for i, pic := range article.Pictures {
+		pictureURLs[i] = pic.URL
+	}
+
+	response := struct {
+		ID          uint     `json:"id"`
+		Created_at  string   `json:"created_at"`
+		Updated_at  string   `json:"updated_at"`
+		Deleted_at  string   `json:"deleted_at"`
+		Title       string   `json:"article_title"`
+		Pictures    []string `json:"article_pictures"`
+		Description string   `json:"article_description"`
+		View        int      `json:"article_view"`
+		Like        int      `json:"article_like"`
+	}{
+		ID:          article.ID,
+		Created_at:  article.CreatedAt.String(),
+		Updated_at:  article.UpdatedAt.String(),
+		Deleted_at:  article.DeletedAt.Time.String(),
+		Title:       article.Title,
+		Pictures:    pictureURLs,
+		Description: article.Description,
+		View:        article.View,
+		Like:        article.Like,
+	}
+
+	return c.JSON(http.StatusOK, map[string]interface{}{
+		"message": "success",
+		"data":    response,
+	})
+}
