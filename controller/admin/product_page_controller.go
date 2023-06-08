@@ -236,6 +236,15 @@ func DeleteProductByID(c echo.Context) error {
 		})
 	}
 
+	config.DB.Model(&product).Association("Pictures").Find(&product.Pictures)
+	for _, picture := range product.Pictures {
+		if err_delete_picture := utils.Delete_picture(picture.URL); err_delete_picture != nil {
+			log.Print(color.RedString(err_delete_picture.Error()))
+		}
+	}
+
+	config.DB.Model(&product).Association("Pictures").Clear()
+
 	// Delete product
 	if err := config.DB.Delete(&product).Error; err != nil {
 		log.Print(color.RedString(err.Error()))
