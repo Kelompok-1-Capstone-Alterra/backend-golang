@@ -409,7 +409,7 @@ func Get_plant_location(c echo.Context) error {
 	})
 }
 
-// EXPLORE & MONITORING (Menu Home) - [Endpoint 8 : Get plant location]
+// EXPLORE & MONITORING (Menu Home) - [Endpoint 13 : Add my plant]
 func Add_my_plant(c echo.Context) error {
 	plant_id, _ := strconv.Atoi(c.Param("plant_id"))
 	var myplant model.MyPlant
@@ -428,6 +428,7 @@ func Add_my_plant(c echo.Context) error {
 	myplant.UserID = user_id
 	myplant.PlantID = uint(plant_id)
 	myplant.IsStartPlanting = false
+	myplant.StartPlantingDate = time.Now()
 
 	if err_save := config.DB.Save(&myplant).Error; err_save != nil {
 		return c.JSON(http.StatusInternalServerError, map[string]interface{}{
@@ -1437,4 +1438,3 @@ func Add_harvest_plant_progress(c echo.Context) error {
 		"message": "success to add dead plant progress",
 	})
 }
-
