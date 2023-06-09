@@ -409,44 +409,6 @@ func Get_plant_location(c echo.Context) error {
 	})
 }
 
-// EXPLORE & MONITORING (Menu Home) - [Endpoint 13 : Add my plant]
-func Add_my_plant(c echo.Context) error {
-	plant_id, _ := strconv.Atoi(c.Param("plant_id"))
-	var myplant model.MyPlant
-
-	if err_bind := c.Bind(&myplant); err_bind != nil {
-		log.Print(color.RedString(err_bind.Error()))
-		return c.JSON(http.StatusBadRequest, map[string]interface{}{
-			"status":  400,
-			"message": "bad request",
-		})
-	}
-
-	token := strings.TrimPrefix(c.Request().Header.Get("Authorization"), "Bearer ")
-	user_id, _ := utils.GetUserIDFromToken(token)
-
-	myplant.UserID = user_id
-	myplant.PlantID = uint(plant_id)
-	myplant.IsStartPlanting = false
-	myplant.StartPlantingDate = time.Now()
-
-	if err_save := config.DB.Save(&myplant).Error; err_save != nil {
-		return c.JSON(http.StatusInternalServerError, map[string]interface{}{
-			"status":  500,
-			"message": "internal server error",
-		})
-	}
-
-	return c.JSON(http.StatusOK, map[string]interface{}{
-		"status":  200,
-		"message": "success to add user plant",
-		"data": map[string]interface{}{
-			"myplant_id": myplant.ID,
-			"plant_id":   plant_id,
-		},
-	})
-}
-
 // EXPLORE & MONITORING (Menu Home) - [Endpoint 9 : Get planting article]
 func GetPlantingArticle(c echo.Context) error {
 	location := c.Param("location")
@@ -695,18 +657,80 @@ func GetTemperatureArticle(c echo.Context) error {
 	})
 }
 
+// EXPLORE & MONITORING (Menu Home) - [Endpoint 13 : Add my plant]
+func Add_my_plant(c echo.Context) error {
+	plant_id, _ := strconv.Atoi(c.Param("plant_id"))
+	var myplant model.MyPlant
+
+	// Validation1 : is plant_id exist
+	var plant_check model.Plant
+	if err_val1 := config.DB.First(&plant_check, plant_id).Error; err_val1 != nil {
+		return c.JSON(http.StatusNotFound, map[string]interface{}{
+			"status":  404,
+			"message": "not found",
+		})
+	}
+
+	if err_bind := c.Bind(&myplant); err_bind != nil {
+		log.Print(color.RedString(err_bind.Error()))
+		return c.JSON(http.StatusBadRequest, map[string]interface{}{
+			"status":  400,
+			"message": "bad request",
+		})
+	}
+
+	token := strings.TrimPrefix(c.Request().Header.Get("Authorization"), "Bearer ")
+	user_id, _ := utils.GetUserIDFromToken(token)
+
+	myplant.UserID = user_id
+	myplant.PlantID = uint(plant_id)
+	myplant.IsStartPlanting = false
+
+	// Set the current time as the start_planting_date
+	myplant.StartPlantingDate = time.Now()
+
+	if err_save := config.DB.Save(&myplant).Error; err_save != nil {
+		return c.JSON(http.StatusInternalServerError, map[string]interface{}{
+			"status":  500,
+			"message": "internal server error",
+		})
+	}
+
+	return c.JSON(http.StatusOK, map[string]interface{}{
+		"status":  200,
+		"message": "success to add user plant",
+		"data": map[string]interface{}{
+			"myplant_id": myplant.ID,
+			"plant_id":   plant_id,
+		},
+	})
+}
+
 // EXPLORE & MONITORING (Menu Home) - [Endpoint 16 : Start planting]
 func Start_planting(c echo.Context) error {
 	myplant_id, _ := strconv.Atoi(c.Param("myplant_id"))
 	var myplant model.MyPlant
 
-	// VALIDATION1
+	// Validation1 : is already start planting
 	var watering_check model.Watering
 	if err_first := config.DB.Where("my_plant_id=? AND week=?", myplant_id, 1).First(&watering_check).Error; err_first == nil {
-		log.Print(color.RedString(echo.ErrBadRequest.Error()), " is already start planting")
-		return c.JSON(http.StatusInternalServerError, map[string]interface{}{
+		log.Print(color.RedString("is already start planting"))
+		return c.JSON(http.StatusBadRequest, map[string]interface{}{
 			"status":  400,
 			"message": "bad request",
+		})
+	}
+
+	// Validation2 : is match beetwen myplant_id and user_id
+	token := strings.TrimPrefix(c.Request().Header.Get("Authorization"), "Bearer ")
+	user_id, _ := utils.GetUserIDFromToken(token)
+
+	var myplant_check model.MyPlant
+	if err_val2 := config.DB.Where("user_id=?", int(user_id)).First(&myplant_check, myplant_id).Error; err_val2 != nil {
+		log.Print(color.RedString(err_val2.Error()))
+		return c.JSON(http.StatusUnauthorized, map[string]interface{}{
+			"status":  401,
+			"message": "unauthorized",
 		})
 	}
 
@@ -1159,7 +1183,7 @@ func Get_all_myplant_weekly_progress(c echo.Context) error {
 		})
 	}
 
-	var responses []map[string]interface{}
+	responses := []map[string]interface{}{}
 	for _, weeklyProgress := range weeklyProgresses {
 		config.DB.Model(&weeklyProgress).Association("Pictures").Find(&weeklyProgress.Pictures)
 
