@@ -1,6 +1,8 @@
 package model
 
 import (
+	"time"
+
 	"github.com/agriplant/utils"
 	"gorm.io/gorm"
 )
@@ -32,7 +34,7 @@ type Product struct {
 	Form        string    `json:"product_form"`
 	SellerName  string    `json:"product_seller_name"`
 	SellerPhone string    `json:"product_seller_phone"`
-	AdminID     uint      `json:"admin_id"`
+	AdminID     uint      `json:"-"`
 }
 
 type Article struct {
@@ -42,7 +44,7 @@ type Article struct {
 	Description string    `json:"article_description"`
 	View        int       `json:"article_view"`
 	Like        int       `json:"article_like"`
-	AdminID     uint      `json:"admin_id"`
+	AdminID     uint      `json:"-"`
 }
 
 // Struct for save weather article made by admin
@@ -52,7 +54,7 @@ type Weather struct {
 	Label       string    `json:"weather_label"`
 	Pictures    []Picture `json:"weather_pictures" gorm:"foreignKey:WeatherID"`
 	Description string    `json:"weather_description"`
-	AdminID     uint      `json:"admin_id"`
+	AdminID     uint      `json:"-"`
 }
 
 type Plant struct {
@@ -122,18 +124,31 @@ type GroundInfo struct {
 	PlantingInfoID uint      `json:"-"`
 }
 
+type WeeklyProgress struct {
+	gorm.Model
+	MyPlantID   uint      `json:"myplant_id"`
+	Week        int       `json:"week"`
+	From        time.Time `json:"from"`
+	To          time.Time `json:"to"`
+	Condition   string    `json:"condition"`
+	Description string    `json:"description"`
+	Pictures    []Picture `json:"weekly_pictures" gorm:"foreignKey:WeeklyProgressID"`
+	Status      string    `json:"status"`
+}
+
 type Picture struct {
 	gorm.Model        `json:"-"`
 	URL               string `json:"url"`
 	ArticleID         *uint  `json:"-"`
 	ProductID         *uint  `json:"-"`
-	WeatherID         *uint  `json:"-"`
+	WeatherID         *uint  `json:"-" gorm:"index"`
 	PlantID           *uint  `json:"-"`
 	WateringInfoID    *uint  `json:"-"`
 	TemperatureInfoID *uint  `json:"-"`
 	FertilizingInfoID *uint  `json:"-"`
 	ContainerInfoID   *uint  `json:"-"`
 	GroundInfoID      *uint  `json:"-"`
+	WeeklyProgressID  *uint  `json:"-"`
 }
 
 func (a *Admin) BeforeCreateAdmin(tx *gorm.DB) (err error) {

@@ -45,7 +45,10 @@ func New() *echo.Echo {
 	// Article
 	eAuth.POST("/admins/articles/add", admin.CreateArticle)
 	eAuth.GET("/admins/articles", admin.GetArticles)
-	eAuth.GET("/admins/articles/search", admin.GetArticlesByKeyword)
+	eAuth.GET("/admins/articles/search", admin.GetArticlesByTitle)
+	eAuth.GET("/admins/articles/:id/detail", admin.GetArticleByID)
+	eAuth.PUT("/admins/articles/:id", admin.UpdateArticleByID)
+	eAuth.DELETE("/admins/articles/:id", admin.DeleteArticleByID)
 
 	// Product
 	eAuth.POST("/admins/products/add", admin.CreateProduct)
@@ -88,6 +91,21 @@ func New() *echo.Echo {
 	eAuth.GET("/plants/:plant_id", user.Get_plant_detail)
 	eAuth.GET("/plants/:plant_id/location", user.Get_plant_location)
 	eAuth.POST("/plants/:plant_id", user.Add_my_plant)
+	eAuth.POST("/users/plants/:myplant_id/start", user.Start_planting)
+	eAuth.GET("/users/plants/:myplant_id/overview", user.Get_myplant_overview)
+	eAuth.POST("/users/plants/:myplant_id/watering", user.Add_watering)
+	eAuth.POST("/users/plants/:myplant_id/fertilizing", user.Add_fertilizing)
+	eAuth.POST("/users/plants/:myplant_id/progress", user.Add_weekly_progress)
+	eAuth.GET("/users/plants/:myplant_id/progress", user.Get_all_myplant_weekly_progress)
+	eAuth.GET("/users/plants/:myplant_id/progress/:weekly_progress_id", user.Get_my_plant_weekly_progress_by_id)
+	eAuth.PUT("/users/plants/progress/:weekly_progress_id", user.Update_weekly_progress)
+	eAuth.POST("/users/plants/:myplant_id/progress/dead", user.Add_dead_plant_progress)
+	eAuth.POST("/users/plants/:myplant_id/progress/harvest", user.Add_harvest_plant_progress)
+
+	eAuth.GET("/articles/planting/:plant_id/:location", user.GetPlantingArticle)
+	eAuth.GET("/articles/fertilizing/:plant_id", user.GetFertilizingArticle)
+	eAuth.GET("/articles/watering/:plant_id", user.GetWateringArticle)
+	eAuth.GET("/articles/temperature/:plant_id", user.GetTemperatureArticle)
 
 	return e
 }

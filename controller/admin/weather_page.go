@@ -3,16 +3,17 @@ package admin
 import (
 	"log"
 	"net/http"
+	"strings"
 
 	"github.com/agriplant/config"
 	"github.com/agriplant/model"
+	"github.com/agriplant/utils"
 	"github.com/fatih/color"
 	"github.com/labstack/echo/v4"
 )
 
 func CreateWeather(c echo.Context) error {
 	weather := model.Weather{}
-	admin := model.Admin{}
 
 	if err := c.Bind(&weather); err != nil {
 		log.Print(color.RedString(err.Error()))
@@ -22,9 +23,27 @@ func CreateWeather(c echo.Context) error {
 		})
 	}
 
+	// validation for weather label
+	// Check if the label is valid
+	validLabels := []string{"Cerah", "Hujan", "Mendung", "Berawan"}
+	isValidLabel := false
+	for _, label := range validLabels {
+		if strings.EqualFold(weather.Label, label) {
+			isValidLabel = true
+			break
+		}
+	}
+
+	if !isValidLabel {
+		return c.JSON(http.StatusBadRequest, map[string]interface{}{
+			"status":  400,
+			"message": "bad request, invalid label",
+		})
+	}
+
 	// Check if the label already exists
 	existingWeather := model.Weather{}
-	result := config.DB.Where("label = ?", weather.Label).First(&existingWeather)
+	result := config.DB.Where("label = ? AND deleted_at IS NULL", weather.Label).First(&existingWeather)
 	if result.Error == nil {
 		return c.JSON(http.StatusBadRequest, map[string]interface{}{
 			"status":  400,
@@ -32,18 +51,12 @@ func CreateWeather(c echo.Context) error {
 		})
 	}
 
-	// Get admin by ID
-	// If admin not found, return error
-	if err := config.DB.First(&admin, weather.AdminID).Error; err != nil {
-		log.Print(color.RedString(err.Error()))
-		return c.JSON(http.StatusInternalServerError, map[string]interface{}{
-			"status":  500,
-			"message": "internal server error",
-		})
-	}
+	// Get admin id from JWT token
+	token := strings.TrimPrefix(c.Request().Header.Get("Authorization"), "Bearer ")
+	adminId, _ := utils.GetAdminIDFromToken(token)
 
 	// Set admin ID to weather
-	weather.AdminID = admin.ID
+	weather.AdminID = adminId
 
 	// Save weather to database
 	if err := config.DB.Save(&weather).Error; err != nil {
@@ -203,8 +216,49 @@ func UpdateWeatherByID(c echo.Context) error {
 		})
 	}
 
-	c.Bind(&weather)
+	config.DB.Model(&weather).Association("Pictures").Find(&weather.Pictures)
+	for _, picture := range weather.Pictures {
+		if err_delete_picture := utils.Delete_picture(picture.URL); err_delete_picture != nil {
+			log.Print(color.RedString(err_delete_picture.Error()))
+		}
+	}
 
+	config.DB.Model(&weather).Association("Pictures").Clear()
+
+	if err := c.Bind(&weather); err != nil {
+		log.Print(color.RedString(err.Error()))
+		return c.JSON(http.StatusBadRequest, map[string]interface{}{
+			"status":  400,
+			"message": "bad request",
+		})
+	}
+
+	// Validation for weather label
+	// Check if the label is valid
+	validLabels := []string{"Cerah", "Hujan", "Mendung", "Berawan"}
+	isValidLabel := false
+	for _, label := range validLabels {
+		if strings.EqualFold(weather.Label, label) {
+			isValidLabel = true
+			break
+		}
+	}
+
+	if !isValidLabel {
+		return c.JSON(http.StatusBadRequest, map[string]interface{}{
+			"status":  400,
+			"message": "bad request, invalid label",
+		})
+	}
+
+	// Get admin id from JWT token
+	token := strings.TrimPrefix(c.Request().Header.Get("Authorization"), "Bearer ")
+	adminId, _ := utils.GetAdminIDFromToken(token)
+
+	// Set admin ID to weather
+	weather.AdminID = adminId
+
+	// Save weather to database
 	if err := config.DB.Save(&weather).Error; err != nil {
 		log.Print(color.RedString(err.Error()))
 		return c.JSON(http.StatusInternalServerError, map[string]interface{}{
@@ -212,6 +266,9 @@ func UpdateWeatherByID(c echo.Context) error {
 			"message": "internal server error",
 		})
 	}
+
+	// Populate Pictures field for each weather
+	config.DB.Model(&weather).Association("Pictures").Find(&weather.Pictures)
 
 	// Extract picture URLs
 	pictureURLs := make([]string, len(weather.Pictures))
@@ -257,6 +314,15 @@ func DeleteWeatherByID(c echo.Context) error {
 			"message": "internal server error",
 		})
 	}
+
+	config.DB.Model(&weather).Association("Pictures").Find(&weather.Pictures)
+	for _, picture := range weather.Pictures {
+		if err_delete_picture := utils.Delete_picture(picture.URL); err_delete_picture != nil {
+			log.Print(color.RedString(err_delete_picture.Error()))
+		}
+	}
+
+	config.DB.Model(&weather).Association("Pictures").Clear()
 
 	if err := config.DB.Delete(&weather).Error; err != nil {
 		log.Print(color.RedString(err.Error()))
