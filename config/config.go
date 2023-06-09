@@ -2,6 +2,7 @@ package config
 
 import (
 	"fmt"
+	"os"
 
 	"github.com/agriplant/model"
 	"github.com/joho/godotenv"
