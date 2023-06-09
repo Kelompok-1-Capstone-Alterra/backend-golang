@@ -68,5 +68,8 @@ func InitialMigration() {
 		&model.PlantingInfo{},
 		&model.ContainerInfo{},
 		&model.GroundInfo{},
+		&model.MyPlant{},
+		&model.Complaints{},
+		&model.Suggestions{},
 	)
 }

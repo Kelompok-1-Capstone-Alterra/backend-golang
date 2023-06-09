@@ -133,6 +133,7 @@ type Picture struct {
 	FertilizingInfoID *uint  `json:"-"`
 	ContainerInfoID   *uint  `json:"-"`
 	GroundInfoID      *uint  `json:"-"`
+	User_id           *uint  `json:"-"`
 }
 
 func (a *Admin) BeforeCreateAdmin(tx *gorm.DB) (err error) {
