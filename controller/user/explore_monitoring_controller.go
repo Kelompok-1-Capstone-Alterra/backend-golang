@@ -430,9 +430,6 @@ func Add_my_plant(c echo.Context) error {
 	myplant.IsStartPlanting = false
 	myplant.StartPlantingDate = time.Now()
 
-	// Set the current time as the start_planting_date
-	myplant.StartPlantingDate = time.Now()
-
 	if err_save := config.DB.Save(&myplant).Error; err_save != nil {
 		return c.JSON(http.StatusInternalServerError, map[string]interface{}{
 			"status":  500,
