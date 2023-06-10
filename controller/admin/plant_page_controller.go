@@ -244,7 +244,7 @@ func UpdatePlantDetails(c echo.Context) error {
 
 	// Updating watering info on plant details
 	watering := model.WateringInfo{}
-	if err := config.DB.First(&watering, plantID).Error; err != nil {
+	if err := config.DB.Where("plant_id = ?", plantID).First(&watering).Error; err != nil {
 		log.Print(color.RedString(err.Error()))
 		return c.JSON(http.StatusBadRequest, map[string]interface{}{
 			"status":  400,
@@ -297,7 +297,7 @@ func UpdatePlantDetails(c echo.Context) error {
 
 	// Updating temperature info on plant details
 	temperature := model.TemperatureInfo{}
-	if err := config.DB.First(&temperature, plantID).Error; err != nil {
+	if err := config.DB.Where("plant_id = ?", plantID).First(&temperature).Error; err != nil {
 		log.Print(color.RedString(err.Error()))
 		return c.JSON(http.StatusBadRequest, map[string]interface{}{
 			"status":  400,
@@ -350,7 +350,7 @@ func UpdatePlantDetails(c echo.Context) error {
 
 	// Updating fertilizing info on plant details
 	fertilizing := model.FertilizingInfo{}
-	if err := config.DB.First(&fertilizing, plantID).Error; err != nil {
+	if err := config.DB.Where("plant_id = ?", plantID).First(&fertilizing).Error; err != nil {
 		log.Print(color.RedString(err.Error()))
 		return c.JSON(http.StatusBadRequest, map[string]interface{}{
 			"status":  400,
@@ -403,7 +403,7 @@ func UpdatePlantDetails(c echo.Context) error {
 
 	// Updating planting info on plant details
 	planting := model.PlantingInfo{}
-	if err := config.DB.First(&planting, plantID).Error; err != nil {
+	if err := config.DB.Where("plant_id = ?", plantID).First(&planting).Error; err != nil {
 		log.Print(color.RedString(err.Error()))
 		return c.JSON(http.StatusBadRequest, map[string]interface{}{
 			"status":  400,
@@ -424,7 +424,7 @@ func UpdatePlantDetails(c echo.Context) error {
 
 	// Updating container info on planting info
 	container := model.ContainerInfo{}
-	if err := config.DB.First(&container, planting.ID).Error; err != nil {
+	if err := config.DB.Where("planting_info_id = ?", planting.ID).First(&container).Error; err != nil {
 		log.Print(color.RedString(err.Error()))
 		return c.JSON(http.StatusBadRequest, map[string]interface{}{
 			"status":  400,
@@ -477,7 +477,7 @@ func UpdatePlantDetails(c echo.Context) error {
 
 	// Updating ground info on planting info
 	ground := model.GroundInfo{}
-	if err := config.DB.First(&ground, planting.ID).Error; err != nil {
+	if err := config.DB.Where("planting_info_id = ?", planting.ID).First(&ground).Error; err != nil {
 		log.Print(color.RedString(err.Error()))
 		return c.JSON(http.StatusBadRequest, map[string]interface{}{
 			"status":  400,
