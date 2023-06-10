@@ -216,7 +216,7 @@ func GetMyPlantsStats(c echo.Context) error {
 		var temp Response
 
 		var plant model.Plant
-		if err := config.DB.First(&plant, MyPlants[i].Plant_id).Error; err != nil {
+		if err := config.DB.First(&plant, MyPlants[i].PlantID).Error; err != nil {
 			log.Print(color.RedString(err.Error()))
 			return c.JSON(http.StatusBadRequest, map[string]interface{}{
 				"status":  400,
@@ -226,7 +226,7 @@ func GetMyPlantsStats(c echo.Context) error {
 		temp.myplant_id = MyPlants[i].ID
 
 		picture := []model.Picture{}
-		if err := config.DB.Where("plant_id = ?", MyPlants[i].Plant_id).Find(&picture).Error; err != nil {
+		if err := config.DB.Where("plant_id = ?", MyPlants[i].PlantID).Find(&picture).Error; err != nil {
 			log.Print(color.RedString(err.Error()))
 			return c.JSON(http.StatusBadRequest, map[string]interface{}{
 				"status":  400,
