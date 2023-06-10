@@ -13,6 +13,7 @@ type User struct {
 	Name     string `json:"name" form:"name"`
 	Email    string `json:"email" form:"email" gorm:"unique; not null" validate:"required, email"`
 	Password string `json:"password" form:"password" validate:"required"`
+  MyPlant  MyPlant `json:"my_plant" gorm:"foreignKey:UserID"`
 }
 
 type ProductResponse struct {
@@ -52,18 +53,37 @@ type InfoWeather struct {
 	Label       string `json:"label" form:"label"`
 }
 
-// Struct for save my plants for each user
 type MyPlant struct {
 	gorm.Model
-	User_id           uint      `json:"user_id" form:"user_id"`
-	Plant_id          uint      `json:"plant_id" form:"plant_id"`
-	Name              string    `json:"name" form:"name"`
-	Location          string    `json:"location" form:"location"`
-	IsStartPlanting   bool      `json:"is_start_planting" form:"is_start_planting"`
-	StartPlantingDate time.Time `json:"start_planting_date" form:"start_planting_date"`
-	Status            string    `json:"status" form:"status"`
-	Latitude          string    `json:"latitude" form:"latitude"`
-	Longitude         string    `json:"longitude" form:"longitude"`
+	PlantID           uint      `json:"plant_id"`
+	UserID            uint      `json:"user_id"`
+	Name              string    `json:"name"`
+	Location          string    `json:"location"`
+	IsStartPlanting   bool      `json:"is_start_planting"`
+	StartPlantingDate time.Time `json:"start_planting_date"`
+	Status            string    `json:"status"`
+	Longitude         string    `json:"longitude"`
+	Latitude          string    `json:"latitude"`
+}
+
+type Watering struct {
+	gorm.Model
+	MyPlantID uint `json:"myplant_id"`
+	Week      int  `json:"week"`
+	Day1      int  `json:"day1"`
+	Day2      int  `json:"day2"`
+	Day3      int  `json:"day3"`
+	Day4      int  `json:"day4"`
+	Day5      int  `json:"day5"`
+	Day6      int  `json:"day6"`
+	Day7      int  `json:"day7"`
+}
+
+type Fertilizing struct {
+	gorm.Model
+	MyPlantID uint `json:"myplant_id"`
+	Week      int  `json:"week"`
+	Status    bool `json:"status"`
 }
 
 type Complaints struct {
