@@ -105,6 +105,16 @@ func New() *echo.Echo {
 	eAuth.GET("/articles/watering/:plant_id", user.GetWateringArticle)
 	eAuth.GET("/articles/temperature/:plant_id", user.GetTemperatureArticle)
 
+	// Settings
+	eAuth.GET("/users/profiles", user.GetProfile)
+	eAuth.GET("/users/profiles/name", user.GetUsername)
+	eAuth.PUT("/users/profiles/name", user.UpdateUsername)
+	eAuth.PUT("/users/profiles/password", user.UpdateUserPassword)
+	eAuth.GET("/users/plants/stats", user.GetMyPlantsStats)
+	eAuth.POST("/users/helps", user.SendComplaintEmail)
+	eAuth.POST("/users/suggestions", user.SendSuggestion)
+	eAuth.PUT("/users/profiles/pictures", user.UpdateProfilePicture)
+
 	return e
 }
 
