@@ -52,7 +52,11 @@ type InfoWeather struct {
 	Temperature string `json:"temperature" form:"temperature"`
 	Label       string `json:"label" form:"label"`
 }
-
+type LikedArticles struct {
+	gorm.Model
+	User_id     uint `json:"user_id" form:"user_id"`
+	Articles_id uint `json:"articles_id" form:"articles_id" `
+}
 type MyPlant struct {
 	gorm.Model
 	PlantID           uint      `json:"plant_id"`
@@ -85,5 +89,6 @@ type Fertilizing struct {
 	Week      int  `json:"week"`
 	Status    bool `json:"status"`
 }
+
 
 
