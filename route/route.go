@@ -43,7 +43,10 @@ func New() *echo.Echo {
 	// Article
 	eAuth.POST("/admins/articles/add", admin.CreateArticle)
 	eAuth.GET("/admins/articles", admin.GetArticles)
-	eAuth.GET("/admins/articles/search", admin.GetArticlesByKeyword)
+	eAuth.GET("/admins/articles/search", admin.GetArticlesByTitle)
+	eAuth.GET("/admins/articles/:id/detail", admin.GetArticleByID)
+	eAuth.PUT("/admins/articles/:id", admin.UpdateArticleByID)
+	eAuth.DELETE("/admins/articles/:id", admin.DeleteArticleByID)
 
 	// Product
 	eAuth.POST("/admins/products/add", admin.CreateProduct)
@@ -53,7 +56,8 @@ func New() *echo.Echo {
 	eAuth.GET("/admins/products/:id/detail", admin.GetProductByID)
 	eAuth.DELETE("/admins/products/:id", admin.DeleteProductByID)
 	eAuth.PUT("/admins/products/:id", admin.UpdateProductByID)
-	eAuth.GET("/admins/products/search", admin.GetProductsByKeyword)
+	eAuth.GET("/admins/products/search", admin.GetProductsByName)
+
 
 	// Weather Management
 	eAuth.POST("/admins/weathers/add", admin.CreateWeather)
@@ -61,6 +65,14 @@ func New() *echo.Echo {
 	eAuth.GET("/admins/weathers/:id/detail", admin.GetWeatherByID)
 	eAuth.PUT("/admins/weathers/:id", admin.UpdateWeatherByID)
 	eAuth.DELETE("/admins/weathers/:id", admin.DeleteWeatherByID)
+
+	// Plant
+	eAuth.GET("/admins/plants/search", admin.GetPlantsByKeyword)
+	eAuth.GET("/admins/plants", admin.GetPlants)
+	eAuth.GET("/admins/plants/:id/detail", admin.GetPlantDetails)
+	eAuth.PUT("/admins/plants/:id/detail", admin.UpdatePlantDetails)
+	eAuth.DELETE("/admins/plants/:id/detail", admin.DeletePlantDetails)
+	eAuth.POST("/admins/plants/add", admin.CreatePlant)
 
 	// ENDPOINT MOBILE (with token)
 	// Recomendation
@@ -74,6 +86,7 @@ func New() *echo.Echo {
 	eAuth.GET("/users/weather", user.Get_weather)
 	eAuth.GET("/users/weather/:label_id", user.Get_weather_article)
 
+
 	// Articles (with token)
 	eAuth.GET("/users/articles/trending", user.GetArticlesTrending)
 	eAuth.GET("/users/articles/latest", user.GetArticlesLatest)
@@ -81,6 +94,27 @@ func New() *echo.Echo {
 	eAuth.GET("/users/articles/liked", user.GetArticlesLiked)
 	eAuth.POST("/users/articles/:article_id/liked", user.AddLikes)
 	eAuth.DELETE("/users/articles/:article_id/liked", user.DeleteLikes)
+	eAuth.GET("/plants", user.Get_available_plants)
+	eAuth.GET("/plants/search", user.Search_available_plants)
+	eAuth.GET("/plants/:plant_id", user.Get_plant_detail)
+	eAuth.GET("/plants/:plant_id/location", user.Get_plant_location)
+	eAuth.POST("/plants/:plant_id", user.Add_my_plant)
+	eAuth.POST("/users/plants/:myplant_id/start", user.Start_planting)
+	eAuth.GET("/users/plants/:myplant_id/overview", user.Get_myplant_overview)
+	eAuth.POST("/users/plants/:myplant_id/watering", user.Add_watering)
+	eAuth.POST("/users/plants/:myplant_id/fertilizing", user.Add_fertilizing)
+	eAuth.POST("/users/plants/:myplant_id/progress", user.Add_weekly_progress)
+	eAuth.GET("/users/plants/:myplant_id/progress", user.Get_all_myplant_weekly_progress)
+	eAuth.GET("/users/plants/:myplant_id/progress/:weekly_progress_id", user.Get_my_plant_weekly_progress_by_id)
+	eAuth.PUT("/users/plants/progress/:weekly_progress_id", user.Update_weekly_progress)
+	eAuth.POST("/users/plants/:myplant_id/progress/dead", user.Add_dead_plant_progress)
+	eAuth.POST("/users/plants/:myplant_id/progress/harvest", user.Add_harvest_plant_progress)
+	eAuth.GET("/articles/planting/:plant_id/:location", user.GetPlantingArticle)
+	eAuth.GET("/articles/fertilizing/:plant_id", user.GetFertilizingArticle)
+	eAuth.GET("/articles/watering/:plant_id", user.GetWateringArticle)
+	eAuth.GET("/articles/temperature/:plant_id", user.GetTemperatureArticle)
+
+
 	return e
 }
 

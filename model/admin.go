@@ -1,6 +1,8 @@
 package model
 
 import (
+	"time"
+
 	"github.com/agriplant/utils"
 	"gorm.io/gorm"
 )
@@ -10,9 +12,10 @@ type Admin struct {
 	Name     string    `json:"admin_name"`
 	Email    string    `json:"admin_email" gorm:"unique"`
 	Password string    `json:"admin_password"`
-	Articles []Article `gorm:"foreignKey:AdminID"`
-	Products []Product `gorm:"foreignKey:AdminID"`
-	Weathers []Weather `gorm:"foreignKey:AdminID"`
+	Articles []Article `json:"-" gorm:"foreignKey:AdminID"`
+	Products []Product `json:"-" gorm:"foreignKey:AdminID"`
+	Weathers []Weather `json:"-" gorm:"foreignKey:AdminID"`
+	Plants   []Plant   `json:"-" gorm:"foreignKey:AdminID"`
 }
 
 type Product struct {
@@ -31,7 +34,7 @@ type Product struct {
 	Form        string    `json:"product_form"`
 	SellerName  string    `json:"product_seller_name"`
 	SellerPhone string    `json:"product_seller_phone"`
-	AdminID     uint      `json:"admin_id"`
+	AdminID     uint      `json:"-"`
 }
 
 type Article struct {
@@ -40,26 +43,112 @@ type Article struct {
 	Pictures    []Picture `json:"article_pictures" gorm:"foreignKey:ArticleID"`
 	Description string    `json:"article_description"`
 	View        int       `json:"article_view"`
-	Like        int       `json:"article_like" gorm:"like"`
-	AdminID     uint      `json:"admin_id"`
+	Like        int       `json:"article_like"`
+	AdminID     uint      `json:"-"`
 }
 
 // Struct for save weather article made by admin
 type Weather struct {
 	gorm.Model
 	Title       string    `json:"weather_title"`
-	Label       string    `json:"weather_label" gorm:"unique"`
+	Label       string    `json:"weather_label"`
 	Pictures    []Picture `json:"weather_pictures" gorm:"foreignKey:WeatherID"`
 	Description string    `json:"weather_description"`
-	AdminID     uint      `json:"admin_id"`
+	AdminID     uint      `json:"-"`
+}
+
+type Plant struct {
+	gorm.Model      `json:"-"`
+	Name            string          `json:"plant_name"`
+	Latin           string          `json:"plant_latin"`
+	Description     string          `json:"plant_description"`
+	Pictures        []Picture       `json:"plant_pictures" gorm:"foreignKey:PlantID"`
+	WateringInfo    WateringInfo    `json:"watering_info" gorm:"foreignKey:PlantID"`
+	TemperatureInfo TemperatureInfo `json:"temperature_info" gorm:"foreignKey:PlantID"`
+	FertilizingInfo FertilizingInfo `json:"fertilizing_info" gorm:"foreignKey:PlantID"`
+	PlantingInfo    PlantingInfo    `json:"planting_info" gorm:"foreignKey:PlantID"`
+	MyPlant         MyPlant         `json:"my_plant" gorm:"foreignKey:PlantID"`
+	AdminID         uint            `json:"-"`
+}
+
+type WateringInfo struct {
+	gorm.Model  `json:"-"`
+	Period      int       `json:"watering_period"`
+	Pictures    []Picture `json:"watering_pictures" gorm:"foreignKey:WateringInfoID"`
+	Description string    `json:"watering_description"`
+	PlantID     uint      `json:"-"`
+}
+
+type TemperatureInfo struct {
+	gorm.Model  `json:"-"`
+	Min         int       `json:"temperature_min"`
+	Max         int       `json:"temperature_max"`
+	Description string    `json:"temperature_description"`
+	Pictures    []Picture `json:"temperature_pictures" gorm:"foreignKey:TemperatureInfoID"`
+	PlantID     uint      `json:"-"`
+}
+
+type FertilizingInfo struct {
+	gorm.Model  `json:"-"`
+	Limit       int       `json:"fertilizing_limit"`
+	Period      int       `json:"fertilizing_period"`
+	Pictures    []Picture `json:"fertilizing_pictures" gorm:"foreignKey:FertilizingInfoID"`
+	Description string    `json:"fertilizing_description"`
+	PlantID     uint      `json:"-"`
+}
+
+type PlantingInfo struct {
+	gorm.Model    `json:"-"`
+	Container     bool          `json:"planting_container"`
+	Ground        bool          `json:"planting_ground"`
+	ContainerInfo ContainerInfo `json:"container_info" gorm:"foreignKey:PlantingInfoID"`
+	GroundInfo    GroundInfo    `json:"ground_info" gorm:"foreignKey:PlantingInfoID"`
+	PlantID       uint          `json:"-"`
+}
+
+type ContainerInfo struct {
+	gorm.Model     `json:"-"`
+	Instructions   string    `json:"container_instruction"`
+	Materials      string    `json:"container_materials"`
+	Video          string    `json:"container_video"`
+	Pictures       []Picture `json:"container_pictures" gorm:"foreignKey:ContainerInfoID"`
+	PlantingInfoID uint      `json:"-"`
+}
+
+type GroundInfo struct {
+	gorm.Model     `json:"-"`
+	Instructions   string    `json:"ground_instruction"`
+	Materials      string    `json:"ground_materials"`
+	Video          string    `json:"ground_video"`
+	Pictures       []Picture `json:"ground_pictures" gorm:"foreignKey:GroundInfoID"`
+	PlantingInfoID uint      `json:"-"`
+}
+
+type WeeklyProgress struct {
+	gorm.Model
+	MyPlantID   uint      `json:"myplant_id"`
+	Week        int       `json:"week"`
+	From        time.Time `json:"from"`
+	To          time.Time `json:"to"`
+	Condition   string    `json:"condition"`
+	Description string    `json:"description"`
+	Pictures    []Picture `json:"weekly_pictures" gorm:"foreignKey:WeeklyProgressID"`
+	Status      string    `json:"status"`
 }
 
 type Picture struct {
-	gorm.Model
-	URL       string `json:"url"`
-	ArticleID *uint  `json:"article_id" `
-	ProductID *uint  `json:"product_id"`
-	WeatherID *uint  `json:"weather_id"`
+	gorm.Model        `json:"-"`
+	URL               string `json:"url"`
+	ArticleID         *uint  `json:"-"`
+	ProductID         *uint  `json:"-"`
+	WeatherID         *uint  `json:"-" gorm:"index"`
+	PlantID           *uint  `json:"-"`
+	WateringInfoID    *uint  `json:"-"`
+	TemperatureInfoID *uint  `json:"-"`
+	FertilizingInfoID *uint  `json:"-"`
+	ContainerInfoID   *uint  `json:"-"`
+	GroundInfoID      *uint  `json:"-"`
+	WeeklyProgressID  *uint  `json:"-"`
 }
 
 func (a *Admin) BeforeCreateAdmin(tx *gorm.DB) (err error) {

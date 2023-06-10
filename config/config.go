@@ -2,7 +2,6 @@ package config
 
 import (
 	"fmt"
-	"os"
 
 	"github.com/agriplant/model"
 	"github.com/joho/godotenv"
@@ -29,20 +28,20 @@ type Config struct {
 }
 
 func InitDB() {
-	config_rds := Config{
-		DB_Username: os.Getenv("DB_USERNAME"),
-		DB_Password: os.Getenv("DB_PASSWORD"),
-		DB_Port:     os.Getenv("DB_PORT"),
-		DB_Host:     os.Getenv("DB_HOST"),
-		DB_Name:     os.Getenv("DB_DB"),
+	config := Config{
+		DB_Username: "developergolang",
+		DB_Password: "plantagridb123",
+		DB_Port:     "3306",
+		DB_Host:     "mysql",
+		DB_Name:     "agriplant_db",
 	}
 
 	connectionString := fmt.Sprintf("%s:%s@tcp(%s:%s)/%s?charset=utf8mb4&parseTime=True&loc=Local",
-		config_rds.DB_Username,
-		config_rds.DB_Password,
-		config_rds.DB_Host,
-		config_rds.DB_Port,
-		config_rds.DB_Name,
+		config.DB_Username,
+		config.DB_Password,
+		config.DB_Host,
+		config.DB_Port,
+		config.DB_Name,
 	)
 
 	var err error
@@ -58,9 +57,20 @@ func InitialMigration() {
 		&model.User{},
 		&model.Article{},
 		&model.Product{},
-		&model.Picture{},
 		&model.Weather{},
 		&model.InfoWeather{},
-		&model.LikedArticles{},
+    &model.LikedArticles{},
+		&model.Plant{},
+		&model.WateringInfo{},
+		&model.TemperatureInfo{},
+		&model.FertilizingInfo{},
+		&model.PlantingInfo{},
+		&model.ContainerInfo{},
+		&model.GroundInfo{},
+		&model.WeeklyProgress{},
+		&model.Picture{},
+		&model.MyPlant{},
+		&model.Watering{},
+		&model.Fertilizing{},
 	)
 }
