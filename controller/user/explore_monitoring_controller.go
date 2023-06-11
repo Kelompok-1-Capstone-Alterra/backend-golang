@@ -928,15 +928,103 @@ func Get_myplant_overview(c echo.Context) error {
 	}
 	// END GET WEEKLY PROGRESS ---------------------------------------------------------------------------------
 
+	// START GET BUTTON HARVEST & DEAD ---------------------------------------------------------------------------------
+	isActiveButtonHarvest := false
+	isActiveButtonDead := false
+	day_button := int(diff.Hours()/24) + 1
+	if day_button > 6 {
+		isActiveButtonHarvest = true
+		isActiveButtonDead = true
+	}
+	// END GET BUTTON HARVEST & DEAD ---------------------------------------------------------------------------------
+
+	// START GET TEMPERATURE ALERT ---------------------------------------------------------------------------------
+	currentTemperature, _ := strconv.ParseFloat(get_current_temperature(myplant.Longitude, myplant.Latitude), 32)
+	var temperatureInfo model.TemperatureInfo
+	if err_first_temperature := config.DB.Where("plant_id=?", myplant.PlantID).First(&temperatureInfo).Error; err_first_temperature != nil {
+		log.Print(color.RedString(err_first_temperature.Error()))
+		return c.JSON(http.StatusInternalServerError, map[string]interface{}{
+			"status":  500,
+			"message": "internal server error",
+		})
+	}
+
+	isActiveTemperatureAlert := false
+	if float64(temperatureInfo.Min) > currentTemperature || float64(temperatureInfo.Max) < currentTemperature {
+		isActiveTemperatureAlert = true
+	}
+
+	roundedNumber := float64(int(currentTemperature*100)) / 100
+	responseTemperatureAlert := map[string]interface{}{
+		"is_active": isActiveTemperatureAlert,
+		"name":      myplant.Name,
+		"current":   roundedNumber,
+		"min":       temperatureInfo.Min,
+		"max":       temperatureInfo.Max,
+	}
+
+	// END GET TEMPERATURE ALERT ---------------------------------------------------------------------------------
+
 	return c.JSON(http.StatusOK, map[string]interface{}{
 		"status":  200,
 		"message": "success to get my plant overview",
 		"data": map[string]interface{}{
-			"watering":        response_watering,
-			"fertilizing":     response_fertilizing,
-			"weekly_progress": response_weekly_progress,
+			"watering":          response_watering,
+			"fertilizing":       response_fertilizing,
+			"weekly_progress":   response_weekly_progress,
+			"temperature_alert": responseTemperatureAlert,
+			"button_harvest":    isActiveButtonHarvest,
+			"button_dead":       isActiveButtonDead,
 		},
 	})
+}
+
+// HELPER FUNCTION
+func get_current_temperature(longitude, latitude string) string {
+	apikey := "869a5f0aa562d21ec64ff37c7c6c157f"
+	baseURL := "https://api.openweathermap.org/data/2.5/weather"
+
+	u, err_parseURL := url.Parse(baseURL)
+	if err_parseURL != nil {
+		log.Print(color.RedString(err_parseURL.Error()))
+		return "0"
+	}
+
+	// Add query parameters to the URL
+	q := u.Query()
+	q.Set("lat", latitude)
+	q.Set("lon", longitude)
+	q.Set("appid", apikey)
+	q.Set("units", "metric")
+	u.RawQuery = q.Encode()
+
+	// Make the GET request
+	response, err_consume := http.Get(u.String())
+	if err_consume != nil {
+		log.Print(color.RedString(err_consume.Error()))
+		return "0"
+	}
+	defer response.Body.Close()
+
+	// Read the response body
+	body, err_read := ioutil.ReadAll(response.Body)
+	if err_read != nil {
+		log.Print(color.RedString(err_read.Error()))
+		return "0"
+	}
+
+	// Create a map to store the JSON data
+	var data map[string]interface{}
+
+	// Unmarshal the response body into the map
+	err_unmarshal := json.Unmarshal(body, &data)
+	if err_unmarshal != nil {
+		log.Print(color.RedString(err_unmarshal.Error()))
+		return "0"
+	}
+	temperature := fmt.Sprintf("%v", data["main"].(map[string]interface{})["temp"])
+
+	return temperature
 }
 
 // EXPLORE & MONITORING (Menu Home) - [Endpoint 18 : Add watering]

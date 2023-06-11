@@ -8,12 +8,12 @@ import (
 )
 
 type User struct {
-	gorm.Model
-	ID       uint    `gorm:"primaryKey;autoIncrement" json:"id" form:"id"`
-	Name     string  `json:"name" form:"name"`
-	Email    string  `json:"email" form:"email" gorm:"unique; not null" validate:"required, email"`
-	Password string  `json:"password" form:"password" validate:"required"`
-	MyPlant  MyPlant `json:"my_plant" gorm:"foreignKey:UserID"`
+	ID       uint   `gorm:"primaryKey;autoIncrement" json:"id" form:"id"`
+	URL      string `json:"-"`
+	Name     string `json:"name" form:"name"`
+	Email    string `json:"email" form:"email" gorm:"unique; not null" validate:"required, email"`
+	Password string `json:"password" form:"password" validate:"required"`
+  MyPlant  MyPlant `json:"my_plant" gorm:"foreignKey:UserID"`
 }
 
 type ProductResponse struct {
@@ -90,5 +90,16 @@ type Fertilizing struct {
 	Status    bool `json:"status"`
 }
 
+type Complaints struct {
+	gorm.Model
+	User_id     uint   `json:"-"`
+	PhoneNumber string `json:"phone_number"`
+	Email       string `json:"email"`
+	Notes       string `json:"notes"`
+}
 
-
+type Suggestions struct {
+	gorm.Model
+	User_id uint   `json:"-"`
+	Content string `json:"content"`
+}
