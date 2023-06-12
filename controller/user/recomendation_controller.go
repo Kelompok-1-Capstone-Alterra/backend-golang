@@ -227,7 +227,17 @@ func GetProductsByCategory(c echo.Context) error {
 }
 
 func GetProductsByCategoryAndName(c echo.Context) error {
-	category := c.Param("category")
+	categoryParam := c.Param("category")
+	categoryNumber, err := strconv.Atoi(categoryParam)
+	if err != nil {
+		log.Print(color.RedString(err.Error()))
+		return c.JSON(http.StatusBadRequest, map[string]interface{}{
+			"status":  400,
+			"message": "invalid category parameter",
+		})
+	}
+
+	category := getCategory(categoryNumber)
 	name := c.QueryParam("name")
 
 	product := []model.Product{}
