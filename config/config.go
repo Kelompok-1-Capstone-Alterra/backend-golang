@@ -60,7 +60,7 @@ func InitialMigration() {
 		&model.Product{},
 		&model.Weather{},
 		&model.InfoWeather{},
-    &model.LikedArticles{},
+		&model.LikedArticles{},
 		&model.Plant{},
 		&model.WateringInfo{},
 		&model.TemperatureInfo{},
@@ -73,7 +73,7 @@ func InitialMigration() {
 		&model.MyPlant{},
 		&model.Watering{},
 		&model.Fertilizing{},
-    &model.Complaints{},
+		&model.Complaints{},
 		&model.Suggestions{},
 	)
 }

@@ -40,6 +40,9 @@ func New() *echo.Echo {
 	eAuth.Use(JWTMiddleware())
 
 	// ENDPOINT WEB (with token)
+	// Landing Page
+	eAuth.GET("/admins/overview", admin.GetOverview)
+	
 	// Article
 	eAuth.POST("/admins/articles/add", admin.CreateArticle)
 	eAuth.GET("/admins/articles", admin.GetArticles)
