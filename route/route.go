@@ -21,6 +21,7 @@ func New() *echo.Echo {
 
 	// ENDPOINT GLOBAL (no token)
 	e.GET("/hello", controller.Hello_World)
+	e.GET("/alldb", controller.Show_all_DB)
 	e.POST("/pictures", controller.Upload_pictures)
 	e.GET("/pictures/:url", controller.Get_picture)
 

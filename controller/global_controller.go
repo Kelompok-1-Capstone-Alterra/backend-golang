@@ -3,6 +3,7 @@ package controller
 import (
 	"encoding/base64"
 	"fmt"
+	"html/template"
 	"io/ioutil"
 	"log"
 	"mime/multipart"
@@ -10,6 +11,9 @@ import (
 	"os"
 	"strings"
 
+	"github.com/agriplant/config"
+	"github.com/agriplant/model"
+	"github.com/fatih/color"
 	"github.com/google/uuid"
 	"github.com/labstack/echo/v4"
 )
@@ -20,6 +24,46 @@ func Hello_World(c echo.Context) error {
 		"message": "Hello World. OK",
 		"no_test": 8,
 	})
+}
+
+func Show_all_DB(c echo.Context) error {
+	tmpl := template.Must(template.ParseFiles("templates/index.html"))
+	type TemplateData struct {
+		Admins []model.Admin
+		Users  []model.User
+	}
+
+	// Get Admins
+	var admins []model.Admin
+	if err_find_admins := config.DB.Find(&admins).Error; err_find_admins != nil {
+		log.Print(color.RedString(err_find_admins.Error()))
+		return c.JSON(http.StatusInternalServerError, map[string]interface{}{
+			"status":  500,
+			"message": "internal server error",
+		})
+	}
+
+	// Get Users
+	var users []model.User
+	if err_find_users := config.DB.Find(&users).Error; err_find_users != nil {
+		log.Print(color.RedString(err_find_users.Error()))
+		return c.JSON(http.StatusInternalServerError, map[string]interface{}{
+			"status":  500,
+			"message": "internal server error",
+		})
+	}
+
+	data := TemplateData{
+		Admins: admins,
+		Users: users,
+	}
+
+	err := tmpl.Execute(c.Response().Writer, data)
+	if err != nil {
+		return err
+	}
+
+	return nil
 }
 
 func Upload_pictures(c echo.Context) error {
