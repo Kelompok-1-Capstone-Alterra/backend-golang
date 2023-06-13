@@ -949,8 +949,8 @@ func Get_myplant_overview(c echo.Context) error {
 
 	response_weekly_progress := map[string]interface{}{
 		"is_active":  isActiveWeeklyProgress,
-		"from":       myplant.StartPlantingDate,
-		"to":         myplant.StartPlantingDate.Add(168 * time.Hour),
+		"from":       myplant.StartPlantingDate.Format("02-01-2006"),
+		"to":         myplant.StartPlantingDate.Add(168 * time.Hour).Format("02-01-2006"),
 		"is_enabled": isEnabledWeeklyProgress,
 	}
 	// END GET WEEKLY PROGRESS ---------------------------------------------------------------------------------
@@ -1318,8 +1318,8 @@ func Get_all_myplant_weekly_progress(c echo.Context) error {
 			"weekly_progress_id": weeklyProgress.ID,
 			"week":               weeklyProgress.Week,
 			"picture":            url_ground,
-			"from":               weeklyProgress.From,
-			"to":                 weeklyProgress.To,
+			"from":               weeklyProgress.From.Format("02-01-2006"),
+			"to":                 weeklyProgress.To.Format("02-01-2006"),
 			"status":             weeklyProgress.Status,
 		}
 
@@ -1401,8 +1401,8 @@ func Get_my_plant_weekly_progress_by_id(c echo.Context) error {
 			"weekly":      weeklyProgress.ID,
 			"week":        weeklyProgress.Week,
 			"pictures":    urls,
-			"from":        weeklyProgress.From,
-			"to":          weeklyProgress.To,
+			"from":        weeklyProgress.From.Format("02-01-2006"),
+			"to":          weeklyProgress.To.Format("02-01-2006"),
 			"condition":   weeklyProgress.Condition,
 			"description": weeklyProgress.Description,
 		},
@@ -1412,7 +1412,7 @@ func Get_my_plant_weekly_progress_by_id(c echo.Context) error {
 
 	return c.JSON(http.StatusOK, map[string]interface{}{
 		"status":  200,
-		"message": "success to get all my plant weekly progress",
+		"message": "success to get my plant weekly progress by weekly_progress_id",
 		"data":    response,
 	})
 }
