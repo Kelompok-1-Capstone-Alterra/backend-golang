@@ -77,6 +77,11 @@ func New() *echo.Echo {
 	eAuth.DELETE("/admins/plants/:id/detail", admin.DeletePlantDetails)
 	eAuth.POST("/admins/plants/add", admin.CreatePlant)
 
+	// Suggestions
+	eAuth.GET("/admins/suggestions", admin.GetAllSuggestions)
+	eAuth.GET("/admins/suggestions/:suggestion_id", admin.GetSuggestionByID)
+	eAuth.DELETE("/admins/suggestions/:suggestion_id", admin.DeleteSuggestionByID)
+
 	// ENDPOINT MOBILE (with token)
 	// Recomendation
 	eAuth.GET("/users/products", user.GetProducts)
