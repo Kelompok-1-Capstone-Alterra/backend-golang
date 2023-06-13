@@ -1,0 +1,134 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <title>BACKEND : MyPlants</title>
+    <style>
+      body {
+        padding: 20px;
+      }
+
+      table,
+      td,
+      th {
+        border: 1px solid;
+        padding: 10px;
+      }
+
+      table {
+        width: 100%;
+        border-collapse: collapse;
+      }
+    </style>
+  </head>
+  <body>
+    <!-- START -->
+
+    <h1>Table Weathers</h1>
+    <table>
+      <tr>
+        <th>ID</th>
+        <th>Title</th>
+        <th>Label</th>
+        <th>Description</th>
+        <th>AdminID</th>
+      </tr>
+      {{range .Weathers}}
+      <tr>
+        <td>{{.ID}}</td>
+        <td>{{.Title}}</td>
+        <td>{{.Label}}</td>
+        <td>{{.Description}}</td>
+        <td>{{.AdminID}}</td>
+      </tr>
+      {{end}}
+    </table>
+    <br />
+    <hr />
+
+    <h1>Table Products</h1>
+    <table>
+      <tr>
+        <th>ID</th>
+        <th>Name</th>
+        <th>Category</th>
+        <th>Description</th>
+        <th>Price</th>
+        <th>Seen</th>
+        <th>Status</th>
+        <th>Brand</th>
+        <th>Condition</th>
+        <th>Unit</th>
+        <th>Weight</th>
+        <th>Form</th>
+        <th>SellerName</th>
+        <th>SellerPhone</th>
+        <th>AdminID</th>
+      </tr>
+      {{range .Products}}
+      <tr>
+        <td>{{.ID}}</td>
+        <td>{{.Name}}</td>
+        <td>{{.Category}}</td>
+        <td>{{.Description}}</td>
+        <td>{{.Price}}</td>
+        <td>{{.Seen}}</td>
+        <td>{{.Status}}</td>
+        <td>{{.Brand}}</td>
+        <td>{{.Condition}}</td>
+        <td>{{.Unit}}</td>
+        <td>{{.Weight}}</td>
+        <td>{{.Form}}</td>
+        <td>{{.SellerName}}</td>
+        <td>{{.SellerPhone}}</td>
+        <td>{{.AdminID}}</td>
+      </tr>
+      {{end}}
+    </table>
+    <br />
+    <hr />
+
+    <h1>Table Articles</h1>
+    <table>
+      <tr>
+        <th>ID</th>
+        <th>Title</th>
+        <th>Description</th>
+        <th>View</th>
+        <th>Like</th>
+        <th>AdminID</th>
+      </tr>
+      {{range .Articles}}
+      <tr>
+        <td>{{.ID}}</td>
+        <td>{{.Title}}</td>
+        <td>{{.Description}}</td>
+        <td>{{.View}}</td>
+        <td>{{.Like}}</td>
+        <td>{{.AdminID}}</td>
+      </tr>
+      {{end}}
+    </table>
+    <br />
+    <hr />
+
+    <h1>Table LikedArticles</h1>
+    <table>
+      <tr>
+        <th>ID</th>
+        <th>UserID</th>
+        <th>ArticleID</th>
+      </tr>
+      {{range .LikedArticles}}
+      <tr>
+        <td>{{.ID}}</td>
+        <td>{{.UserID}}</td>
+        <td>{{.ArticleID}}</td>
+      </tr>
+      {{end}}
+    </table>
+    <br />
+    <hr />
+
+    <!-- END -->
+  </body>
+</html>

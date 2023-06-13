@@ -1,0 +1,156 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <title>BACKEND : Plants</title>
+    <style>
+      body {
+        padding: 20px;
+      }
+
+      table,
+      td,
+      th {
+        border: 1px solid;
+        padding: 10px;
+      }
+
+      table {
+        width: 100%;
+        border-collapse: collapse;
+      }
+    </style>
+  </head>
+  <body>
+    <!-- START -->
+
+    <h1>Table WateringInfos</h1>
+    <table>
+      <tr>
+        <th>ID</th>
+        <th>Period</th>
+        <th>Description</th>
+        <th>PlantID</th>
+      </tr>
+      {{range .WateringInfos}}
+      <tr>
+        <td>{{.ID}}</td>
+        <td>{{.Period}}</td>
+        <td>{{.Description}}</td>
+        <td>{{.PlantID}}</td>
+      </tr>
+      {{end}}
+    </table>
+    <br />
+    <hr />
+
+    <h1>Table TemperatureInfos</h1>
+    <table>
+      <tr>
+        <th>ID</th>
+        <th>Min</th>
+        <th>Max</th>
+        <th>Description</th>
+        <th>PlantID</th>
+      </tr>
+      {{range .TemperatureInfos}}
+      <tr>
+        <td>{{.ID}}</td>
+        <td>{{.Min}}</td>
+        <td>{{.Max}}</td>
+        <td>{{.Description}}</td>
+        <td>{{.PlantID}}</td>
+      </tr>
+      {{end}}
+    </table>
+    <br />
+    <hr />
+
+    <h1>Table PlantingInfos</h1>
+    <table>
+      <tr>
+        <th>ID</th>
+        <th>Container</th>
+        <th>Ground</th>
+        <th>PlantID</th>
+      </tr>
+      {{range .PlantingInfos}}
+      <tr>
+        <td>{{.ID}}</td>
+        <td>{{.Container}}</td>
+        <td>{{.Ground}}</td>
+        <td>{{.PlantID}}</td>
+      </tr>
+      {{end}}
+    </table>
+    <br />
+    <hr />
+
+    <h1>Table FertilizingInfos</h1>
+    <table>
+      <tr>
+        <th>ID</th>
+        <th>Limit</th>
+        <th>Period</th>
+        <th>Description</th>
+        <th>PlantID</th>
+      </tr>
+      {{range .FertilizingInfos}}
+      <tr>
+        <td>{{.ID}}</td>
+        <td>{{.Limit}}</td>
+        <td>{{.Period}}</td>
+        <td>{{.Description}}</td>
+        <td>{{.PlantID}}</td>
+      </tr>
+      {{end}}
+    </table>
+    <br />
+    <hr />
+
+    <h1>Table ContainerInfos</h1>
+    <table>
+      <tr>
+        <th>ID</th>
+        <th>Instruction</th>
+        <th>Materials</th>
+        <th>Video</th>
+        <th>PlantingInfoID</th>
+      </tr>
+      {{range .ContainerInfos}}
+      <tr>
+        <td>{{.ID}}</td>
+        <td>{{.Instructions}}</td>
+        <td>{{.Materials}}</td>
+        <td>{{.Video}}</td>
+        <td>{{.PlantingInfoID}}</td>
+      </tr>
+      {{end}}
+    </table>
+    <br />
+    <hr />
+
+    <h1>Table GroundInfos</h1>
+    <table>
+      <tr>
+        <th>ID</th>
+        <th>Instruction</th>
+        <th>Materials</th>
+        <th>Video</th>
+        <th>PlantingInfoID</th>
+      </tr>
+      {{range .GroundInfos}}
+      <tr>
+        <td>{{.ID}}</td>
+        <td>{{.Instructions}}</td>
+        <td>{{.Materials}}</td>
+        <td>{{.Video}}</td>
+        <td>{{.PlantingInfoID}}</td>
+      </tr>
+      {{end}}
+    </table>
+    <br />
+    <hr />
+
+    <!-- END -->
+  </body>
+</html>
