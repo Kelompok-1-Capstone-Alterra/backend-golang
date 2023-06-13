@@ -115,3 +115,5 @@ func Get_picture(c echo.Context) error {
 
 	return c.File(url)
 }
+
+

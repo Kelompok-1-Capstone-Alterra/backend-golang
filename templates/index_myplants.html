@@ -1,0 +1,110 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <title>BACKEND : MyPlants</title>
+    <style>
+      body {
+        padding: 20px;
+      }
+
+      table,
+      td,
+      th {
+        border: 1px solid;
+        padding: 10px;
+      }
+
+      table {
+        width: 100%;
+        border-collapse: collapse;
+      }
+    </style>
+  </head>
+  <body>
+    <!-- START -->
+
+    <h1>Table Waterings</h1>
+    <table>
+      <tr>
+        <th>ID</th>
+        <th>MyPlantID</th>
+        <th>Week</th>
+        <th>Day1</th>
+        <th>Day2</th>
+        <th>Day3</th>
+        <th>Day4</th>
+        <th>Day5</th>
+        <th>Day6</th>
+        <th>Day7</th>
+      </tr>
+      {{range .Waterings}}
+      <tr>
+        <td>{{.ID}}</td>
+        <td>{{.MyPlantID}}</td>
+        <td>{{.Week}}</td>
+        <td>{{.Day1}}</td>
+        <td>{{.Day2}}</td>
+        <td>{{.Day3}}</td>
+        <td>{{.Day4}}</td>
+        <td>{{.Day5}}</td>
+        <td>{{.Day6}}</td>
+        <td>{{.Day7}}</td>
+      </tr>
+      {{end}}
+    </table>
+    <br />
+    <hr />
+
+    <h1>Table Fertilizings</h1>
+    <table>
+      <tr>
+        <th>ID</th>
+        <th>MyPlantID</th>
+        <th>Week</th>
+        <th>Status</th>
+      </tr>
+      {{range .Fertilizings}}
+      <tr>
+        <td>{{.ID}}</td>
+        <td>{{.MyPlantID}}</td>
+        <td>{{.Week}}</td>
+        <td>{{.Status}}</td>
+      </tr>
+      {{end}}
+    </table>
+    <br />
+    <hr />
+
+    <h1>Table WeeklyProgress</h1>
+    <table>
+      <tr>
+        <th>ID</th>
+        <th>MyPlantID</th>
+        <th>Week</th>
+        <th>Status</th>
+        <th>From</th>
+        <th>To</th>
+        <th>Condition</th>
+        <th>Description</th>
+        <th>Status</th>
+      </tr>
+      {{range .WeeklyProgress}}
+      <tr>
+        <td>{{.ID}}</td>
+        <td>{{.MyPlantID}}</td>
+        <td>{{.Week}}</td>
+        <td>{{.Status}}</td>
+        <td>{{.From}}</td>
+        <td>{{.To}}</td>
+        <td>{{.Condition}}</td>
+        <td>{{.Description}}</td>
+        <td>{{.Status}}</td>
+      </tr>
+      {{end}}
+    </table>
+    <br />
+    <hr />
+
+    <!-- END -->
+  </body>
+</html>
