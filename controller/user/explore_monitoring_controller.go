@@ -1492,6 +1492,7 @@ func Add_dead_plant_progress(c echo.Context) error {
 	// Get current timestamp according to longitude and latitude
 	currentTime := get_current_time_from_latlong(myplant.Latitude, myplant.Longitude)
 	diff := currentTime.Sub(myplant.StartPlantingDate)
+	day := int(diff.Hours()/24) + 1
 	week := int(diff.Hours()/(24*7)) + 1
 
 	var weeklyProgress model.WeeklyProgress
@@ -1515,11 +1516,19 @@ func Add_dead_plant_progress(c echo.Context) error {
 	weeklyProgress.Description = weeklyProgress_bind.Description
 	weeklyProgress.Pictures = weeklyProgress_bind.Pictures
 
-	if err_insert := config.DB.Save(&weeklyProgress).Error; err_insert != nil {
-		log.Print(color.RedString(err_insert.Error()))
-		return c.JSON(http.StatusInternalServerError, map[string]interface{}{
-			"status":  500,
-			"message": "internal server error",
+	if day > 6 {
+		if err_insert := config.DB.Save(&weeklyProgress).Error; err_insert != nil {
+			log.Print(color.RedString(err_insert.Error()))
+			return c.JSON(http.StatusInternalServerError, map[string]interface{}{
+				"status":  500,
+				"message": "internal server error",
+			})
+		}
+	} else {
+		log.Print(color.RedString("should not add to the progress of dead plants less than 1 week"))
+		return c.JSON(http.StatusBadRequest, map[string]interface{}{
+			"status":  400,
+			"message": "bad request",
 		})
 	}
 
@@ -1555,12 +1564,21 @@ func Add_harvest_plant_progress(c echo.Context) error {
 	// Get current timestamp according to longitude and latitude
 	currentTime := get_current_time_from_latlong(myplant.Latitude, myplant.Longitude)
 	diff := currentTime.Sub(myplant.StartPlantingDate)
+	day := int(diff.Hours()/24) + 1
 	week := int(diff.Hours()/(24*7)) + 1
 
 	var weeklyProgress model.WeeklyProgress
 
-	if err_first2 := config.DB.Where("my_plant_id=? AND (status=? OR status=?)", myplant_id, "dead", "harvest").First(&weeklyProgress).Error; err_first2 == nil {
-		log.Print(color.RedString("already add harvest plant progress"))
+	if day > 6 {
+		if err_first2 := config.DB.Where("my_plant_id=? AND (status=? OR status=?)", myplant_id, "dead", "harvest").First(&weeklyProgress).Error; err_first2 == nil {
+			log.Print(color.RedString("already add harvest plant progress"))
+			return c.JSON(http.StatusBadRequest, map[string]interface{}{
+				"status":  400,
+				"message": "bad request",
+			})
+		}
+	} else {
+		log.Print(color.RedString("should not add to the progress of harvest plants less than 1 week"))
 		return c.JSON(http.StatusBadRequest, map[string]interface{}{
 			"status":  400,
 			"message": "bad request",
