@@ -74,7 +74,7 @@ func GetArticlesLiked(c echo.Context) error {
 	}
 	var idArticles []int
 	for _, liked := range likeds {
-		idArticles = append(idArticles, int(liked.Articles_id))
+		idArticles = append(idArticles, int(liked.ArticleID))
 	}
 
 	if errer := config.DB.Where("id IN ?", idArticles).Find(&articles).Error; errer != nil {
@@ -130,8 +130,8 @@ func AddLikes(c echo.Context) error {
 	user_id, _ := utils.GetUserIDFromToken(token)
 	// Get product by id
 	// If product not found, return error
-	like.Articles_id = *articles_id
-	like.User_id = user_id
+	like.ArticleID = *articles_id
+	like.UserID = user_id
 	if err := config.DB.Save(&like).Error; err != nil {
 		log.Print(color.RedString(err.Error()))
 		return c.JSON(http.StatusBadRequest, map[string]interface{}{

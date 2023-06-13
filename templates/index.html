@@ -3,14 +3,18 @@
   <head>
     <title>BACKEND : All DB</title>
     <style>
+      body {
+        padding: 20px;
+      }
+
       table,
       td,
       th {
         border: 1px solid;
+        padding: 10px;
       }
 
       table {
-        padding: 5px;
         width: 100%;
         border-collapse: collapse;
       }
@@ -34,7 +38,9 @@
       </tr>
       {{end}}
     </table>
-    <br>
+    <br />
+    <a href="http://localhost:8080/alldb/admins">Click Here</a><b> ( for table Weathers, Products, Articles, LikedArticles )</b>
+    <br />
     <hr />
 
     <h1>Table Users</h1>
@@ -44,7 +50,7 @@
         <th>Name</th>
         <th>Email</th>
         <th>Password</th>
-        <th>URL (for profil picture)</th>
+        <th>url (for profil picture)</th>
       </tr>
       {{range .Users}}
       <tr>
@@ -56,5 +62,105 @@
       </tr>
       {{end}}
     </table>
+    <br />
+    <a href="http://localhost:8080/alldb/users">Click Here</a><b> ( for table InfoWeathers, Suggestions, Complaints )</b>
+    <br />
+    <hr />
+
+    <h1>Table Plants</h1>
+    <table>
+      <tr>
+        <th>ID</th>
+        <th>Name</th>
+        <th>Latin</th>
+        <th>Description</th>
+        <th>AdminID</th>
+      </tr>
+      {{range .Plants}}
+      <tr>
+        <td>{{.ID}}</td>
+        <td>{{.Name}}</td>
+        <td>{{.Latin}}</td>
+        <td>{{.Description}}</td>
+        <td>{{.AdminID}}</td>
+      </tr>
+      {{end}}
+    </table>
+    <br>
+    <a href="http://localhost:8080/alldb/plants">Click Here</a><b> ( for table WateringInfos, TemperatureInfos, PlantingInfos, FertilizingInfos, ContainerInfos, GroundInfos )</b>
+    <br />
+    <hr />
+
+    <h1>Table MyPlants</h1>
+    <table>
+      <tr>
+        <th>ID</th>
+        <th>PlantID</th>
+        <th>UserID</th>
+        <th>Name</th>
+        <th>Location</th>
+        <th>IsStartPlanting</th>
+        <th>StartPlantingDate</th>
+        <th>Status</th>
+        <th>Latitude</th>
+        <th>Longitude</th>
+      </tr>
+      {{range .MyPlants}}
+      <tr>
+        <td>{{.ID}}</td>
+        <td>{{.PlantID}}</td>
+        <td>{{.UserID}}</td>
+        <td>{{.Name}}</td>
+        <td>{{.Location}}</td>
+        <td>{{.IsStartPlanting}}</td>
+        <td>{{.StartPlantingDate}}</td>
+        <td>{{.Status}}</td>
+        <td>{{.Latitude}}</td>
+        <td>{{.Longitude}}</td>
+      </tr>
+      {{end}}
+    </table>
+    <br />
+    <a href="http://localhost:8080/alldb/myplants">Click Here</a><b> ( for table Waterings, Fertilizings, WeeklyProgress )</b>
+    <br />
+    <hr />
+
+    <h1>Table Pictures</h1>
+    <table>
+      <tr>
+        <th>ID</th>
+        <th>URL</th>
+        <th>ArticleID</th>
+        <th>ProductID</th>
+        <th>WeatherID</th>
+        <th>PlantID</th>
+        <th>WateringInfoID</th>
+        <th>TemperatureInfoID</th>
+        <th>FertilizingInfoID</th>
+        <th>ContainerInfoID</th>
+        <th>GroundInfoID</th>
+        <th>WeeklyProgressID</th>
+      </tr>
+      {{range .Pictures}}
+      <tr>
+        <td>{{.ID}}</td>
+        <td>{{.URL}}</td>
+        <td>{{.ArticleID}}</td>
+        <td>{{.ProductID}}</td>
+        <td>{{.WeatherID}}</td>
+        <td>{{.PlantID}}</td>
+        <td>{{.WateringInfoID}}</td>
+        <td>{{.TemperatureInfoID}}</td>
+        <td>{{.FertilizingInfoID}}</td>
+        <td>{{.ContainerInfoID}}</td>
+        <td>{{.GroundInfoID}}</td>
+        <td>{{.WeeklyProgressID}}</td>
+      </tr>
+      {{end}}
+    </table>
+    <br />
+    <hr />
+
+    <!-- END -->
   </body>
 </html>

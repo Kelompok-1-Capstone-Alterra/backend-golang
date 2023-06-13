@@ -139,7 +139,7 @@ func save_weather_info(location, temperature, label string, user_id uint) bool {
 	err_select := config.DB.Where("user_id=?", user_id).First(&infoWeather).Error
 	if err_select == nil {
 		// Query update
-		infoWeather.User_id = user_id
+		infoWeather.UserID = user_id
 		infoWeather.Location = location
 		infoWeather.Temperature = temperature
 		infoWeather.Label = label
@@ -153,7 +153,7 @@ func save_weather_info(location, temperature, label string, user_id uint) bool {
 	// Query insert
 	var infoWeather2 model.InfoWeather
 
-	infoWeather2.User_id = user_id
+	infoWeather2.UserID = user_id
 	infoWeather2.Location = location
 	infoWeather2.Temperature = temperature
 	infoWeather2.Label = label

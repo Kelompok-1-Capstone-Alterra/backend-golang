@@ -48,15 +48,15 @@ type Coordinate struct {
 // Struct for save weather history for each user
 type InfoWeather struct {
 	gorm.Model
-	User_id     uint   `json:"user_id" form:"user_id" gorm:"unique"`
+	UserID     uint   `json:"user_id" form:"user_id" gorm:"unique"`
 	Location    string `json:"location" form:"location"`
 	Temperature string `json:"temperature" form:"temperature"`
 	Label       string `json:"label" form:"label"`
 }
 type LikedArticles struct {
 	gorm.Model
-	User_id     uint `json:"user_id" form:"user_id"`
-	Articles_id uint `json:"articles_id" form:"articles_id" `
+	UserID     uint `json:"user_id" form:"user_id"`
+	ArticleID uint `json:"articles_id" form:"articles_id" `
 }
 type MyPlant struct {
 	gorm.Model
@@ -93,7 +93,7 @@ type Fertilizing struct {
 
 type Complaints struct {
 	gorm.Model
-	User_id     uint   `json:"-"`
+	UserID     uint   `json:"-"`
 	PhoneNumber string `json:"phone_number"`
 	Email       string `json:"email"`
 	Notes       string `json:"notes"`
@@ -101,6 +101,6 @@ type Complaints struct {
 
 type Suggestions struct {
 	gorm.Model
-	User_id uint   `json:"-"`
+	UserID uint   `json:"-"`
 	Content string `json:"content"`
 }

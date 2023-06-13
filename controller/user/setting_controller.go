@@ -263,7 +263,7 @@ func SendComplaintEmail(c echo.Context) error {
 	token := strings.TrimPrefix(c.Request().Header.Get("Authorization"), "Bearer ")
 	user_id, _ := utils.GetUserIDFromToken(token)
 
-	complaint.User_id = user_id
+	complaint.UserID = user_id
 
 	if err := config.DB.Save(&complaint).Error; err != nil {
 		log.Print(color.RedString(err.Error()))
@@ -294,7 +294,7 @@ func SendSuggestion(c echo.Context) error {
 	token := strings.TrimPrefix(c.Request().Header.Get("Authorization"), "Bearer ")
 	user_id, _ := utils.GetUserIDFromToken(token)
 
-	suggestion.User_id = user_id
+	suggestion.UserID = user_id
 
 	if err := config.DB.Save(&suggestion).Error; err != nil {
 		log.Print(color.RedString(err.Error()))
