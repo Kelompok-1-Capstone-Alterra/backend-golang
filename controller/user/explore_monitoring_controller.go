@@ -16,6 +16,7 @@ import (
 	"github.com/agriplant/utils"
 	"github.com/fatih/color"
 	"github.com/labstack/echo/v4"
+	"github.com/zsefvlol/timezonemapper"
 )
 
 // EXPLORE & MONITORING (Menu Home) - [Endpoint 1 : Get weather]
@@ -751,11 +752,14 @@ func Start_planting(c echo.Context) error {
 		})
 	}
 
+	// Get current timestamp according to longitude and latitude
+	currentTime := get_current_time_from_latlong(myplant_binding.Latitude, myplant_binding.Longitude)
+
 	// START SET1 - myplant table : longitude(current), latitude(current), is_start_planting(true), is_start_planting(current date)
 	myplant.Longitude = myplant_binding.Longitude
 	myplant.Latitude = myplant_binding.Latitude
 	myplant.IsStartPlanting = true
-	myplant.StartPlantingDate = time.Now()
+	myplant.StartPlantingDate = currentTime
 	myplant.Status = "planting"
 
 	if err_save1 := config.DB.Save(&myplant).Error; err_save1 != nil {
@@ -795,6 +799,26 @@ func Start_planting(c echo.Context) error {
 	})
 }
 
+// HELPER FUNCTION
+func get_current_time_from_latlong(lat, long string) time.Time {
+	longitude, _ := strconv.ParseFloat(long, 32)
+	latitude, _ := strconv.ParseFloat(lat, 32)
+
+	// Get timezone string from lat/long
+	timezone := timezonemapper.LatLngToTimezoneString(latitude, longitude)
+
+	// Should print "Timezone: Asia/Shanghai"
+	fmt.Printf("Timezone: %s\n", timezone)
+
+	// Load location from timezone
+	loc, _ := time.LoadLocation(timezone)
+
+	// Get current time in the specified location
+	currentTime := time.Now().In(loc)
+
+	return currentTime
+}
+
 // EXPLORE & MONITORING (Menu Home) - [Endpoint 17 : Get my plant overview]
 func Get_myplant_overview(c echo.Context) error {
 	myplant_id, _ := strconv.Atoi(c.Param("myplant_id"))
@@ -808,7 +832,10 @@ func Get_myplant_overview(c echo.Context) error {
 		})
 	}
 
-	diff := time.Now().Sub(myplant.StartPlantingDate)
+	// Get current timestamp according to longitude and latitude
+	currentTime := get_current_time_from_latlong(myplant.Latitude, myplant.Longitude)
+
+	diff := currentTime.Sub(myplant.StartPlantingDate)
 	day := int(diff.Hours()/24) + 1
 	week := int(diff.Hours()/(24*7)) + 1
 
@@ -922,8 +949,8 @@ func Get_myplant_overview(c echo.Context) error {
 
 	response_weekly_progress := map[string]interface{}{
 		"is_active":  isActiveWeeklyProgress,
-		"from":       myplant.StartPlantingDate,
-		"to":         myplant.StartPlantingDate.Add(168 * time.Hour),
+		"from":       myplant.StartPlantingDate.Format("02-01-2006"),
+		"to":         myplant.StartPlantingDate.Add(168 * time.Hour).Format("02-01-2006"),
 		"is_enabled": isEnabledWeeklyProgress,
 	}
 	// END GET WEEKLY PROGRESS ---------------------------------------------------------------------------------
@@ -1040,7 +1067,9 @@ func Add_watering(c echo.Context) error {
 		})
 	}
 
-	diff := time.Now().Sub(myplant.StartPlantingDate)
+	// Get current timestamp according to longitude and latitude
+	currentTime := get_current_time_from_latlong(myplant.Latitude, myplant.Longitude)
+	diff := currentTime.Sub(myplant.StartPlantingDate)
 
 	day := int(diff.Hours()/24) + 1
 	if day > 6 {
@@ -1139,7 +1168,9 @@ func Add_fertilizing(c echo.Context) error {
 		})
 	}
 
-	diff := time.Now().Sub(myplant.StartPlantingDate)
+	// Get current timestamp according to longitude and latitude
+	currentTime := get_current_time_from_latlong(myplant.Latitude, myplant.Longitude)
+	diff := currentTime.Sub(myplant.StartPlantingDate)
 	day := int(diff.Hours()/24) + 1
 
 	week := int(diff.Hours()/(24*7)) + 1
@@ -1200,7 +1231,9 @@ func Add_weekly_progress(c echo.Context) error {
 		})
 	}
 
-	diff := time.Now().Sub(myplant.StartPlantingDate)
+	// Get current timestamp according to longitude and latitude
+	currentTime := get_current_time_from_latlong(myplant.Latitude, myplant.Longitude)
+	diff := currentTime.Sub(myplant.StartPlantingDate)
 
 	day := int(diff.Hours()/24) + 1
 	if day > 6 {
@@ -1285,8 +1318,8 @@ func Get_all_myplant_weekly_progress(c echo.Context) error {
 			"weekly_progress_id": weeklyProgress.ID,
 			"week":               weeklyProgress.Week,
 			"picture":            url_ground,
-			"from":               weeklyProgress.From,
-			"to":                 weeklyProgress.To,
+			"from":               weeklyProgress.From.Format("02-01-2006"),
+			"to":                 weeklyProgress.To.Format("02-01-2006"),
 			"status":             weeklyProgress.Status,
 		}
 
@@ -1368,8 +1401,8 @@ func Get_my_plant_weekly_progress_by_id(c echo.Context) error {
 			"weekly":      weeklyProgress.ID,
 			"week":        weeklyProgress.Week,
 			"pictures":    urls,
-			"from":        weeklyProgress.From,
-			"to":          weeklyProgress.To,
+			"from":        weeklyProgress.From.Format("02-01-2006"),
+			"to":          weeklyProgress.To.Format("02-01-2006"),
 			"condition":   weeklyProgress.Condition,
 			"description": weeklyProgress.Description,
 		},
@@ -1379,7 +1412,7 @@ func Get_my_plant_weekly_progress_by_id(c echo.Context) error {
 
 	return c.JSON(http.StatusOK, map[string]interface{}{
 		"status":  200,
-		"message": "success to get all my plant weekly progress",
+		"message": "success to get my plant weekly progress by weekly_progress_id",
 		"data":    response,
 	})
 }
@@ -1456,7 +1489,10 @@ func Add_dead_plant_progress(c echo.Context) error {
 		})
 	}
 
-	diff := time.Now().Sub(myplant.StartPlantingDate)
+	// Get current timestamp according to longitude and latitude
+	currentTime := get_current_time_from_latlong(myplant.Latitude, myplant.Longitude)
+	diff := currentTime.Sub(myplant.StartPlantingDate)
+	day := int(diff.Hours()/24) + 1
 	week := int(diff.Hours()/(24*7)) + 1
 
 	var weeklyProgress model.WeeklyProgress
@@ -1469,20 +1505,30 @@ func Add_dead_plant_progress(c echo.Context) error {
 		})
 	}
 
+	// Get current timestamp according to longitude and latitude
+	currentTime2 := get_current_time_from_latlong(myplant.Latitude, myplant.Longitude)
 	weeklyProgress.MyPlantID = uint(myplant_id)
 	weeklyProgress.Week = week
-	weeklyProgress.From = time.Now()
+	weeklyProgress.From = currentTime2
 	weeklyProgress.Status = "dead"
 
 	weeklyProgress.Condition = weeklyProgress_bind.Condition
 	weeklyProgress.Description = weeklyProgress_bind.Description
 	weeklyProgress.Pictures = weeklyProgress_bind.Pictures
 
-	if err_insert := config.DB.Save(&weeklyProgress).Error; err_insert != nil {
-		log.Print(color.RedString(err_insert.Error()))
-		return c.JSON(http.StatusInternalServerError, map[string]interface{}{
-			"status":  500,
-			"message": "internal server error",
+	if day > 6 {
+		if err_insert := config.DB.Save(&weeklyProgress).Error; err_insert != nil {
+			log.Print(color.RedString(err_insert.Error()))
+			return c.JSON(http.StatusInternalServerError, map[string]interface{}{
+				"status":  500,
+				"message": "internal server error",
+			})
+		}
+	} else {
+		log.Print(color.RedString("should not add to the progress of dead plants less than 1 week"))
+		return c.JSON(http.StatusBadRequest, map[string]interface{}{
+			"status":  400,
+			"message": "bad request",
 		})
 	}
 
@@ -1515,22 +1561,35 @@ func Add_harvest_plant_progress(c echo.Context) error {
 		})
 	}
 
-	diff := time.Now().Sub(myplant.StartPlantingDate)
+	// Get current timestamp according to longitude and latitude
+	currentTime := get_current_time_from_latlong(myplant.Latitude, myplant.Longitude)
+	diff := currentTime.Sub(myplant.StartPlantingDate)
+	day := int(diff.Hours()/24) + 1
 	week := int(diff.Hours()/(24*7)) + 1
 
 	var weeklyProgress model.WeeklyProgress
 
-	if err_first2 := config.DB.Where("my_plant_id=? AND (status=? OR status=?)", myplant_id, "dead", "harvest").First(&weeklyProgress).Error; err_first2 == nil {
-		log.Print(color.RedString("already add harvest plant progress"))
+	if day > 6 {
+		if err_first2 := config.DB.Where("my_plant_id=? AND (status=? OR status=?)", myplant_id, "dead", "harvest").First(&weeklyProgress).Error; err_first2 == nil {
+			log.Print(color.RedString("already add harvest plant progress"))
+			return c.JSON(http.StatusBadRequest, map[string]interface{}{
+				"status":  400,
+				"message": "bad request",
+			})
+		}
+	} else {
+		log.Print(color.RedString("should not add to the progress of harvest plants less than 1 week"))
 		return c.JSON(http.StatusBadRequest, map[string]interface{}{
 			"status":  400,
 			"message": "bad request",
 		})
 	}
 
+	// Get current timestamp according to longitude and latitude
+	currentTime2 := get_current_time_from_latlong(myplant.Latitude, myplant.Longitude)
 	weeklyProgress.MyPlantID = uint(myplant_id)
 	weeklyProgress.Week = week
-	weeklyProgress.From = time.Now()
+	weeklyProgress.From = currentTime2
 	weeklyProgress.Status = "harvest"
 
 	weeklyProgress.Condition = weeklyProgress_bind.Condition
