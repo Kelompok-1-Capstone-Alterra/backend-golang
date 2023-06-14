@@ -30,7 +30,8 @@ jobs:
       - id: 'auth'
         uses: 'google-github-actions/setup-gcloud@v0.3.0'
         with:
-          credentials_json: '${{ secrets.GCE_SA_KEY }}'
+          project_id: 'capstonealterra'
+          service_account_key: '${{ secrets.GCE_SA_KEY }}'
 
       - name: SSH into Compute Engine instance and deploy
         uses: google-github-actions/ssh-compute@v0
