@@ -28,6 +28,7 @@ func New() *echo.Echo {
 	e.GET("/alldb/users", controller.Show_all_DB_Users)
 	e.POST("/pictures", controller.Upload_pictures)
 	e.GET("/pictures/:url", controller.Get_picture)
+	e.DELETE("/pictures/:url", controller.Delete_picture_from_local)
 
 	// ENDPOINT WEB (no token)
 	e.POST("/admins", admin.CreateAdmin)
@@ -47,7 +48,7 @@ func New() *echo.Echo {
 	// ENDPOINT WEB (with token)
 	// Landing Page
 	eAuth.GET("/admins/overview", admin.GetOverview)
-	
+
 	// Article
 	eAuth.POST("/admins/articles/add", admin.CreateArticle)
 	eAuth.GET("/admins/articles", admin.GetArticles)
@@ -65,7 +66,6 @@ func New() *echo.Echo {
 	eAuth.DELETE("/admins/products/:id", admin.DeleteProductByID)
 	eAuth.PUT("/admins/products/:id", admin.UpdateProductByID)
 	eAuth.GET("/admins/products/search", admin.GetProductsByName)
-
 
 	// Weather Management
 	eAuth.POST("/admins/weathers/add", admin.CreateWeather)
@@ -93,7 +93,6 @@ func New() *echo.Echo {
 	// Explore & Monitoring
 	eAuth.GET("/users/weather", user.Get_weather)
 	eAuth.GET("/users/weather/:label_id", user.Get_weather_article)
-
 
 	// Articles (with token)
 	eAuth.GET("/users/articles/trending", user.GetArticlesTrending)

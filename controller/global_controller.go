@@ -10,6 +10,7 @@ import (
 	"os"
 	"strings"
 
+	"github.com/fatih/color"
 	"github.com/google/uuid"
 	"github.com/labstack/echo/v4"
 )
@@ -18,7 +19,7 @@ func Hello_World(c echo.Context) error {
 	return c.JSON(http.StatusOK, map[string]interface{}{
 		"status":  200,
 		"message": "Hello World. OK",
-		"no_test": 8,
+		"no_test": 12,
 	})
 }
 
@@ -47,6 +48,44 @@ func Save_picture(pictureFile *multipart.FileHeader) string {
 	encodedImage := Encode_base64(pictureFile)
 	url := Decode_and_write_base64(encodedImage)
 	return url
+}
+
+// GLOBAL - [Endpoint 3 : Get picture]
+func Get_picture(c echo.Context) error {
+	url := c.Param("url")
+	url = "assets/images/" + url
+
+	// Memeriksa keberadaan file gambar
+	_, err := os.Stat(url)
+
+	if os.IsNotExist(err) {
+		// Jika file tidak ditemukan, kirimkan pesan error
+		return c.JSON(http.StatusNotFound, map[string]interface{}{
+			"status":  404,
+			"message": "not found",
+		})
+	}
+
+	return c.File(url)
+}
+
+// GLOBAL - [Endpoint 3 : Delete picture]
+func Delete_picture_from_local(c echo.Context) error {
+	url := c.Param("url")
+
+	err := os.Remove("assets/images/" + url)
+	if err != nil {
+		log.Print(color.RedString("url picture not found"))
+		return c.JSON(http.StatusBadRequest, map[string]interface{}{
+			"status":  400,
+			"message": "bad request",
+		})
+	}
+
+	return c.JSON(http.StatusOK, map[string]interface{}{
+		"status":  200,
+		"message": "success to delete picture",
+	})
 }
 
 func Encode_base64(pictureFile *multipart.FileHeader) string {
@@ -97,23 +136,3 @@ func Decode_and_write_base64(stringBase64 string) string {
 
 	return imageURL
 }
-
-func Get_picture(c echo.Context) error {
-	url := c.Param("url")
-	url = "assets/images/" + url
-
-	// Memeriksa keberadaan file gambar
-	_, err := os.Stat(url)
-
-	if os.IsNotExist(err) {
-		// Jika file tidak ditemukan, kirimkan pesan error
-		return c.JSON(http.StatusNotFound, map[string]interface{}{
-			"status":  404,
-			"message": "not found",
-		})
-	}
-
-	return c.File(url)
-}
-
-
