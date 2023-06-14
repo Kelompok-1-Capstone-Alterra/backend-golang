@@ -3,6 +3,7 @@ package controller
 import (
 	"log"
 	"net/http"
+	"strconv"
 
 	"github.com/agriplant/config"
 	"github.com/agriplant/model"
@@ -170,7 +171,17 @@ func GetProductsByName(c echo.Context) error {
 }
 
 func GetProductsByCategory(c echo.Context) error {
-	category := c.Param("category")
+	categoryParam := c.Param("category")
+	categoryNumber, err := strconv.Atoi(categoryParam)
+	if err != nil {
+		log.Print(color.RedString(err.Error()))
+		return c.JSON(http.StatusBadRequest, map[string]interface{}{
+			"status":  400,
+			"message": "invalid category parameter",
+		})
+	}
+
+	category := getCategory(categoryNumber)
 
 	product := []model.Product{}
 
@@ -179,8 +190,7 @@ func GetProductsByCategory(c echo.Context) error {
 		return c.JSON(http.StatusInternalServerError, map[string]interface{}{
 			"status":  500,
 			"message": "internal server error",
-		},
-		)
+		})
 	}
 
 	// Populate Pictures field for each product
@@ -217,7 +227,17 @@ func GetProductsByCategory(c echo.Context) error {
 }
 
 func GetProductsByCategoryAndName(c echo.Context) error {
-	category := c.Param("category")
+	categoryParam := c.Param("category")
+	categoryNumber, err := strconv.Atoi(categoryParam)
+	if err != nil {
+		log.Print(color.RedString(err.Error()))
+		return c.JSON(http.StatusBadRequest, map[string]interface{}{
+			"status":  400,
+			"message": "invalid category parameter",
+		})
+	}
+
+	category := getCategory(categoryNumber)
 	name := c.QueryParam("name")
 
 	product := []model.Product{}
@@ -373,4 +393,21 @@ func GetRelatedProducts(category string) []model.ProductResponse {
 	}
 
 	return productResponse
+}
+
+// getCategory is a function to get category name by its number
+// used in GetProductsByCategory function & GetProductsByCategoryAndName function
+func getCategory(number int) string {
+	switch number {
+	case 1:
+		return "Alat tani"
+	case 2:
+		return "Bibit"
+	case 3:
+		return "Pestisida"
+	case 4:
+		return "Pupuk"
+	default:
+		return ""
+	}
 }

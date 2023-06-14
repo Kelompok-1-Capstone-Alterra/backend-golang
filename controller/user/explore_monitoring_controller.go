@@ -1511,6 +1511,7 @@ func Add_dead_plant_progress(c echo.Context) error {
 	weeklyProgress.Week = week
 	weeklyProgress.From = currentTime2
 	weeklyProgress.Status = "dead"
+	weeklyProgress.To = myplant.StartPlantingDate.Add(168 * time.Hour)
 
 	weeklyProgress.Condition = weeklyProgress_bind.Condition
 	weeklyProgress.Description = weeklyProgress_bind.Description
