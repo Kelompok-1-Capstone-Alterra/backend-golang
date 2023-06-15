@@ -2,7 +2,9 @@ package controller
 
 import (
 	"log"
+	"math"
 	"net/http"
+	"time"
 
 	"strings"
 
@@ -25,14 +27,26 @@ func GetArticlesTrending(c echo.Context) error {
 		})
 	}
 
+	var data []map[string]interface{}
 	//Populate Pictures field for each article
 	for i := 0; i < len(articles); i++ {
 		config.DB.Model(&articles[i]).Association("Pictures").Find(&articles[i].Pictures)
+		now := time.Now()
+
+		convertTime := now.Sub(articles[i].CreatedAt).Hours() / 24
+		convertTimeInt := int(math.Round(convertTime))
+		result := map[string]interface{}{
+			"article_id": articles[i].ID,
+			"title":      articles[i].Title,
+			"picture":    articles[i].Pictures[0].URL,
+			"hours":      convertTimeInt,
+		}
+		data = append(data, result)
 	}
 
 	return c.JSON(http.StatusOK, map[string]interface{}{
 		"message": "success to retrieve latest articles data",
-		"data":    articles,
+		"data":    data,
 	})
 }
 
@@ -49,13 +63,25 @@ func GetArticlesLatest(c echo.Context) error {
 	}
 
 	//Populate Pictures field for each article
+	var data []map[string]interface{}
 	for i := 0; i < len(articles); i++ {
 		config.DB.Model(&articles[i]).Association("Pictures").Find(&articles[i].Pictures)
+		now := time.Now()
+
+		convertTime := now.Sub(articles[i].CreatedAt).Minutes()
+		convertTimeInt := int(math.Round(convertTime))
+		result := map[string]interface{}{
+			"article_id": articles[i].ID,
+			"title":      articles[i].Title,
+			"picture":    articles[i].Pictures[0].URL,
+			"minutes":    convertTimeInt,
+		}
+		data = append(data, result)
 	}
 
 	return c.JSON(http.StatusOK, map[string]interface{}{
 		"message": "success to retrieve latest articles data",
-		"data":    articles,
+		"data":    data,
 	})
 }
 func GetArticlesLiked(c echo.Context) error {
@@ -84,15 +110,25 @@ func GetArticlesLiked(c echo.Context) error {
 			"message": "bad request",
 		})
 	}
-
+	var data []map[string]interface{}
 	//Populate Pictures field for each article
 	for i := 0; i < len(articles); i++ {
 		config.DB.Model(&articles[i]).Association("Pictures").Find(&articles[i].Pictures)
+		now := time.Now()
+		convertTime := now.Sub(articles[i].CreatedAt).Minutes()
+		convertTimeInt := int(math.Round(convertTime))
+		result := map[string]interface{}{
+			"article_id": articles[i].ID,
+			"title":      articles[i].Title,
+			"picture":    articles[i].Pictures[0].URL,
+			"time":       convertTimeInt,
+		}
+		data = append(data, result)
 	}
 
 	return c.JSON(http.StatusOK, map[string]interface{}{
 		"message": "success to retrieve liked articles data",
-		"data":    articles,
+		"data":    data,
 	})
 }
 func GetArticlesbyID(c echo.Context) error {
@@ -108,18 +144,26 @@ func GetArticlesbyID(c echo.Context) error {
 			"message": "bad request",
 		})
 	}
-
+	var data []map[string]interface{}
 	// Populate Pictures field for each product
 	config.DB.Model(&articles).Association("Pictures").Find(&articles.Pictures)
-
+	result := map[string]interface{}{
+		"article_id":  articles.ID,
+		"title":       articles.Title,
+		"picture":     articles.Pictures[0].URL,
+		"description": articles.Description,
+		"isliked":     false,
+	}
+	data = append(data, result)
 	// remove article_id from articles_pictures
 	for i := 0; i < len(articles.Pictures); i++ {
 		articles.Pictures[i].ArticleID = nil
+
 	}
 
 	return c.JSON(http.StatusOK, map[string]interface{}{
 		"message": "success to retrieve latest articles data",
-		"data":    articles,
+		"data":    data,
 	})
 }
 
