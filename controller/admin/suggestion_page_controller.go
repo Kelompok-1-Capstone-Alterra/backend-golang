@@ -35,7 +35,7 @@ func GetAllSuggestions(c echo.Context) error {
 		var temp Response
 
 		user := model.User{}
-		if err := config.DB.First(&user, suggestions[i].User_id).Error; err != nil {
+		if err := config.DB.First(&user, suggestions[i].UserID).Error; err != nil {
 			log.Print(color.RedString(err.Error()))
 			return c.JSON(http.StatusBadRequest, map[string]interface{}{
 				"status":  400,
@@ -44,7 +44,7 @@ func GetAllSuggestions(c echo.Context) error {
 		}
 
 		temp.suggestion_id = suggestions[i].ID
-		temp.user_id = suggestions[i].User_id
+		temp.user_id = suggestions[i].UserID
 		temp.name = user.Name
 		temp.picture = user.URL
 		temp.email = user.Email
@@ -73,7 +73,7 @@ func GetSuggestionByID(c echo.Context) error {
 	}
 
 	user := model.User{}
-	if err := config.DB.First(&user, suggestion.User_id).Error; err != nil {
+	if err := config.DB.First(&user, suggestion.UserID).Error; err != nil {
 		log.Print(color.RedString(err.Error()))
 		return c.JSON(http.StatusBadRequest, map[string]interface{}{
 			"status":  400,
@@ -86,7 +86,7 @@ func GetSuggestionByID(c echo.Context) error {
 		"message": "success to get suggestion by id",
 		"data": map[string]interface{}{
 			"suggestion_id": suggestion.ID,
-			"user_id":       suggestion.User_id,
+			"user_id":       suggestion.UserID,
 			"name":          user.Name,
 			"picture":       user.URL,
 			"email":         user.Email,

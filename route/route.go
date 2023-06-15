@@ -98,19 +98,6 @@ func New() *echo.Echo {
 	// Explore & Monitoring
 	eAuth.GET("/users/weather", user.Get_weather)
 	eAuth.GET("/users/weather/:label_id", user.Get_weather_article)
-
-	// MyPlants
-	eAuth.GET("/users/plants", user.GetMyPlantList)
-	eAuth.GET("/users/plants/search", user.GetMyPlantListBYKeyword)
-	eAuth.DELETE("/users/plants", user.DeleteMyPlants)
-
-	// Articles (with token)
-	eAuth.GET("/users/articles/trending", user.GetArticlesTrending)
-	eAuth.GET("/users/articles/latest", user.GetArticlesLatest)
-	eAuth.GET("/users/articles/:id", user.GetArticlesbyID)
-	eAuth.GET("/users/articles/liked", user.GetArticlesLiked)
-	eAuth.POST("/users/articles/:article_id/liked", user.AddLikes)
-	eAuth.DELETE("/users/articles/:article_id/liked", user.DeleteLikes)
 	eAuth.GET("/plants", user.Get_available_plants)
 	eAuth.GET("/plants/search", user.Search_available_plants)
 	eAuth.GET("/plants/:plant_id", user.Get_plant_detail)
@@ -130,6 +117,19 @@ func New() *echo.Echo {
 	eAuth.GET("/articles/fertilizing/:plant_id", user.GetFertilizingArticle)
 	eAuth.GET("/articles/watering/:plant_id", user.GetWateringArticle)
 	eAuth.GET("/articles/temperature/:plant_id", user.GetTemperatureArticle)
+
+	// MyPlants
+	eAuth.GET("/users/plants", user.GetMyPlantList)
+	eAuth.GET("/users/plants/search", user.GetMyPlantListBYKeyword)
+	eAuth.DELETE("/users/plants", user.DeleteMyPlants)
+
+	// Articles (with token)
+	eAuth.GET("/users/articles/trending", user.GetArticlesTrending)
+	eAuth.GET("/users/articles/latest", user.GetArticlesLatest)
+	eAuth.GET("/users/articles/:id", user.GetArticlesbyID)
+	eAuth.GET("/users/articles/liked", user.GetArticlesLiked)
+	eAuth.POST("/users/articles/:article_id/liked", user.AddLikes)
+	eAuth.DELETE("/users/articles/:article_id/liked", user.DeleteLikes)
 
 	// Settings
 	eAuth.GET("/users/profiles", user.GetProfile)
