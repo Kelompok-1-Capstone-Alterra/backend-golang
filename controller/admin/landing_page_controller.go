@@ -65,8 +65,9 @@ func LoginAdmin(c echo.Context) error {
 
 	if err := config.DB.Where("email = ?", loginData.Email).First(&admin).Error; err != nil {
 		log.Print(color.RedString(err.Error()))
-		return c.JSON(500, map[string]interface{}{
-			"message": "Failed to find admin",
+		return c.JSON(http.StatusUnauthorized, map[string]interface{}{
+			"status":  "401",
+			"message": "Failed to login, invalid email",
 		})
 	}
 
@@ -94,7 +95,6 @@ func LoginAdmin(c echo.Context) error {
 		},
 	})
 }
-
 
 func GetOverview(c echo.Context) error {
 	// Count how many users are registered
