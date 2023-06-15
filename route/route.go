@@ -28,6 +28,7 @@ func New() *echo.Echo {
 	e.GET("/alldb/users", controller.Show_all_DB_Users)
 	e.POST("/pictures", controller.Upload_pictures)
 	e.GET("/pictures/:url", controller.Get_picture)
+	e.DELETE("/pictures/:url", controller.Delete_picture_from_local)
 
 	// ENDPOINT WEB (no token)
 	e.POST("/admins", admin.CreateAdmin)
@@ -47,7 +48,7 @@ func New() *echo.Echo {
 	// ENDPOINT WEB (with token)
 	// Landing Page
 	eAuth.GET("/admins/overview", admin.GetOverview)
-	
+
 	// Article
 	eAuth.POST("/admins/articles/add", admin.CreateArticle)
 	eAuth.GET("/admins/articles", admin.GetArticles)
