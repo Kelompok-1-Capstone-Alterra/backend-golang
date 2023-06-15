@@ -72,6 +72,14 @@ func LoginAdmin(c echo.Context) error {
 		})
 	}
 
+	// check if inputed password is empty
+	if loginData.Password == "" {
+		return c.JSON(http.StatusUnauthorized, map[string]interface{}{
+			"status":  401,
+			"message": "Failed to login, Password cannot be empty",
+		})
+	}
+
 	if err := config.DB.Where("email = ?", loginData.Email).First(&admin).Error; err != nil {
 		log.Print(color.RedString(err.Error()))
 		return c.JSON(http.StatusUnauthorized, map[string]interface{}{
