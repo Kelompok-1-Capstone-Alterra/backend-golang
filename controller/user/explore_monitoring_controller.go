@@ -16,6 +16,7 @@ import (
 	"github.com/agriplant/utils"
 	"github.com/fatih/color"
 	"github.com/labstack/echo/v4"
+	"github.com/pariz/gountries"
 	"github.com/zsefvlol/timezonemapper"
 )
 
@@ -116,7 +117,19 @@ func Get_weather(c echo.Context) error {
 
 	city := fmt.Sprintf("%v", data["name"])
 	tempereture := fmt.Sprintf("%v", data["main"].(map[string]interface{})["temp"])
+	countryCode, ok := data["sys"].(map[string]interface{})["country"].(string)
+	if !ok {
+		fmt.Println("Invalid country code")
+		return nil
+	}
 
+	country, err := gountries.New().FindCountryByAlpha(countryCode)
+	if err != nil {
+		fmt.Println("Error finding country:", err)
+		return err
+	}
+
+	countryName := country.Name.Common
 	// Save weather info
 	token := strings.TrimPrefix(c.Request().Header.Get("Authorization"), "Bearer ")
 	user_id, _ := utils.GetUserIDFromToken(token)
@@ -129,6 +142,7 @@ func Get_weather(c echo.Context) error {
 			"label_id":    label_id,
 			"label":       label,
 			"city":        city,
+			"country":     countryName,
 			"temperature": tempereture,
 		},
 	})

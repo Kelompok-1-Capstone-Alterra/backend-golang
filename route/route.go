@@ -28,6 +28,7 @@ func New() *echo.Echo {
 	e.GET("/alldb/users", controller.Show_all_DB_Users)
 	e.POST("/pictures", controller.Upload_pictures)
 	e.GET("/pictures/:url", controller.Get_picture)
+	e.DELETE("/pictures/:url", controller.Delete_picture_from_local)
 
 	// ENDPOINT WEB (no token)
 	e.POST("/admins", admin.CreateAdmin)
@@ -47,7 +48,7 @@ func New() *echo.Echo {
 	// ENDPOINT WEB (with token)
 	// Landing Page
 	eAuth.GET("/admins/overview", admin.GetOverview)
-	
+
 	// Article
 	eAuth.POST("/admins/articles/add", admin.CreateArticle)
 	eAuth.GET("/admins/articles", admin.GetArticles)
@@ -66,7 +67,6 @@ func New() *echo.Echo {
 	eAuth.PUT("/admins/products/:id", admin.UpdateProductByID)
 	eAuth.GET("/admins/products/search", admin.GetProductsByName)
 
-
 	// Weather Management
 	eAuth.POST("/admins/weathers/add", admin.CreateWeather)
 	eAuth.GET("/admins/weathers", admin.GetWeathers)
@@ -82,6 +82,11 @@ func New() *echo.Echo {
 	eAuth.DELETE("/admins/plants/:id/detail", admin.DeletePlantDetails)
 	eAuth.POST("/admins/plants/add", admin.CreatePlant)
 
+	// Suggestions
+	eAuth.GET("/admins/suggestions", admin.GetAllSuggestions)
+	eAuth.GET("/admins/suggestions/:suggestion_id", admin.GetSuggestionByID)
+	eAuth.DELETE("/admins/suggestions/:suggestion_id", admin.DeleteSuggestionByID)
+
 	// ENDPOINT MOBILE (with token)
 	// Recomendation
 	eAuth.GET("/users/products", user.GetProducts)
@@ -93,15 +98,6 @@ func New() *echo.Echo {
 	// Explore & Monitoring
 	eAuth.GET("/users/weather", user.Get_weather)
 	eAuth.GET("/users/weather/:label_id", user.Get_weather_article)
-
-
-	// Articles (with token)
-	eAuth.GET("/users/articles/trending", user.GetArticlesTrending)
-	eAuth.GET("/users/articles/latest", user.GetArticlesLatest)
-	eAuth.GET("/users/articles/:id", user.GetArticlesbyID)
-	eAuth.GET("/users/articles/liked", user.GetArticlesLiked)
-	eAuth.POST("/users/articles/:article_id/liked", user.AddLikes)
-	eAuth.DELETE("/users/articles/:article_id/liked", user.DeleteLikes)
 	eAuth.GET("/plants", user.Get_available_plants)
 	eAuth.GET("/plants/search", user.Search_available_plants)
 	eAuth.GET("/plants/:plant_id", user.Get_plant_detail)
@@ -121,6 +117,19 @@ func New() *echo.Echo {
 	eAuth.GET("/articles/fertilizing/:plant_id", user.GetFertilizingArticle)
 	eAuth.GET("/articles/watering/:plant_id", user.GetWateringArticle)
 	eAuth.GET("/articles/temperature/:plant_id", user.GetTemperatureArticle)
+
+	// MyPlants
+	eAuth.GET("/users/plants", user.GetMyPlantList)
+	eAuth.GET("/users/plants/search", user.GetMyPlantListBYKeyword)
+	eAuth.DELETE("/users/plants", user.DeleteMyPlants)
+
+	// Articles (with token)
+	eAuth.GET("/users/articles/trending", user.GetArticlesTrending)
+	eAuth.GET("/users/articles/latest", user.GetArticlesLatest)
+	eAuth.GET("/users/articles/:id", user.GetArticlesbyID)
+	eAuth.GET("/users/articles/liked", user.GetArticlesLiked)
+	eAuth.POST("/users/articles/:article_id/liked", user.AddLikes)
+	eAuth.DELETE("/users/articles/:article_id/liked", user.DeleteLikes)
 
 	// Settings
 	eAuth.GET("/users/profiles", user.GetProfile)
