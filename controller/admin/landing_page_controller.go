@@ -58,15 +58,33 @@ func LoginAdmin(c echo.Context) error {
 	err := c.Bind(&loginData)
 	if err != nil {
 		log.Print(color.RedString(err.Error()))
-		return c.JSON(500, map[string]interface{}{
+		return c.JSON(http.StatusInternalServerError, map[string]interface{}{
+			"status":  500,
 			"message": "Failed to bind data",
+		})
+	}
+
+	// check if inputed email is empty
+	if loginData.Email == "" {
+		return c.JSON(http.StatusUnauthorized, map[string]interface{}{
+			"status":  401,
+			"message": "Failed to login, Email cannot be empty",
+		})
+	}
+
+	// check if inputed password is empty
+	if loginData.Password == "" {
+		return c.JSON(http.StatusUnauthorized, map[string]interface{}{
+			"status":  401,
+			"message": "Failed to login, Password cannot be empty",
 		})
 	}
 
 	if err := config.DB.Where("email = ?", loginData.Email).First(&admin).Error; err != nil {
 		log.Print(color.RedString(err.Error()))
-		return c.JSON(500, map[string]interface{}{
-			"message": "Failed to find admin",
+		return c.JSON(http.StatusUnauthorized, map[string]interface{}{
+			"status":  401,
+			"message": "Failed to login, invalid email",
 		})
 	}
 
@@ -94,7 +112,6 @@ func LoginAdmin(c echo.Context) error {
 		},
 	})
 }
-
 
 func GetOverview(c echo.Context) error {
 	// Count how many users are registered
