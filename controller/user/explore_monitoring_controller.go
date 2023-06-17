@@ -850,14 +850,13 @@ func Get_myplant_overview(c echo.Context) error {
 	currentTime := get_current_time_from_latlong(myplant.Latitude, myplant.Longitude)
 	_, off := currentTime.Zone()
 
+	fmt.Println("-", time.Duration(off))
+	fmt.Println("-", time.Duration(off)/3600)
+
 	// diff := currentTime.Sub(myplant.StartPlantingDate)
-	diff := currentTime.Sub(myplant.StartPlantingDate.Add(time.Duration(off)/3600))
+	diff := currentTime.Sub(myplant.StartPlantingDate.Add(time.Duration(off) / 3600))
 	day := int(diff.Hours()/24) + 1
 	week := int(diff.Hours()/(24*7)) + 1
-
-	fmt.Println("currentTime", currentTime)
-	fmt.Println("myplant.StartPlantingDate", myplant.StartPlantingDate)
-	fmt.Println(off / 3600)
 
 	if day > 6 {
 		day = day % 7
@@ -1022,7 +1021,13 @@ func Get_myplant_overview(c echo.Context) error {
 			"temperature_alert": responseTemperatureAlert,
 			"button_harvest":    isActiveButtonHarvest,
 			"button_dead":       isActiveButtonDead,
-			"diff":              diff,
+			"for_admin": map[string]interface{}{
+				"UTC_now":           time.Now().UTC(),
+				"StartPLantingDate": myplant.StartPlantingDate,
+				"timezone_now":      currentTime,
+				"diff":              diff,
+				"diff_in_minutes":   diff.Minutes(),
+			},
 		},
 	})
 }
