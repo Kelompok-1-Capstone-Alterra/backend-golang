@@ -849,7 +849,8 @@ func Get_myplant_overview(c echo.Context) error {
 	// Get current timestamp according to longitude and latitude
 	currentTime := get_current_time_from_latlong(myplant.Latitude, myplant.Longitude)
 
-	diff := currentTime.Sub(myplant.StartPlantingDate)
+	// diff := currentTime.Sub(myplant.StartPlantingDate)
+	diff := currentTime.Sub(myplant.StartPlantingDate.Add(currentTime.Sub(myplant.StartPlantingDate)))
 	day := int(diff.Hours()/24) + 1
 	week := int(diff.Hours()/(24*7)) + 1
 
@@ -1016,6 +1017,7 @@ func Get_myplant_overview(c echo.Context) error {
 			"temperature_alert": responseTemperatureAlert,
 			"button_harvest":    isActiveButtonHarvest,
 			"button_dead":       isActiveButtonDead,
+			"diff":              diff,
 		},
 	})
 }
@@ -1607,7 +1609,6 @@ func Add_harvest_plant_progress(c echo.Context) error {
 	weeklyProgress.From = currentTime2
 	weeklyProgress.Status = "harvest"
 	weeklyProgress.To = currentTime2
-
 
 	weeklyProgress.Condition = weeklyProgress_bind.Condition
 	weeklyProgress.Description = weeklyProgress_bind.Description
