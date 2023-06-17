@@ -702,7 +702,8 @@ func Add_my_plant(c echo.Context) error {
 	myplant.IsStartPlanting = false
 
 	// Set the current time as the start_planting_date
-	myplant.StartPlantingDate = time.Now()
+	myplant.StartPlantingDate = time.Now().UTC()
+	fmt.Println(myplant.StartPlantingDate)
 
 	if err_save := config.DB.Save(&myplant).Error; err_save != nil {
 		return c.JSON(http.StatusInternalServerError, map[string]interface{}{
@@ -768,6 +769,7 @@ func Start_planting(c echo.Context) error {
 
 	// Get current timestamp according to longitude and latitude
 	currentTime := get_current_time_from_latlong(myplant_binding.Latitude, myplant_binding.Longitude)
+	fmt.Println(currentTime)
 
 	// START SET1 - myplant table : longitude(current), latitude(current), is_start_planting(true), is_start_planting(current date)
 	myplant.Longitude = myplant_binding.Longitude
@@ -833,7 +835,7 @@ func get_current_time_from_latlong(lat, long string) time.Time {
 	return currentTime
 }
 
-// EXPLORE & MONITORING (Menu Home) - [Endpoint 17 : Get my plant overview]
+// // EXPLORE & MONITORING (Menu Home) - [Endpoint 17 : Get my plant overview]
 func Get_myplant_overview(c echo.Context) error {
 	myplant_id, _ := strconv.Atoi(c.Param("myplant_id"))
 	var myplant model.MyPlant
@@ -848,6 +850,12 @@ func Get_myplant_overview(c echo.Context) error {
 
 	// Get current timestamp according to longitude and latitude
 	currentTime := get_current_time_from_latlong(myplant.Latitude, myplant.Longitude)
+	// Print log for developergolang
+	fmt.Println(map[string]interface{}{
+		"startPlantingDate": myplant.StartPlantingDate,
+		"currentTime":       currentTime,
+		"difference":        currentTime.Sub(myplant.StartPlantingDate),
+	})
 
 	diff := currentTime.Sub(myplant.StartPlantingDate)
 	day := int(diff.Hours()/24) + 1
@@ -1607,7 +1615,6 @@ func Add_harvest_plant_progress(c echo.Context) error {
 	weeklyProgress.From = currentTime2
 	weeklyProgress.Status = "harvest"
 	weeklyProgress.To = currentTime2
-
 
 	weeklyProgress.Condition = weeklyProgress_bind.Condition
 	weeklyProgress.Description = weeklyProgress_bind.Description
