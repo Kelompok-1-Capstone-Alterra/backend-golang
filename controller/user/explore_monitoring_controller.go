@@ -852,10 +852,10 @@ func Get_myplant_overview(c echo.Context) error {
 
 	fmt.Println("-", time.Duration(off))
 	fmt.Println("-", time.Duration(off)/3600)
-	fmt.Println("expected_StartPlantingDate", myplant.StartPlantingDate.Add(time.Duration(off)/3600))
+	fmt.Println("expected_StartPlantingDate", myplant.StartPlantingDate.Add((time.Duration(off)/3600)*time.Hour))
 
 	// diff := currentTime.Sub(myplant.StartPlantingDate)
-	diff := currentTime.Sub(myplant.StartPlantingDate.Add(time.Duration(off) / 3600))
+	diff := currentTime.Sub(myplant.StartPlantingDate.Add((time.Duration(off) / 3600) * time.Hour))
 	day := int(diff.Hours()/24) + 1
 	week := int(diff.Hours()/(24*7)) + 1
 
