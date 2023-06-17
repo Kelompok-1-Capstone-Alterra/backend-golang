@@ -754,6 +754,47 @@ func Get_myplant_name(c echo.Context) error {
 	})
 }
 
+// EXPLORE & MONITORING (Menu Home) - [Endpoint 15 : Update my plant name]
+
+func Update_myplant_name(c echo.Context) error {
+	myplant_id, _ := strconv.Atoi(c.Param("myplant_id"))
+	var myplant model.MyPlant
+
+	if err_first := config.DB.First(&myplant, myplant_id).Error; err_first != nil {
+		log.Print(color.RedString(err_first.Error()))
+		return c.JSON(http.StatusBadRequest, map[string]interface{}{
+			"status":  404,
+			"message": "not found",
+		})
+	}
+	var myplant_binding model.MyPlant
+	if err_bind := c.Bind(&myplant_binding); err_bind != nil {
+		log.Print(color.RedString(err_bind.Error()))
+		return c.JSON(http.StatusBadRequest, map[string]interface{}{
+			"status":  400,
+			"message": "bad request",
+		})
+	}
+	myplant.Name = myplant_binding.Name
+
+	if err_save := config.DB.Save(&myplant).Error; err_save != nil {
+		log.Print(color.RedString(err_save.Error()))
+		return c.JSON(http.StatusInternalServerError, map[string]interface{}{
+			"status":  500,
+			"message": "internal server error",
+		})
+	}
+
+	return c.JSON(http.StatusOK, map[string]interface{}{
+		"status":  200,
+		"message": "success to update my plant name",
+		"data": map[string]interface{}{
+			"myplant_id":           myplant.ID,
+			"updated_myplant_name": myplant.Name,
+		},
+	})
+}
+
 // EXPLORE & MONITORING (Menu Home) - [Endpoint 16 : Start planting]
 func Start_planting(c echo.Context) error {
 	myplant_id, _ := strconv.Atoi(c.Param("myplant_id"))
