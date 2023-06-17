@@ -854,6 +854,9 @@ func Get_myplant_overview(c echo.Context) error {
 	day := int(diff.Hours()/24) + 1
 	week := int(diff.Hours()/(24*7)) + 1
 
+	fmt.Println("currentTime",currentTime)
+	fmt.Println("myplant.StartPlantingDate",myplant.StartPlantingDate)
+
 	if day > 6 {
 		day = day % 7
 		if day == 0 {
