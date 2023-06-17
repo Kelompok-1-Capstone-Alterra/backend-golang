@@ -856,6 +856,8 @@ func Get_myplant_overview(c echo.Context) error {
 
 	fmt.Println("currentTime",currentTime)
 	fmt.Println("myplant.StartPlantingDate",myplant.StartPlantingDate)
+	_,off:= currentTime.Zone()
+	fmt.Println(off/3600)
 
 	if day > 6 {
 		day = day % 7
