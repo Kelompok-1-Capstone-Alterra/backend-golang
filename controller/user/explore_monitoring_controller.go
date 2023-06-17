@@ -721,6 +721,39 @@ func Add_my_plant(c echo.Context) error {
 	})
 }
 
+// EXPLORE & MONITORING (Menu Home) - [Endpoint 14 : Get my plant]
+func Get_myplant_name(c echo.Context) error {
+	myplant_id, _ := strconv.Atoi(c.Param("myplant_id"))
+	var myplant model.MyPlant
+
+	if err_first := config.DB.First(&myplant, myplant_id).Error; err_first != nil {
+		log.Print(color.RedString(err_first.Error()))
+		return c.JSON(http.StatusBadRequest, map[string]interface{}{
+			"status":  404,
+			"message": "not found",
+		})
+	}
+
+	var plant model.Plant
+	if err_first2 := config.DB.First(&plant, myplant.PlantID).Error; err_first2 != nil {
+		log.Print(color.RedString(err_first2.Error()))
+		return c.JSON(http.StatusBadRequest, map[string]interface{}{
+			"status":  404,
+			"message": "not found",
+		})
+	}
+	return c.JSON(http.StatusOK, map[string]interface{}{
+		"status":  200,
+		"message": "success to get my plant name",
+		"data": map[string]interface{}{
+			"myplant_id":        myplant.ID,
+			"name":              myplant.Name,
+			"latin":             plant.Latin,
+			"is_start_planting": myplant.IsStartPlanting,
+		},
+	})
+}
+
 // EXPLORE & MONITORING (Menu Home) - [Endpoint 16 : Start planting]
 func Start_planting(c echo.Context) error {
 	myplant_id, _ := strconv.Atoi(c.Param("myplant_id"))
@@ -1607,7 +1640,6 @@ func Add_harvest_plant_progress(c echo.Context) error {
 	weeklyProgress.From = currentTime2
 	weeklyProgress.Status = "harvest"
 	weeklyProgress.To = currentTime2
-
 
 	weeklyProgress.Condition = weeklyProgress_bind.Condition
 	weeklyProgress.Description = weeklyProgress_bind.Description
