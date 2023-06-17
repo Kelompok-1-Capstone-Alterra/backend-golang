@@ -848,16 +848,16 @@ func Get_myplant_overview(c echo.Context) error {
 
 	// Get current timestamp according to longitude and latitude
 	currentTime := get_current_time_from_latlong(myplant.Latitude, myplant.Longitude)
+	_, off := currentTime.Zone()
 
 	// diff := currentTime.Sub(myplant.StartPlantingDate)
-	diff := currentTime.Sub(myplant.StartPlantingDate.Add(currentTime.Sub(myplant.StartPlantingDate)))
+	diff := currentTime.Sub(myplant.StartPlantingDate.Add(time.Duration(off)/3600))
 	day := int(diff.Hours()/24) + 1
 	week := int(diff.Hours()/(24*7)) + 1
 
-	fmt.Println("currentTime",currentTime)
-	fmt.Println("myplant.StartPlantingDate",myplant.StartPlantingDate)
-	_,off:= currentTime.Zone()
-	fmt.Println(off/3600)
+	fmt.Println("currentTime", currentTime)
+	fmt.Println("myplant.StartPlantingDate", myplant.StartPlantingDate)
+	fmt.Println(off / 3600)
 
 	if day > 6 {
 		day = day % 7
