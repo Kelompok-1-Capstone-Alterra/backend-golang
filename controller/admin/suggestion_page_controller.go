@@ -1,6 +1,7 @@
 package admin
 
 import (
+	"fmt"
 	"log"
 	"net/http"
 
@@ -12,12 +13,12 @@ import (
 
 func GetAllSuggestions(c echo.Context) error {
 	type Response struct {
-		suggestion_id uint
-		user_id       uint
-		name          string
-		picture       string
-		email         string
-		message       string
+		SuggestionID uint   `json:"suggestion_id"`
+		UserID       uint   `json:"user_id"`
+		Name         string `json:"name"`
+		Picture      string `json:"picture"`
+		Email        string `json:"email"`
+		Message      string `json:"message"`
 	}
 
 	suggestions := []model.Suggestions{}
@@ -43,14 +44,16 @@ func GetAllSuggestions(c echo.Context) error {
 			})
 		}
 
-		temp.suggestion_id = suggestions[i].ID
-		temp.user_id = suggestions[i].UserID
-		temp.name = user.Name
-		temp.picture = user.URL
-		temp.email = user.Email
-		temp.message = suggestions[i].Content
+		temp.SuggestionID = suggestions[i].ID
+		temp.UserID = suggestions[i].UserID
+		temp.Name = user.Name
+		temp.Picture = user.URL
+		temp.Email = user.Email
+		temp.Message = suggestions[i].Content
+		fmt.Println(temp)
 		responses = append(responses, temp)
 	}
+	fmt.Println(responses)
 
 	return c.JSON(http.StatusOK, map[string]interface{}{
 		"status":  200,
@@ -62,7 +65,7 @@ func GetAllSuggestions(c echo.Context) error {
 func GetSuggestionByID(c echo.Context) error {
 	suggestion := model.Suggestions{}
 
-	suggestionID := c.Param("id")
+	suggestionID := c.Param("suggestion_id")
 
 	if err := config.DB.First(&suggestion, suggestionID).Error; err != nil {
 		log.Print(color.RedString(err.Error()))
@@ -98,7 +101,7 @@ func GetSuggestionByID(c echo.Context) error {
 func DeleteSuggestionByID(c echo.Context) error {
 	suggestion := model.Suggestions{}
 
-	suggestionID := c.Param("id")
+	suggestionID := c.Param("suggestion_id")
 
 	if err := config.DB.First(&suggestion, suggestionID).Error; err != nil {
 		log.Print(color.RedString(err.Error()))
