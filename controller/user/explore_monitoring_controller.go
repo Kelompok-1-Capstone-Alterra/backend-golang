@@ -22,16 +22,9 @@ import (
 
 // EXPLORE & MONITORING (Menu Home) - [Endpoint 1 : Get weather]
 func Get_weather(c echo.Context) error {
-	var coordinate model.Coordinate
-
-	if err_bind := c.Bind(&coordinate); err_bind != nil {
-		log.Print(color.RedString(err_bind.Error()))
-		return c.JSON(http.StatusBadRequest, map[string]interface{}{
-			"status":  400,
-			"message": "bad request",
-		})
-	}
-
+	latitude := c.Param("latitude")
+	longitude := c.Param("longitude")
+	fmt.Println(latitude, longitude)
 	apikey := "869a5f0aa562d21ec64ff37c7c6c157f"
 	baseURL := "https://api.openweathermap.org/data/2.5/weather"
 
@@ -46,8 +39,8 @@ func Get_weather(c echo.Context) error {
 
 	// Add query parameters to the URL
 	q := u.Query()
-	q.Set("lat", coordinate.Latitude)
-	q.Set("lon", coordinate.Longitude)
+	q.Set("lat", latitude)
+	q.Set("lon", longitude)
 	q.Set("appid", apikey)
 	q.Set("units", "metric")
 	u.RawQuery = q.Encode()
@@ -188,7 +181,7 @@ func Get_weather_article(c echo.Context) error {
 	label := get_label_by_id(id)
 	if err_first := config.DB.Where("label=?", label).First(&weatherArticle).Error; err_first != nil {
 		log.Print(color.RedString(err_first.Error()))
-		return c.JSON(http.StatusBadRequest, map[string]interface{}{
+		return c.JSON(http.StatusNotFound, map[string]interface{}{
 			"status":  404,
 			"message": "not found",
 		})
@@ -197,7 +190,7 @@ func Get_weather_article(c echo.Context) error {
 	var picture model.Picture
 	if err_first2 := config.DB.Where("weather_id=?", weatherArticle.ID).First(&picture).Error; err_first2 != nil {
 		log.Print(color.RedString(err_first2.Error()))
-		return c.JSON(http.StatusBadRequest, map[string]interface{}{
+		return c.JSON(http.StatusNotFound, map[string]interface{}{
 			"status":  404,
 			"message": "not found",
 		})
@@ -254,11 +247,11 @@ func Get_available_plants(c echo.Context) error {
 		log.Print(color.RedString(err_find.Error()))
 		return c.JSON(http.StatusBadRequest, map[string]interface{}{
 			"status":  404,
-			"message": "not found",
+			"message": "bad request",
 		})
 	}
 
-	var responses []map[string]interface{}
+	responses := []map[string]interface{}{}
 	for _, plant := range plants {
 		config.DB.Model(&plant).Association("Pictures").Find(&plant.Pictures)
 
@@ -270,7 +263,7 @@ func Get_available_plants(c echo.Context) error {
 
 		response := map[string]interface{}{
 			"plant_id": plant.ID,
-			"pictures": url,
+			"picture":  url,
 			"name":     plant.Name,
 			"latin":    plant.Latin,
 		}
@@ -293,12 +286,12 @@ func Search_available_plants(c echo.Context) error {
 	if err_find := config.DB.Where("name LIKE ?", name).Find(&plants).Error; err_find != nil {
 		log.Print(color.RedString(err_find.Error()))
 		return c.JSON(http.StatusBadRequest, map[string]interface{}{
-			"status":  404,
-			"message": "not found",
+			"status":  400,
+			"message": "bad request",
 		})
 	}
 
-	var responses []map[string]interface{}
+	responses := []map[string]interface{}{}
 	for _, plant := range plants {
 		config.DB.Model(&plant).Association("Pictures").Find(&plant.Pictures)
 
@@ -331,7 +324,7 @@ func Get_plant_detail(c echo.Context) error {
 
 	if err_first := config.DB.First(&plant, plant_id).Error; err_first != nil {
 		log.Print(color.RedString(err_first.Error()))
-		return c.JSON(http.StatusBadRequest, map[string]interface{}{
+		return c.JSON(http.StatusNotFound, map[string]interface{}{
 			"status":  404,
 			"message": "not found",
 		})
@@ -344,15 +337,48 @@ func Get_plant_detail(c echo.Context) error {
 		break
 	}
 
+	// Get fertilizing article
+	var fertilizngInfo model.FertilizingInfo
+	if err_first := config.DB.Where("plant_id=?", plant_id).First(&fertilizngInfo).Error; err_first != nil {
+		log.Print(color.RedString(err_first.Error(), "fertilizing article not found"))
+		return c.JSON(http.StatusNotFound, map[string]interface{}{
+			"status":  404,
+			"message": "not found",
+		})
+	}
+
+	// Get watering article
+	var wateringInfo model.WateringInfo
+	if err_first := config.DB.Where("plant_id=?", plant_id).First(&wateringInfo).Error; err_first != nil {
+		log.Print(color.RedString(err_first.Error(), "watering article not found"))
+		return c.JSON(http.StatusNotFound, map[string]interface{}{
+			"status":  404,
+			"message": "not found",
+		})
+	}
+
+	// Get temperature article
+	var temperatureInfo model.TemperatureInfo
+	if err_first := config.DB.Where("plant_id=?", plant_id).First(&temperatureInfo).Error; err_first != nil {
+		log.Print(color.RedString(err_first.Error(), "temperature article not found"))
+		return c.JSON(http.StatusNotFound, map[string]interface{}{
+			"status":  404,
+			"message": "not found",
+		})
+	}
+
 	return c.JSON(http.StatusOK, map[string]interface{}{
 		"status":  200,
 		"message": "success to get plant detail",
 		"data": map[string]interface{}{
-			"plant_id":    plant.ID,
-			"picture":     url,
-			"name":        plant.Name,
-			"latin":       plant.Latin,
-			"description": plant.Description,
+			"plant_id":               plant.ID,
+			"picture":                url,
+			"name":                   plant.Name,
+			"latin":                  plant.Latin,
+			"description":            plant.Description,
+			"fertilizing_article_id": fertilizngInfo.ID,
+			"watering_article_id":    wateringInfo.ID,
+			"temperature_article_id": temperatureInfo.ID,
 		},
 	})
 }
@@ -364,63 +390,68 @@ func Get_plant_location(c echo.Context) error {
 	var planting_info model.PlantingInfo
 	if err_first := config.DB.Where("plant_id=?", plant_id).First(&planting_info).Error; err_first != nil {
 		log.Print(color.RedString(err_first.Error()))
-		return c.JSON(http.StatusBadRequest, map[string]interface{}{
+		return c.JSON(http.StatusNotFound, map[string]interface{}{
 			"status":  404,
 			"message": "not found",
 		})
 	}
 
-	var container_info model.ContainerInfo
-	config.DB.Model(&container_info).Association("Pictures").Find(&container_info.Pictures)
+	responses := []map[string]interface{}{}
 
-	var url_container string
-	for _, picture := range container_info.Pictures {
-		url_container = picture.URL
-		break
-	}
+	if planting_info.Container {
+		var container_info model.ContainerInfo
+		
+		if err_container := config.DB.Where("planting_info_id=?", planting_info.ID).First(&container_info).Error; err_container != nil {
+			log.Print(color.RedString(err_container.Error()))
+			return c.JSON(http.StatusNotFound, map[string]interface{}{
+				"status":  404,
+				"message": "not found",
+			})
+		}
 
-	if err_container := config.DB.Where("planting_info_id=?", planting_info.ID).First(&container_info).Error; err_container != nil {
-		log.Print(color.RedString(err_container.Error()))
-		return c.JSON(http.StatusBadRequest, map[string]interface{}{
-			"status":  404,
-			"message": "not found",
+		config.DB.Model(&container_info).Association("Pictures").Find(&container_info.Pictures)
+
+		var url_container string
+		for _, picture := range container_info.Pictures {
+			url_container = picture.URL
+			break
+		}
+
+		responses = append(responses, map[string]interface{}{
+			"location_plant": 1,
+			"picture":        url_container,
 		})
 	}
 
-	var ground_info model.GroundInfo
-	config.DB.Model(&ground_info).Association("Pictures").Find(&ground_info.Pictures)
+	if planting_info.Ground {
+		var ground_info model.GroundInfo
+		
+		if err_ground := config.DB.Where("planting_info_id=?", planting_info.ID).First(&ground_info).Error; err_ground != nil {
+			log.Print(color.RedString(err_ground.Error()))
+			return c.JSON(http.StatusNotFound, map[string]interface{}{
+				"status":  404,
+				"message": "not found",
+			})
+		}
+		
+		config.DB.Model(&ground_info).Association("Pictures").Find(&ground_info.Pictures)
 
-	var url_ground string
-	for _, picture := range container_info.Pictures {
-		url_ground = picture.URL
-		break
-	}
+		var url_ground string
+		for _, picture := range ground_info.Pictures {
+			url_ground = picture.URL
+			break
+		}
 
-	if err_ground := config.DB.Where("planting_info_id=?", planting_info.ID).First(&ground_info).Error; err_ground != nil {
-		log.Print(color.RedString(err_ground.Error()))
-		return c.JSON(http.StatusBadRequest, map[string]interface{}{
-			"status":  404,
-			"message": "not found",
+		responses = append(responses, map[string]interface{}{
+			"location_plant": 2,
+			"picture":        url_ground,
 		})
-	}
-
-	data := []map[string]interface{}{
-		{
-			"container":           planting_info.Container,
-			"planting_article_id": container_info.ID,
-			"picture":             url_container,
-		},
-		{
-			"ground":              planting_info.Ground,
-			"planting_article_id": ground_info.ID,
-			"picture":             url_ground,
-		},
 	}
 
 	return c.JSON(http.StatusOK, map[string]interface{}{
 		"status":  200,
 		"message": "success to get planting location",
-		"data":    data,
+		"data":    responses,
 	})
 }
 
@@ -722,6 +753,80 @@ func Add_my_plant(c echo.Context) error {
 	})
 }
 
+// EXPLORE & MONITORING (Menu Home) - [Endpoint 14 : Get my plant]
+func Get_myplant_name(c echo.Context) error {
+	myplant_id, _ := strconv.Atoi(c.Param("myplant_id"))
+	var myplant model.MyPlant
+
+	if err_first := config.DB.First(&myplant, myplant_id).Error; err_first != nil {
+		log.Print(color.RedString(err_first.Error()))
+		return c.JSON(http.StatusBadRequest, map[string]interface{}{
+			"status":  404,
+			"message": "not found",
+		})
+	}
+
+	var plant model.Plant
+	if err_first2 := config.DB.First(&plant, myplant.PlantID).Error; err_first2 != nil {
+		log.Print(color.RedString(err_first2.Error()))
+		return c.JSON(http.StatusBadRequest, map[string]interface{}{
+			"status":  404,
+			"message": "not found",
+		})
+	}
+	return c.JSON(http.StatusOK, map[string]interface{}{
+		"status":  200,
+		"message": "success to get my plant name",
+		"data": map[string]interface{}{
+			"myplant_id":        myplant.ID,
+			"name":              myplant.Name,
+			"latin":             plant.Latin,
+			"is_start_planting": myplant.IsStartPlanting,
+		},
+	})
+}
+
+// EXPLORE & MONITORING (Menu Home) - [Endpoint 15 : Update my plant name]
+
+func Update_myplant_name(c echo.Context) error {
+	myplant_id, _ := strconv.Atoi(c.Param("myplant_id"))
+	var myplant model.MyPlant
+
+	if err_first := config.DB.First(&myplant, myplant_id).Error; err_first != nil {
+		log.Print(color.RedString(err_first.Error()))
+		return c.JSON(http.StatusBadRequest, map[string]interface{}{
+			"status":  404,
+			"message": "not found",
+		})
+	}
+	var myplant_binding model.MyPlant
+	if err_bind := c.Bind(&myplant_binding); err_bind != nil {
+		log.Print(color.RedString(err_bind.Error()))
+		return c.JSON(http.StatusBadRequest, map[string]interface{}{
+			"status":  400,
+			"message": "bad request",
+		})
+	}
+	myplant.Name = myplant_binding.Name
+
+	if err_save := config.DB.Save(&myplant).Error; err_save != nil {
+		log.Print(color.RedString(err_save.Error()))
+		return c.JSON(http.StatusInternalServerError, map[string]interface{}{
+			"status":  500,
+			"message": "internal server error",
+		})
+	}
+
+	return c.JSON(http.StatusOK, map[string]interface{}{
+		"status":  200,
+		"message": "success to update my plant name",
+		"data": map[string]interface{}{
+			"myplant_id":           myplant.ID,
+			"updated_myplant_name": myplant.Name,
+		},
+	})
+}
+
 // EXPLORE & MONITORING (Menu Home) - [Endpoint 16 : Start planting]
 func Start_planting(c echo.Context) error {
 	myplant_id, _ := strconv.Atoi(c.Param("myplant_id"))
@@ -744,9 +849,9 @@ func Start_planting(c echo.Context) error {
 	var myplant_check model.MyPlant
 	if err_val2 := config.DB.Where("user_id=?", int(user_id)).First(&myplant_check, myplant_id).Error; err_val2 != nil {
 		log.Print(color.RedString(err_val2.Error()))
-		return c.JSON(http.StatusUnauthorized, map[string]interface{}{
-			"status":  401,
-			"message": "unauthorized",
+		return c.JSON(http.StatusNotFound, map[string]interface{}{
+			"status":  404,
+			"message": "not found",
 		})
 	}
 
@@ -840,11 +945,15 @@ func Get_myplant_overview(c echo.Context) error {
 	myplant_id, _ := strconv.Atoi(c.Param("myplant_id"))
 	var myplant model.MyPlant
 
-	if err_first := config.DB.First(&myplant, myplant_id).Error; err_first != nil {
+	// Validation1 : make sure other user cannot access data from other user
+	token := strings.TrimPrefix(c.Request().Header.Get("Authorization"), "Bearer ")
+	user_id, _ := utils.GetUserIDFromToken(token)
+
+	if err_first := config.DB.Where("user_id=?", user_id).First(&myplant, myplant_id).Error; err_first != nil {
 		log.Print(color.RedString(err_first.Error()))
-		return c.JSON(http.StatusBadRequest, map[string]interface{}{
-			"status":  400,
-			"message": "bad request",
+		return c.JSON(http.StatusNotFound, map[string]interface{}{
+			"status":  404,
+			"message": "not found",
 		})
 	}
 
@@ -1081,11 +1190,15 @@ func Add_watering(c echo.Context) error {
 	myplant_id, _ := strconv.Atoi(c.Param("myplant_id"))
 	var myplant model.MyPlant
 
-	if err_first := config.DB.First(&myplant, myplant_id).Error; err_first != nil {
+	// Validation1 : make sure other user cannot modify other user data
+	token := strings.TrimPrefix(c.Request().Header.Get("Authorization"), "Bearer ")
+	user_id, _ := utils.GetUserIDFromToken(token)
+
+	if err_first := config.DB.Where("user_id=?", user_id).First(&myplant, myplant_id).Error; err_first != nil {
 		log.Print(color.RedString(err_first.Error()))
-		return c.JSON(http.StatusBadRequest, map[string]interface{}{
-			"status":  400,
-			"message": "bad request",
+		return c.JSON(http.StatusNotFound, map[string]interface{}{
+			"status":  404,
+			"message": "not found",
 		})
 	}
 
@@ -1172,7 +1285,11 @@ func Add_fertilizing(c echo.Context) error {
 	var fertilizing model.Fertilizing
 	var myplant model.MyPlant
 
-	if err_first := config.DB.First(&myplant, myplant_id).Error; err_first != nil {
+	// Validation1 : make sure other user cannot modify other user data
+	token := strings.TrimPrefix(c.Request().Header.Get("Authorization"), "Bearer ")
+	user_id, _ := utils.GetUserIDFromToken(token)
+
+	if err_first := config.DB.Where("user_id=?", user_id).First(&myplant, myplant_id).Error; err_first != nil {
 		log.Print(color.RedString(err_first.Error()))
 		return c.JSON(http.StatusNotFound, map[string]interface{}{
 			"status":  404,
@@ -1245,11 +1362,15 @@ func Add_weekly_progress(c echo.Context) error {
 	myplant_id, _ := strconv.Atoi(c.Param("myplant_id"))
 	var myplant model.MyPlant
 
-	if err_first := config.DB.First(&myplant, myplant_id).Error; err_first != nil {
+	// Validation1 : make sure other user cannot modify other user data
+	token := strings.TrimPrefix(c.Request().Header.Get("Authorization"), "Bearer ")
+	user_id, _ := utils.GetUserIDFromToken(token)
+
+	if err_first := config.DB.Where("user_id=?", user_id).First(&myplant, myplant_id).Error; err_first != nil {
 		log.Print(color.RedString(err_first.Error()))
-		return c.JSON(http.StatusBadRequest, map[string]interface{}{
-			"status":  400,
-			"message": "bad request",
+		return c.JSON(http.StatusNotFound, map[string]interface{}{
+			"status":  404,
+			"message": "not found",
 		})
 	}
 
@@ -1318,11 +1439,24 @@ func Get_all_myplant_weekly_progress(c echo.Context) error {
 	myplant_id, _ := strconv.Atoi(c.Param("myplant_id"))
 	var weeklyProgresses []model.WeeklyProgress
 
+	// Validation1 : make sure other user cannot modify other user data
+	token := strings.TrimPrefix(c.Request().Header.Get("Authorization"), "Bearer ")
+	user_id, _ := utils.GetUserIDFromToken(token)
+
+	var myplant_val1 model.MyPlant
+	if err_first := config.DB.Where("user_id=?", user_id).First(&myplant_val1, myplant_id).Error; err_first != nil {
+		log.Print(color.RedString(err_first.Error()))
+		return c.JSON(http.StatusNotFound, map[string]interface{}{
+			"status":  404,
+			"message": "not found",
+		})
+	}
+
 	if err_find := config.DB.Where("my_plant_id=?", myplant_id).Find(&weeklyProgresses).Error; err_find != nil {
 		log.Print(color.RedString(err_find.Error()))
-		return c.JSON(http.StatusBadRequest, map[string]interface{}{
-			"status":  400,
-			"message": "bad request",
+		return c.JSON(http.StatusNotFound, map[string]interface{}{
+			"status":  404,
+			"message": "not found",
 		})
 	}
 
@@ -1362,12 +1496,16 @@ func Get_my_plant_weekly_progress_by_id(c echo.Context) error {
 	var myPlant model.MyPlant
 	var weeklyProgress model.WeeklyProgress
 
+	// Validation1 : make sure other user cannot modify other user data
+	token := strings.TrimPrefix(c.Request().Header.Get("Authorization"), "Bearer ")
+	user_id, _ := utils.GetUserIDFromToken(token)
+
 	// Get MyPlant
-	if err_first := config.DB.First(&myPlant, myplant_id).Error; err_first != nil {
+	if err_first := config.DB.Where("user_id=?", user_id).First(&myPlant, myplant_id).Error; err_first != nil {
 		log.Print(color.RedString(err_first.Error()))
-		return c.JSON(http.StatusBadRequest, map[string]interface{}{
-			"status":  400,
-			"message": "bad request",
+		return c.JSON(http.StatusNotFound, map[string]interface{}{
+			"status":  404,
+			"message": "not found",
 		})
 	}
 
@@ -1446,9 +1584,22 @@ func Update_weekly_progress(c echo.Context) error {
 
 	if err_first := config.DB.First(&weeklyProgress, weekly_progress_id).Error; err_first != nil {
 		log.Print(color.RedString(err_first.Error()))
-		return c.JSON(http.StatusBadRequest, map[string]interface{}{
-			"status":  400,
-			"message": "bad request",
+		return c.JSON(http.StatusNotFound, map[string]interface{}{
+			"status":  404,
+			"message": "not found",
+		})
+	}
+
+	// Validation1 : make sure other user cannot modify other user data
+	token := strings.TrimPrefix(c.Request().Header.Get("Authorization"), "Bearer ")
+	user_id, _ := utils.GetUserIDFromToken(token)
+
+	var myplant_val1 model.MyPlant
+	if err_first := config.DB.Where("user_id=?", user_id).First(&myplant_val1, weeklyProgress.MyPlantID).Error; err_first != nil {
+		log.Print(color.RedString(err_first.Error()))
+		return c.JSON(http.StatusNotFound, map[string]interface{}{
+			"status":  404,
+			"message": "not found",
 		})
 	}
 
@@ -1491,14 +1642,17 @@ func Update_weekly_progress(c echo.Context) error {
 // EXPLORE & MONITORING (Menu Home) - [Endpoint 24 : Add dead plant progress]
 func Add_dead_plant_progress(c echo.Context) error {
 	myplant_id, _ := strconv.Atoi(c.Param("myplant_id"))
-
 	var myplant model.MyPlant
 
-	if err_first := config.DB.First(&myplant, myplant_id).Error; err_first != nil {
+	// Validation1 : make sure other user cannot modify other user data
+	token := strings.TrimPrefix(c.Request().Header.Get("Authorization"), "Bearer ")
+	user_id, _ := utils.GetUserIDFromToken(token)
+
+	if err_first := config.DB.Where("user_id=?", user_id).First(&myplant, myplant_id).Error; err_first != nil {
 		log.Print(color.RedString(err_first.Error()))
-		return c.JSON(http.StatusBadRequest, map[string]interface{}{
-			"status":  400,
-			"message": "bad request",
+		return c.JSON(http.StatusNotFound, map[string]interface{}{
+			"status":  404,
+			"message": "not found",
 		})
 	}
 
@@ -1564,14 +1718,17 @@ func Add_dead_plant_progress(c echo.Context) error {
 // EXPLORE & MONITORING (Menu Home) - [Endpoint 25 : Add harvest plant progress]
 func Add_harvest_plant_progress(c echo.Context) error {
 	myplant_id, _ := strconv.Atoi(c.Param("myplant_id"))
-
 	var myplant model.MyPlant
 
-	if err_first := config.DB.First(&myplant, myplant_id).Error; err_first != nil {
+	// Validation1 : make sure other user cannot modify other user data
+	token := strings.TrimPrefix(c.Request().Header.Get("Authorization"), "Bearer ")
+	user_id, _ := utils.GetUserIDFromToken(token)
+
+	if err_first := config.DB.Where("user_id=?", user_id).First(&myplant, myplant_id).Error; err_first != nil {
 		log.Print(color.RedString(err_first.Error()))
-		return c.JSON(http.StatusBadRequest, map[string]interface{}{
-			"status":  400,
-			"message": "bad request",
+		return c.JSON(http.StatusNotFound, map[string]interface{}{
+			"status":  404,
+			"message": "not found",
 		})
 	}
 
@@ -1630,6 +1787,6 @@ func Add_harvest_plant_progress(c echo.Context) error {
 
 	return c.JSON(http.StatusOK, map[string]interface{}{
 		"status":  200,
-		"message": "success to add dead plant progress",
+		"message": "success to add harvest plant progress",
 	})
 }

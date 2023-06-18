@@ -96,13 +96,15 @@ func New() *echo.Echo {
 	eAuth.GET("/users/products/:id/detail", user.GetProductByID)
 
 	// Explore & Monitoring
-	eAuth.GET("/users/weather", user.Get_weather)
+	eAuth.GET("/users/weather/:latitude/:longitude", user.Get_weather)
 	eAuth.GET("/users/weather/:label_id", user.Get_weather_article)
 	eAuth.GET("/plants", user.Get_available_plants)
 	eAuth.GET("/plants/search", user.Search_available_plants)
 	eAuth.GET("/plants/:plant_id", user.Get_plant_detail)
 	eAuth.GET("/plants/:plant_id/location", user.Get_plant_location)
 	eAuth.POST("/plants/:plant_id", user.Add_my_plant)
+	eAuth.GET("/users/plants/:myplant_id/name", user.Get_myplant_name)
+	eAuth.PUT("/users/plants/:myplant_id/name", user.Update_myplant_name)
 	eAuth.POST("/users/plants/:myplant_id/start", user.Start_planting)
 	eAuth.GET("/users/plants/:myplant_id/overview", user.Get_myplant_overview)
 	eAuth.POST("/users/plants/:myplant_id/watering", user.Add_watering)
