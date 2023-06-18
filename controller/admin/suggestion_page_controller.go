@@ -1,7 +1,6 @@
 package admin
 
 import (
-	"fmt"
 	"log"
 	"net/http"
 
@@ -50,10 +49,8 @@ func GetAllSuggestions(c echo.Context) error {
 		temp.Picture = user.URL
 		temp.Email = user.Email
 		temp.Message = suggestions[i].Content
-		fmt.Println(temp)
 		responses = append(responses, temp)
 	}
-	fmt.Println(responses)
 
 	return c.JSON(http.StatusOK, map[string]interface{}{
 		"status":  200,
