@@ -1,6 +1,7 @@
 package controller
 
 import (
+	"fmt"
 	"log"
 	"net/http"
 	"strconv"
@@ -40,8 +41,9 @@ func Login(c echo.Context) error {
 	}
 
 	// verify the password
+	fmt.Println(user.Password, loginData.Password)
 	if !utils.ComparePassword(user.Password, loginData.Password) {
-		log.Print(color.RedString("code=401, message=internal server error"))
+		log.Print(color.RedString("code=401, message=unauthorized"))
 		return c.JSON(http.StatusUnauthorized, map[string]interface{}{
 			"status":  401,
 			"message": "unauthorized",
@@ -68,7 +70,7 @@ func Login(c echo.Context) error {
 // MEMBERSHIP - [Endpoint 2 : Register]
 func Register(c echo.Context) error {
 	var user model.User
-	
+
 	// binding struct
 	if err_bind := c.Bind(&user); err_bind != nil {
 		// echo.NewHTTPError(http.StatusBadRequest)
@@ -78,7 +80,7 @@ func Register(c echo.Context) error {
 			"message": "bad request",
 		})
 	}
-	
+
 	// request body validation
 	if user.Password == "" || user.Name == "" {
 		log.Print(color.RedString("request body can't empty"))
@@ -87,7 +89,7 @@ func Register(c echo.Context) error {
 			"message": "bad request",
 		})
 	}
-	
+
 	// email validation
 	if !utils.Is_email_valid(user.Email) {
 		log.Print(color.RedString("email not valid"))
@@ -96,7 +98,7 @@ func Register(c echo.Context) error {
 			"message": "bad request",
 		})
 	}
-	
+
 	// password validation
 	if len(user.Password) > 20 || len(user.Password) < 8 {
 		log.Print(color.RedString("password min 8 and max 20 character"))
@@ -154,15 +156,17 @@ func Check_email_valid(c echo.Context) error {
 
 // MEMBERSHIP - [Endpoint 4 : Reset password]
 func Reset_password(c echo.Context) error {
-	var user model.User
 	id, _ := strconv.Atoi(c.Param("user_id"))
 
+	var user model.User
 	if err_first := config.DB.First(&user, id).Error; err_first != nil {
 		return c.JSON((http.StatusNotFound), map[string]interface{}{
 			"status":  404,
 			"message": "not found",
 		})
 	}
+
+	oldPassword := user.Password
 
 	// binding struct
 	if err_bind := c.Bind(&user); err_bind != nil {
@@ -173,6 +177,24 @@ func Reset_password(c echo.Context) error {
 		})
 	}
 
+	// password validation
+	if len(user.Password) > 20 || len(user.Password) < 8 {
+		log.Print(color.RedString("password min 8 and max 20 character"))
+		return c.JSON(http.StatusBadRequest, map[string]interface{}{
+			"status":  400,
+			"message": "bad request",
+		})
+	}
+
+	// verify the password
+	fmt.Println(user.Password, oldPassword)
+	if utils.ComparePassword(oldPassword, user.Password) {
+		log.Print(color.RedString("new password can't same with old password"))
+		return c.JSON(http.StatusBadRequest, map[string]interface{}{
+			"status":  400,
+			"message": "bad request",
+		})
+	}
 	// hashing password
 	user.BeforeCreateUser(config.DB)
 

@@ -40,11 +40,6 @@ func (u *User) ComparePassword(password string) string {
 	return u.Password
 }
 
-type Coordinate struct {
-	Latitude  string `json:"latitude" form:"latitude"`
-	Longitude string `json:"longitude" form:"longitude"`
-}
-
 // Struct for save weather history for each user
 type InfoWeather struct {
 	gorm.Model
