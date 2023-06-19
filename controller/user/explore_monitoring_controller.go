@@ -733,7 +733,7 @@ func Add_my_plant(c echo.Context) error {
 	myplant.IsStartPlanting = false
 
 	// Set the current time as the start_planting_date
-	myplant.StartPlantingDate = time.Now().UTC()
+	myplant.StartPlantingDate = time.Now().UTC().Truncate(24 * time.Hour).Add(time.Second)
 	fmt.Println(myplant.StartPlantingDate)
 
 	if err_save := config.DB.Save(&myplant).Error; err_save != nil {
@@ -875,12 +875,13 @@ func Start_planting(c echo.Context) error {
 	// Get current timestamp according to longitude and latitude
 	currentTime := get_current_time_from_latlong(myplant_binding.Latitude, myplant_binding.Longitude)
 	fmt.Println(currentTime)
+	fmt.Println(currentTime.Truncate(24 * time.Hour).Add(time.Second))
 
 	// START SET1 - myplant table : longitude(current), latitude(current), is_start_planting(true), is_start_planting(current date)
 	myplant.Longitude = myplant_binding.Longitude
 	myplant.Latitude = myplant_binding.Latitude
 	myplant.IsStartPlanting = true
-	myplant.StartPlantingDate = currentTime
+	myplant.StartPlantingDate = currentTime.Truncate(24 * time.Hour).Add(time.Second)
 	myplant.Status = "planting"
 
 	if err_save1 := config.DB.Save(&myplant).Error; err_save1 != nil {
@@ -940,7 +941,7 @@ func get_current_time_from_latlong(lat, long string) time.Time {
 	return currentTime
 }
 
-// // EXPLORE & MONITORING (Menu Home) - [Endpoint 17 : Get my plant overview]
+// EXPLORE & MONITORING (Menu Home) - [Endpoint 17 : Get my plant overview]
 func Get_myplant_overview(c echo.Context) error {
 	myplant_id, _ := strconv.Atoi(c.Param("myplant_id"))
 	var myplant model.MyPlant

@@ -578,6 +578,10 @@ func DeletePlantDetails(c echo.Context) error {
 	config.DB.Where("plant_id = ?", plantID).Delete(&model.TemperatureInfo{})
 	config.DB.Where("plant_id = ?", plantID).Delete(&model.PlantingInfo{})
 
+	// Delete my_plants that used deleted plant_id
+	var myPlants model.MyPlant
+	config.DB.Where("plant_id=?",plantID).Delete(&myPlants)
+
 	return c.JSON(http.StatusOK, map[string]interface{}{
 		"status":  200,
 		"message": "success to delete plant",

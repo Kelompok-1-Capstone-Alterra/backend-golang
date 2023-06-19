@@ -2,10 +2,8 @@ package controller
 
 import (
 	"log"
-	"math"
 	"net/http"
-	"time"
-
+	"strconv"
 	"strings"
 
 	"github.com/agriplant/config"
@@ -27,19 +25,16 @@ func GetArticlesTrending(c echo.Context) error {
 		})
 	}
 
-	var data []map[string]interface{}
+	data := []map[string]interface{}{}
 	//Populate Pictures field for each article
 	for i := 0; i < len(articles); i++ {
 		config.DB.Model(&articles[i]).Association("Pictures").Find(&articles[i].Pictures)
-		now := time.Now()
 
-		convertTime := now.Sub(articles[i].CreatedAt).Hours() / 24
-		convertTimeInt := int(math.Round(convertTime))
 		result := map[string]interface{}{
-			"article_id": articles[i].ID,
-			"title":      articles[i].Title,
-			"picture":    articles[i].Pictures[0].URL,
-			"hours":      convertTimeInt,
+			"id":      articles[i].ID,
+			"title":   articles[i].Title,
+			"picture": articles[i].Pictures[0].URL,
+			"post_at": articles[i].CreatedAt.UTC(),
 		}
 		data = append(data, result)
 	}
@@ -66,15 +61,12 @@ func GetArticlesLatest(c echo.Context) error {
 	var data []map[string]interface{}
 	for i := 0; i < len(articles); i++ {
 		config.DB.Model(&articles[i]).Association("Pictures").Find(&articles[i].Pictures)
-		now := time.Now()
 
-		convertTime := now.Sub(articles[i].CreatedAt).Minutes()
-		convertTimeInt := int(math.Round(convertTime))
 		result := map[string]interface{}{
-			"article_id": articles[i].ID,
-			"title":      articles[i].Title,
-			"picture":    articles[i].Pictures[0].URL,
-			"minutes":    convertTimeInt,
+			"id":      articles[i].ID,
+			"title":   articles[i].Title,
+			"picture": articles[i].Pictures[0].URL,
+			"post_at": articles[i].CreatedAt.UTC(),
 		}
 		data = append(data, result)
 	}
@@ -84,6 +76,7 @@ func GetArticlesLatest(c echo.Context) error {
 		"data":    data,
 	})
 }
+
 func GetArticlesLiked(c echo.Context) error {
 	var likeds []model.LikedArticles
 	var articles []model.Article
@@ -110,19 +103,18 @@ func GetArticlesLiked(c echo.Context) error {
 			"message": "bad request",
 		})
 	}
-	var data []map[string]interface{}
-	//Populate Pictures field for each article
+
+	data := []map[string]interface{}{}
 	for i := 0; i < len(articles); i++ {
 		config.DB.Model(&articles[i]).Association("Pictures").Find(&articles[i].Pictures)
-		now := time.Now()
-		convertTime := now.Sub(articles[i].CreatedAt).Minutes()
-		convertTimeInt := int(math.Round(convertTime))
+
 		result := map[string]interface{}{
-			"article_id": articles[i].ID,
-			"title":      articles[i].Title,
-			"picture":    articles[i].Pictures[0].URL,
-			"time":       convertTimeInt,
+			"id":      articles[i].ID,
+			"title":   articles[i].Title,
+			"picture": articles[i].Pictures[0].URL,
+			"post_at": articles[i].CreatedAt.UTC(),
 		}
+
 		data = append(data, result)
 	}
 
@@ -131,9 +123,10 @@ func GetArticlesLiked(c echo.Context) error {
 		"data":    data,
 	})
 }
+
 func GetArticlesbyID(c echo.Context) error {
 	articles := model.Article{}
-	id := c.Param("id")
+	id, _ := strconv.Atoi(c.Param("id"))
 
 	// Get product by id
 	// If product not found, return error
@@ -144,15 +137,16 @@ func GetArticlesbyID(c echo.Context) error {
 			"message": "bad request",
 		})
 	}
+
 	var data []map[string]interface{}
 	// Populate Pictures field for each product
 	config.DB.Model(&articles).Association("Pictures").Find(&articles.Pictures)
 	result := map[string]interface{}{
-		"article_id":  articles.ID,
+		"id":          articles.ID,
 		"title":       articles.Title,
 		"picture":     articles.Pictures[0].URL,
 		"description": articles.Description,
-		"isliked":     false,
+		"is_liked":    false,
 	}
 	data = append(data, result)
 	// remove article_id from articles_pictures
@@ -172,6 +166,7 @@ func AddLikes(c echo.Context) error {
 	articles_id, _ := StringToUintPointer(c.Param("article_id"))
 	token := strings.TrimPrefix(c.Request().Header.Get("Authorization"), "Bearer ")
 	user_id, _ := utils.GetUserIDFromToken(token)
+
 	// Get product by id
 	// If product not found, return error
 	like.ArticleID = *articles_id
@@ -184,42 +179,33 @@ func AddLikes(c echo.Context) error {
 		})
 	}
 
-	// // Populate Pictures field for each product
-	// config.DB.Model(&articles).Association("Pictures").Find(&articles.Pictures)
-
-	// // remove article_id from articles_pictures
-	// for i := 0; i < len(articles.Pictures); i++ {
-	// 	articles.Pictures[i].ArticleID = nil
-	// }
-
 	return c.JSON(http.StatusOK, map[string]interface{}{
 		"message": "success to give like",
 	})
 }
 
 func DeleteLikes(c echo.Context) error {
-	like := model.LikedArticles{}
-	articles_id, _ := StringToUintPointer(c.Param("article_id"))
+	article_id, _ := StringToUintPointer(c.Param("article_id"))
+
 	token := strings.TrimPrefix(c.Request().Header.Get("Authorization"), "Bearer ")
 	user_id, _ := utils.GetUserIDFromToken(token)
-	// Get product by id
-	// If product not found, return error
 
-	if err := config.DB.Where("articles_id =?", *articles_id).Where("user_id=?", user_id).Delete(&like).Error; err != nil {
-		log.Print(color.RedString(err.Error()))
-		return c.JSON(http.StatusBadRequest, map[string]interface{}{
-			"status":  400,
-			"message": "bad request",
+	var likedArticle model.LikedArticles
+	if err_first := config.DB.Where("user_id=? AND article_id=?", user_id, article_id).First(&likedArticle).Error; err_first != nil {
+		log.Print(color.RedString(err_first.Error()))
+		return c.JSON(http.StatusNotFound, map[string]interface{}{
+			"status":  404,
+			"message": "not found",
 		})
+	} else {
+		if err := config.DB.Where("user_id=? AND article_id=?", user_id, article_id).Delete(&likedArticle).Error; err != nil {
+			log.Print(color.RedString(err.Error()))
+			return c.JSON(http.StatusInternalServerError, map[string]interface{}{
+				"status":  500,
+				"message": "internal server error",
+			})
+		}
 	}
-
-	// // Populate Pictures field for each product
-	// config.DB.Model(&articles).Association("Pictures").Find(&articles.Pictures)
-
-	// // remove article_id from articles_pictures
-	// for i := 0; i < len(articles.Pictures); i++ {
-	// 	articles.Pictures[i].ArticleID = nil
-	// }
 
 	return c.JSON(http.StatusOK, map[string]interface{}{
 		"message": "success to unlike",
