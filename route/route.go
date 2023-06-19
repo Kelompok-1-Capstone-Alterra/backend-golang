@@ -94,6 +94,7 @@ func New() *echo.Echo {
 	eAuth.GET("/users/products/:category", user.GetProductsByCategory)
 	eAuth.GET("/users/products/:category/search", user.GetProductsByCategoryAndName)
 	eAuth.GET("/users/products/:id/detail", user.GetProductByID)
+	eAuth.GET("/users/products/:id/contact", user.GetProductContactByID)
 
 	// Explore & Monitoring
 	eAuth.GET("/users/weather/:latitude/:longitude", user.Get_weather)

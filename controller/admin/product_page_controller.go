@@ -96,6 +96,15 @@ func CreateProduct(c echo.Context) error {
 		})
 	}
 
+	// validation for product seller phone
+	// Check if the seller phone is valid, include country code
+	if !utils.IsValidPhone(product.SellerPhone) {
+		return c.JSON(http.StatusBadRequest, map[string]interface{}{
+			"status":  400,
+			"message": "bad request, invalid seller phone",
+		})
+	}
+
 	// Get admin id from JWT token
 	token := strings.TrimPrefix(c.Request().Header.Get("Authorization"), "Bearer ")
 	adminId, _ := utils.GetAdminIDFromToken(token)
