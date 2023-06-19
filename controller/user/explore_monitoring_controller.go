@@ -24,7 +24,6 @@ import (
 func Get_weather(c echo.Context) error {
 	latitude := c.Param("latitude")
 	longitude := c.Param("longitude")
-	fmt.Println(latitude, longitude)
 	apikey := "869a5f0aa562d21ec64ff37c7c6c157f"
 	baseURL := "https://api.openweathermap.org/data/2.5/weather"
 
@@ -733,9 +732,7 @@ func Add_my_plant(c echo.Context) error {
 	myplant.IsStartPlanting = false
 
 	// Set the current time as the start_planting_date
-	fmt.Println("addMyPlant_beforeTruncate", myplant.StartPlantingDate)
-	myplant.StartPlantingDate = time.Now().Truncate(24 * time.Hour).Add(time.Second).UTC()
-	fmt.Println("addMyPlant_afterTruncate", myplant.StartPlantingDate)
+	myplant.StartPlantingDate = time.Now().UTC()
 
 	if err_save := config.DB.Save(&myplant).Error; err_save != nil {
 		return c.JSON(http.StatusInternalServerError, map[string]interface{}{
@@ -875,15 +872,13 @@ func Start_planting(c echo.Context) error {
 
 	// Get current timestamp according to longitude and latitude
 	currentTime := get_current_time_from_latlong(myplant_binding.Latitude, myplant_binding.Longitude)
+	newCurrentTime := time.Date(currentTime.Year(), currentTime.Month(), currentTime.Day(), 0, 0, 1, 0, currentTime.Location())
 
 	// START SET1 - myplant table : longitude(current), latitude(current), is_start_planting(true), is_start_planting(current date)
 	myplant.Longitude = myplant_binding.Longitude
 	myplant.Latitude = myplant_binding.Latitude
 	myplant.IsStartPlanting = true
-	fmt.Println("currentTime_beforeTruncate", currentTime)
-	myplant.StartPlantingDate = currentTime.Truncate(24 * time.Hour).Add(time.Second)
-	fmt.Println("startPlantingDate_afterTruncate", myplant.StartPlantingDate)
-	fmt.Println("startPlantingDate_afterTruncate_UTC", myplant.StartPlantingDate.UTC())
+	myplant.StartPlantingDate = newCurrentTime
 	myplant.Status = "planting"
 
 	if err_save1 := config.DB.Save(&myplant).Error; err_save1 != nil {
