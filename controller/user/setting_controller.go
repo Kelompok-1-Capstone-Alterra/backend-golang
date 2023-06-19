@@ -189,11 +189,11 @@ func UpdateUserPassword(c echo.Context) error {
 // SETTING - [Endpoint 5 : Get my plants stats]
 func GetMyPlantsStats(c echo.Context) error {
 	type Response struct {
-		myplant_id uint
-		pictures   []model.Picture
-		name       string
-		latin      string
-		status     string
+		MyPlantID uint            `json:"myplant_id"`
+		Pictures  []model.Picture `json:"pictures"`
+		Name      string          `json:"name"`
+		Latin     string          `json:"latin"`
+		Status    string          `json:"status"`
 	}
 
 	status := c.QueryParam("status")
@@ -223,7 +223,7 @@ func GetMyPlantsStats(c echo.Context) error {
 				"message": "bad request",
 			})
 		}
-		temp.myplant_id = MyPlants[i].ID
+		temp.MyPlantID = MyPlants[i].ID
 
 		picture := []model.Picture{}
 		if err := config.DB.Where("plant_id = ?", MyPlants[i].PlantID).Find(&picture).Error; err != nil {
@@ -233,11 +233,11 @@ func GetMyPlantsStats(c echo.Context) error {
 				"message": "bad request",
 			})
 		}
-		temp.pictures = picture
+		temp.Pictures = picture
 
-		temp.name = MyPlants[i].Name
-		temp.latin = plant.Latin
-		temp.status = MyPlants[i].Status
+		temp.Name = MyPlants[i].Name
+		temp.Latin = plant.Latin
+		temp.Status = MyPlants[i].Status
 		Responses = append(Responses, temp)
 	}
 
