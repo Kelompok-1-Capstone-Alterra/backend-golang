@@ -363,9 +363,9 @@ func GetProductContactByID(c echo.Context) error {
 
 	if err := config.DB.Where("id = ?", id).Find(&product).Error; err != nil {
 		log.Print(color.RedString(err.Error()))
-		return c.JSON(http.StatusNotFound, map[string]interface{}{
-			"status":  404,
-			"message": "product not found",
+		return c.JSON(http.StatusBadRequest, map[string]interface{}{
+			"status":  400,
+			"message": "bad request",
 		})
 	}
 
