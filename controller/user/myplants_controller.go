@@ -3,18 +3,22 @@ package controller
 import (
 	"log"
 	"net/http"
+	"strings"
 
 	"github.com/agriplant/config"
 	"github.com/agriplant/model"
+	"github.com/agriplant/utils"
 	"github.com/fatih/color"
 	"github.com/labstack/echo/v4"
 )
 
 func GetMyPlantList(c echo.Context) error {
 	var myPlants []model.MyPlant
+	token := strings.TrimPrefix(c.Request().Header.Get("Authorization"), "Bearer ")
+	user_id, _ := utils.GetUserIDFromToken(token)
 
 	//get data by trending
-	if err := config.DB.Find(&myPlants).Error; err != nil {
+	if err := config.DB.Where("user_id=?", user_id).Find(&myPlants).Error; err != nil {
 		log.Print(color.RedString(err.Error()))
 		return c.JSON(http.StatusBadRequest, map[string]interface{}{
 			"status":  400,
@@ -33,9 +37,11 @@ func GetMyPlantList(c echo.Context) error {
 				"message": "bad request",
 			})
 		}
+
 		plants = append(plants, plant)
 	}
-	var data []map[string]interface{}
+
+	data := []map[string]interface{}{}
 	//Populate Pictures field for each article
 	for i := 0; i < len(plants); i++ {
 		config.DB.Model(&plants[i]).Association("Pictures").Find(&plants[i].Pictures)
@@ -104,8 +110,9 @@ func DeleteMyPlants(c echo.Context) error {
 	type DeleteID struct {
 		MyPlants_ID []int `json:"myplants_id"`
 	}
+
 	var deleteID DeleteID
-	plants := model.MyPlant{}
+	var myPlants model.MyPlant
 
 	if err := c.Bind(&deleteID); err != nil {
 		log.Print(color.RedString(err.Error()))
@@ -114,11 +121,12 @@ func DeleteMyPlants(c echo.Context) error {
 			"message": "bad request",
 		})
 	}
-	if err := config.DB.Where("id IN ?", deleteID.MyPlants_ID).Delete(&plants).Error; err != nil {
+
+	if err := config.DB.Where("id IN ?", deleteID.MyPlants_ID).Delete(&myPlants).Error; err != nil {
 		log.Print(color.RedString(err.Error()))
-		return c.JSON(http.StatusBadRequest, map[string]interface{}{
-			"status":  400,
-			"message": "bad request",
+		return c.JSON(http.StatusNotFound, map[string]interface{}{
+			"status":  404,
+			"message": "not found",
 		})
 	}
 
