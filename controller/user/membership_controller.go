@@ -187,7 +187,6 @@ func Reset_password(c echo.Context) error {
 	}
 
 	// verify the password
-	fmt.Println(user.Password, oldPassword)
 	if utils.ComparePassword(oldPassword, user.Password) {
 		log.Print(color.RedString("new password can't same with old password"))
 		return c.JSON(http.StatusBadRequest, map[string]interface{}{
