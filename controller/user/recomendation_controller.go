@@ -356,6 +356,31 @@ func GetProductByID(c echo.Context) error {
 	})
 }
 
+func GetProductContactByID(c echo.Context) error {
+	id := c.Param("id")
+
+	product := model.Product{}
+
+	if err := config.DB.Where("id = ?", id).Find(&product).Error; err != nil {
+		log.Print(color.RedString(err.Error()))
+		return c.JSON(http.StatusBadRequest, map[string]interface{}{
+			"status":  400,
+			"message": "bad request",
+		})
+	}
+
+	// retrieve the seller's phone number
+	sellerContact := product.SellerPhone
+
+	// return the seller's phone number with API wa.me
+	return c.JSON(http.StatusOK, map[string]interface{}{
+		"message": "success get product contact by id",
+		"data": map[string]interface{}{
+			"seller_contact": "https://wa.me/" + sellerContact,
+		},
+	})
+}
+
 // GetRelatedProducts is a function to get related products by category
 // used to get related products in GetProductByID function
 func GetRelatedProducts(category string) []model.ProductResponse {
