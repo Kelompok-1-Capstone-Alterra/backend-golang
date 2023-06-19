@@ -1,7 +1,6 @@
 package controller
 
 import (
-	"fmt"
 	"log"
 	"net/http"
 	"strconv"
@@ -41,7 +40,6 @@ func Login(c echo.Context) error {
 	}
 
 	// verify the password
-	fmt.Println(user.Password, loginData.Password)
 	if !utils.ComparePassword(user.Password, loginData.Password) {
 		log.Print(color.RedString("code=401, message=unauthorized"))
 		return c.JSON(http.StatusUnauthorized, map[string]interface{}{
