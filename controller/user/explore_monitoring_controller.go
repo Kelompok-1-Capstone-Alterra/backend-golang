@@ -400,7 +400,7 @@ func Get_plant_location(c echo.Context) error {
 
 	if planting_info.Container {
 		var container_info model.ContainerInfo
-		
+
 		if err_container := config.DB.Where("planting_info_id=?", planting_info.ID).First(&container_info).Error; err_container != nil {
 			log.Print(color.RedString(err_container.Error()))
 			return c.JSON(http.StatusNotFound, map[string]interface{}{
@@ -425,7 +425,7 @@ func Get_plant_location(c echo.Context) error {
 
 	if planting_info.Ground {
 		var ground_info model.GroundInfo
-		
+
 		if err_ground := config.DB.Where("planting_info_id=?", planting_info.ID).First(&ground_info).Error; err_ground != nil {
 			log.Print(color.RedString(err_ground.Error()))
 			return c.JSON(http.StatusNotFound, map[string]interface{}{
@@ -433,7 +433,7 @@ func Get_plant_location(c echo.Context) error {
 				"message": "not found",
 			})
 		}
-		
+
 		config.DB.Model(&ground_info).Association("Pictures").Find(&ground_info.Pictures)
 
 		var url_ground string
@@ -733,8 +733,9 @@ func Add_my_plant(c echo.Context) error {
 	myplant.IsStartPlanting = false
 
 	// Set the current time as the start_planting_date
-	myplant.StartPlantingDate = time.Now().UTC().Truncate(24 * time.Hour).Add(time.Second)
-	fmt.Println(myplant.StartPlantingDate)
+	fmt.Println("addMyPlant_beforeTruncate", myplant.StartPlantingDate)
+	myplant.StartPlantingDate = time.Now().Truncate(24 * time.Hour).Add(time.Second).UTC()
+	fmt.Println("addMyPlant_afterTruncate", myplant.StartPlantingDate)
 
 	if err_save := config.DB.Save(&myplant).Error; err_save != nil {
 		return c.JSON(http.StatusInternalServerError, map[string]interface{}{
@@ -874,14 +875,15 @@ func Start_planting(c echo.Context) error {
 
 	// Get current timestamp according to longitude and latitude
 	currentTime := get_current_time_from_latlong(myplant_binding.Latitude, myplant_binding.Longitude)
-	fmt.Println(currentTime)
-	fmt.Println(currentTime.Truncate(24 * time.Hour).Add(time.Second))
 
 	// START SET1 - myplant table : longitude(current), latitude(current), is_start_planting(true), is_start_planting(current date)
 	myplant.Longitude = myplant_binding.Longitude
 	myplant.Latitude = myplant_binding.Latitude
 	myplant.IsStartPlanting = true
+	fmt.Println("currentTime_beforeTruncate", currentTime)
 	myplant.StartPlantingDate = currentTime.Truncate(24 * time.Hour).Add(time.Second)
+	fmt.Println("startPlantingDate_afterTruncate", myplant.StartPlantingDate)
+	fmt.Println("startPlantingDate_afterTruncate_UTC", myplant.StartPlantingDate.UTC())
 	myplant.Status = "planting"
 
 	if err_save1 := config.DB.Save(&myplant).Error; err_save1 != nil {
