@@ -61,7 +61,7 @@ func GetPlants(c echo.Context) error {
 	responses := []Response{}
 
 	// Get all plants
-	if err := config.DB.Find(&plants).Error; err != nil {
+	if err := config.DB.Order("created_at DESC").Find(&plants).Error; err != nil {
 		log.Print(color.RedString(err.Error()))
 		return c.JSON(http.StatusBadRequest, map[string]interface{}{
 			"status":  400,
@@ -116,7 +116,7 @@ func GetPlantsByKeyword(c echo.Context) error {
 	responses := []Response{}
 
 	// Get all plants
-	if err := config.DB.Where("`name` LIKE ?", "%"+keyword+"%").Find(&plants).Error; err != nil {
+	if err := config.DB.Order("created_at DESC").Where("`name` LIKE ?", "%"+keyword+"%").Find(&plants).Error; err != nil {
 		log.Print(color.RedString(err.Error()))
 		return c.JSON(http.StatusBadRequest, map[string]interface{}{
 			"status":  400,

@@ -18,7 +18,7 @@ func GetMyPlantList(c echo.Context) error {
 	user_id, _ := utils.GetUserIDFromToken(token)
 
 	//get data by trending
-	if err := config.DB.Where("user_id=?", user_id).Find(&myPlants).Error; err != nil {
+	if err := config.DB.Order("created_at DESC").Where("user_id=?", user_id).Find(&myPlants).Error; err != nil {
 		log.Print(color.RedString(err.Error()))
 		return c.JSON(http.StatusBadRequest, map[string]interface{}{
 			"status":  400,
@@ -65,7 +65,7 @@ func GetMyPlantListBYKeyword(c echo.Context) error {
 	name := c.QueryParam("name")
 
 	//get data by trending
-	if err := config.DB.Where("name LIKE ?", "%"+name+"%").Find(&myPlants).Error; err != nil {
+	if err := config.DB.Order("created_at DESC").Where("name LIKE ?", "%"+name+"%").Find(&myPlants).Error; err != nil {
 		log.Print(color.RedString(err.Error()))
 		return c.JSON(http.StatusBadRequest, map[string]interface{}{
 			"status":  400,
