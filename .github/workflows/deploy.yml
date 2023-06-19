@@ -44,21 +44,3 @@ jobs:
             sudo docker rm -v container_backend_golang
             sudo docker run -d --name container_mysql -p 3306:3306 -e MYSQL_ROOT_PASSWORD=123456 -e MYSQL_DATABASE=agriplant_db -e MYSQL_USER=developergolang -e MYSQL_PASSWORD=plantagridb123 mysql:latest
             sudo docker run -d -p 8080:8080 --name container_backend_golang --link container_mysql:mysql -e DB_HOST=mysql -e DB_PORT=3306 -e DB_USER=developergolang -e DB_PASSWORD=plantagridb123 -e DB_NAME=agriplant_db widhofaisal/backend-golang:latest
-
-      # - id: 'auth'
-      #   uses: 'google-github-actions/setup-gcloud@v0.3.0'
-      #   with:
-      #     project_id: 'capstonealterra'
-      #     service_account_key: '${{ secrets.GCE_SA_KEY }}'
-
-      # - name: SSH into Compute Engine instance and deploy
-      #   uses: google-github-actions/ssh-compute@v0
-      #   with:
-      #     instance_name: 'agriplant'
-      #     zone: 'asia-southeast2-a'
-      #     ssh_private_key: '${{ secrets.GCP_SSH_PRIVATE_KEY }}'
-      #     command: |
-      #       sudo docker stop container_backend_golang
-      #       sudo docker rm -v container_backend_golang
-      #       sudo docker run -d --name container_mysql -p 3306:3306 -e MYSQL_ROOT_PASSWORD=123456 -e MYSQL_DATABASE=agriplant_db -e MYSQL_USER=developergolang -e MYSQL_PASSWORD=plantagridb123 mysql:latest
-      #       sudo docker run -d -p 8080:8080 --name container_backend_golang --link container_mysql:mysql -e DB_HOST=mysql -e DB_PORT=3306 -e DB_USER=developergolang -e DB_PASSWORD=plantagridb123 -e DB_NAME=agriplant_db widhofaisal/backend-golang:latest
