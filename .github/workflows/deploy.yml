@@ -40,6 +40,7 @@ jobs:
           user: 'widhofaisal26'
           ssh_private_key: '${{ secrets.GCP_SSH_PRIVATE_KEY }}'
           command:  |
+            sudo docker pull widhofaisal/backend-golang:latest
             sudo docker stop container_backend_golang
             sudo docker rm -v container_backend_golang
             sudo docker run -d -p 8080:8080 --name container_backend_golang --link container_mysql:mysql -e DB_HOST=mysql -e DB_PORT=3306 -e DB_USER=developergolang -e DB_PASSWORD=plantagridb123 -e DB_NAME=agriplant_db widhofaisal/backend-golang:latest
