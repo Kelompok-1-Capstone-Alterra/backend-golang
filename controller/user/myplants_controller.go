@@ -46,6 +46,7 @@ func GetMyPlantList(c echo.Context) error {
 	for i := 0; i < len(plants); i++ {
 		config.DB.Model(&plants[i]).Association("Pictures").Find(&plants[i].Pictures)
 		result := map[string]interface{}{
+			"plant_id":   myPlants[i].PlantID,
 			"myplant_id": myPlants[i].ID,
 			"name":       myPlants[i].Name,
 			"picture":    plants[i].Pictures[0].URL,
@@ -86,7 +87,7 @@ func GetMyPlantListBYKeyword(c echo.Context) error {
 		}
 		plants = append(plants, plant)
 	}
-	
+
 	data := []map[string]interface{}{}
 	for i := 0; i < len(plants); i++ {
 		config.DB.Model(&plants[i]).Association("Pictures").Find(&plants[i].Pictures)
