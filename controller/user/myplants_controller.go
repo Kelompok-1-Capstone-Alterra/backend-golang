@@ -86,9 +86,8 @@ func GetMyPlantListBYKeyword(c echo.Context) error {
 		}
 		plants = append(plants, plant)
 	}
-	var data []map[string]interface{}
-	//var expic []
-	//Populate Pictures field for each article
+	
+	data := []map[string]interface{}{}
 	for i := 0; i < len(plants); i++ {
 		config.DB.Model(&plants[i]).Association("Pictures").Find(&plants[i].Pictures)
 		result := map[string]interface{}{
