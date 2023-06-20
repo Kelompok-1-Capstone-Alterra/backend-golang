@@ -1783,6 +1783,15 @@ func Add_harvest_plant_progress(c echo.Context) error {
 		})
 	}
 
+	myplant.Status = "harvest"
+	if err_update := config.DB.Save(&myplant).Error; err_update != nil {
+		log.Print(color.RedString(err_update.Error()))
+		return c.JSON(http.StatusInternalServerError, map[string]interface{}{
+			"status":  500,
+			"message": "internal server error",
+		})
+	}
+
 	return c.JSON(http.StatusOK, map[string]interface{}{
 		"status":  200,
 		"message": "success to add harvest plant progress",
