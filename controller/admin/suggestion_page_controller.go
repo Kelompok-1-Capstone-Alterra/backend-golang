@@ -49,7 +49,7 @@ func GetAllSuggestions(c echo.Context) error {
 		temp.Name = user.Name
 		temp.Picture = user.URL
 		temp.Email = user.Email
-		temp.Message = suggestions[i].Content
+		temp.Message = suggestions[i].Message
 		temp.CreatedAt = suggestions[i].CreatedAt.String()
 		responses = append(responses, temp)
 	}
@@ -92,7 +92,7 @@ func GetSuggestionByID(c echo.Context) error {
 			"name":          user.Name,
 			"picture":       user.URL,
 			"email":         user.Email,
-			"message":       suggestion.Content,
+			"message":       suggestion.Message,
 			"post_at":       suggestion.CreatedAt.String(),
 		},
 	})

@@ -204,12 +204,22 @@ func GetMyPlantsStats(c echo.Context) error {
 	user_id, _ := utils.GetUserIDFromToken(token)
 
 	// Get all my plants
-	if err := config.DB.Where("status = ? AND user_id = ?", status, user_id).Find(&MyPlants).Error; err != nil {
-		log.Print(color.RedString(err.Error()))
-		return c.JSON(http.StatusBadRequest, map[string]interface{}{
-			"status":  400,
-			"message": "bad request",
-		})
+	if status == "all" {
+		if err := config.DB.Where("status = ? AND user_id = ?", "harvest", user_id).Or("status = ? AND user_id = ?", "dead", user_id).Find(&MyPlants).Error; err != nil {
+			log.Print(color.RedString(err.Error()))
+			return c.JSON(http.StatusBadRequest, map[string]interface{}{
+				"status":  400,
+				"message": "bad request",
+			})
+		}
+	}else{
+		if err := config.DB.Where("status = ? AND user_id = ?", status, user_id).Find(&MyPlants).Error; err != nil {
+			log.Print(color.RedString(err.Error()))
+			return c.JSON(http.StatusBadRequest, map[string]interface{}{
+				"status":  400,
+				"message": "bad request",
+			})
+		}
 	}
 
 	for i := 0; i < len(MyPlants); i++ {
