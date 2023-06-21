@@ -1088,9 +1088,13 @@ func Get_myplant_overview(c echo.Context) error {
 	isActiveButtonHarvest := false
 	isActiveButtonDead := false
 	day_button := int(diff.Hours()/24) + 1
-	if day_button > 6 && isEnabledWeeklyProgress {
+	if day_button > 6 {
 		isActiveButtonHarvest = true
 		isActiveButtonDead = true
+		if isActiveWeeklyProgress && !isEnabledWeeklyProgress {
+			isActiveButtonHarvest = false
+			isActiveButtonDead = false
+		}
 	}
 	// END GET BUTTON HARVEST & DEAD ---------------------------------------------------------------------------------
 
