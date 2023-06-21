@@ -3,19 +3,35 @@ package controller
 import (
 	"context"
 	"encoding/base64"
-	"fmt"
 	"io"
+	"io/ioutil"
 	"log"
 	"mime/multipart"
 	"net/http"
-	"path/filepath"
+	"os"
 	"strings"
 
-	"github.com/labstack/echo/v4"
 	"google.golang.org/api/option"
 
 	"cloud.google.com/go/storage"
+	"github.com/google/uuid"
+	"github.com/labstack/echo/v4"
 )
+
+// Create a global variable to hold the Google Cloud Storage client.
+var client *storage.Client
+
+func init() {
+	// Initialize the Google Cloud Storage client.
+	ctx := context.Background()
+	// Replace "path/to/service-account-key.json" with the path to your service account key JSON file.
+	// You can download the key file from the Google Cloud Console.
+	var err error
+	client, err = storage.NewClient(ctx, option.WithCredentialsFile("capstonealterra-0457bfb5b315.json"))
+	if err != nil {
+		log.Fatalf("Failed to create Google Cloud Storage client: %v", err)
+	}
+}
 
 func Hello_World(c echo.Context) error {
 	return c.JSON(http.StatusOK, map[string]interface{}{
@@ -30,10 +46,10 @@ func Upload_pictures(c echo.Context) error {
 	form, err := c.MultipartForm()
 	if err != nil {
 		log.Println(err)
-		return c.JSON(http.StatusBadRequest, "Failed to read picture files")
+		return c.JSON(http.StatusBadRequest, "Failed to read pictures files")
 	}
 
-	pictures := form.File["pictures"]
+	pictures := form.File["pictures"] // pictures adalah nama field untuk file-file gambar
 
 	var urls []string
 	for _, pictureFile := range pictures {
@@ -51,45 +67,79 @@ func Upload_pictures(c echo.Context) error {
 }
 
 func Save_picture(pictureFile *multipart.FileHeader) (string, error) {
-	ctx := context.Background()
-
-	// Create a GCS client
-	client, err := storage.NewClient(ctx, option.WithoutAuthentication())
+	encodedImage := Encode_base64(pictureFile)
+	url, err := UploadToCloudStorage(encodedImage)
 	if err != nil {
 		return "", err
 	}
-	defer client.Close()
-
-	bucketName := "agriplant-image-bucket"
-	objectName := generateBase64FileName(pictureFile.Filename)
-
-	bucket := client.Bucket(bucketName)
-	obj := bucket.Object(objectName)
-
-	file, err := pictureFile.Open()
-	if err != nil {
-		return "", err
-	}
-	defer file.Close()
-
-	wc := obj.NewWriter(ctx)
-	if _, err := io.Copy(wc, file); err != nil {
-		return "", err
-	}
-	if err := wc.Close(); err != nil {
-		return "", err
-	}
-
-	url := fmt.Sprintf("https://storage.googleapis.com/%s/%s", bucketName, objectName)
 	return url, nil
 }
 
-func generateBase64FileName(filename string) string {
-	ext := filepath.Ext(filename)
-	baseName := strings.TrimSuffix(filename, ext)
-	base64Name := base64.RawURLEncoding.EncodeToString([]byte(baseName))
+func Encode_base64(pictureFile *multipart.FileHeader) string {
+	// Buka file gambar
+	src, err_open := pictureFile.Open()
+	if err_open != nil {
+		log.Println(err_open)
+		return "Failed to open image file"
+	}
+	defer src.Close()
 
-	return "images/" + base64Name + ext
+	// Baca isi file gambar
+	imageData, err_read := ioutil.ReadAll(src)
+	if err_read != nil {
+		log.Println(err_read)
+		return "Failed to read image file"
+	}
+
+	encodedImage := base64.StdEncoding.EncodeToString(imageData)
+
+	return encodedImage
+}
+
+func UploadToCloudStorage(encodedImage string) (string, error) {
+	ctx := context.Background()
+	bucketName := "agriplant-image-bucket" // Replace with your actual bucket name.
+	dummyURL := "dummy.png"
+	encodedImage = strings.TrimPrefix(encodedImage, "data:image/png;base64,")
+
+	decodedData, errDecode := base64.StdEncoding.DecodeString(encodedImage)
+	if errDecode != nil {
+		return dummyURL, errDecode
+	}
+
+	imageURL := uuid.New().String() + ".png"
+	file, errCreate := os.Create(imageURL)
+	if errCreate != nil {
+		return dummyURL, errCreate
+	}
+	defer file.Close()
+
+	_, errWrite := file.Write(decodedData)
+	if errWrite != nil {
+		return dummyURL, errWrite
+	}
+
+	// Open the bucket.
+	bucket := client.Bucket(bucketName)
+
+	// Open the file.
+	obj := bucket.Object(imageURL)
+	wc := obj.NewWriter(ctx)
+
+	// Set the content type.
+	wc.ContentType = "image/png"
+
+	// Write the file to Cloud Storage.
+	if _, err := wc.Write(decodedData); err != nil {
+		return dummyURL, err
+	}
+
+	// Close the writer.
+	if err := wc.Close(); err != nil {
+		return dummyURL, err
+	}
+
+	return imageURL, nil
 }
 
 // GLOBAL - [Endpoint 3 : Get picture]
