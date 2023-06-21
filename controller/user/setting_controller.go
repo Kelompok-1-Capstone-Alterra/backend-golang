@@ -9,7 +9,6 @@ import (
 	"github.com/agriplant/model"
 	"github.com/agriplant/utils"
 	"github.com/fatih/color"
-	"github.com/go-playground/validator/v10"
 	"github.com/labstack/echo/v4"
 )
 
@@ -213,7 +212,7 @@ func GetMyPlantsStats(c echo.Context) error {
 				"message": "bad request",
 			})
 		}
-	} else {
+	}else{
 		if err := config.DB.Where("status = ? AND user_id = ?", status, user_id).Find(&MyPlants).Error; err != nil {
 			log.Print(color.RedString(err.Error()))
 			return c.JSON(http.StatusBadRequest, map[string]interface{}{
@@ -261,19 +260,9 @@ func GetMyPlantsStats(c echo.Context) error {
 
 // SETTING - [Endpoint 6 : Send complaint email]
 func SendComplaintEmail(c echo.Context) error {
-	validate := validator.New()
 	complaint := model.Complaints{}
 
 	if err := c.Bind(&complaint); err != nil {
-		log.Print(color.RedString(err.Error()))
-		return c.JSON((http.StatusBadRequest), map[string]interface{}{
-			"status":  400,
-			"message": "bad request",
-		})
-	}
-
-	err := validate.Struct(complaint)
-	if err != nil {
 		log.Print(color.RedString(err.Error()))
 		return c.JSON((http.StatusBadRequest), map[string]interface{}{
 			"status":  400,
@@ -302,19 +291,9 @@ func SendComplaintEmail(c echo.Context) error {
 
 // SETTING - [Endpoint 7 : Send suggestion]
 func SendSuggestion(c echo.Context) error {
-	validate := validator.New()
 	suggestion := model.Suggestions{}
 
 	if err := c.Bind(&suggestion); err != nil {
-		log.Print(color.RedString(err.Error()))
-		return c.JSON((http.StatusBadRequest), map[string]interface{}{
-			"status":  400,
-			"message": "bad request",
-		})
-	}
-
-	err := validate.Struct(suggestion)
-	if err != nil {
 		log.Print(color.RedString(err.Error()))
 		return c.JSON((http.StatusBadRequest), map[string]interface{}{
 			"status":  400,
