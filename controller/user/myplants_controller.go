@@ -49,6 +49,7 @@ func GetMyPlantList(c echo.Context) error {
 			"plant_id":   myPlants[i].PlantID,
 			"myplant_id": myPlants[i].ID,
 			"name":       myPlants[i].Name,
+			"location":   myPlants[i].Location,
 			"picture":    plants[i].Pictures[0].URL,
 			"latin":      plants[i].Latin,
 		}
