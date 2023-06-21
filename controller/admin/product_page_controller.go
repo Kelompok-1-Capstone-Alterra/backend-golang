@@ -15,7 +15,7 @@ import (
 func GetProducts(c echo.Context) error {
 	products := []model.Product{}
 
-	if err := config.DB.Order("created_at DESC").Find(&products).Error; err != nil {
+	if err := config.DB.Order("updated_at DESC").Find(&products).Error; err != nil {
 		log.Print(color.RedString(err.Error()))
 		return c.JSON(http.StatusInternalServerError, map[string]interface{}{
 			"status":  500,
@@ -24,7 +24,7 @@ func GetProducts(c echo.Context) error {
 	}
 
 	// Iterate over each product record and generate custom response
-	var responses []interface{}
+	responses := []interface{}{}
 	for _, product := range products {
 		// Populate Pictures field for each product
 		config.DB.Model(&product).Association("Pictures").Find(&product.Pictures)
@@ -381,7 +381,7 @@ func GetProductsByName(c echo.Context) error {
 
 	// Get product by keyword
 	// If product not found, return error
-	if err := config.DB.Order("created_at DESC").Where("name LIKE ?", "%"+name+"%").Find(&products).Error; err != nil {
+	if err := config.DB.Order("updated_at DESC").Where("name LIKE ?", "%"+name+"%").Find(&products).Error; err != nil {
 		log.Print(color.RedString(err.Error()))
 		return c.JSON(http.StatusInternalServerError, map[string]interface{}{
 			"status":  500,
@@ -438,7 +438,7 @@ func GetProductsDisplay(c echo.Context) error {
 
 	// Get product by keyword
 	// If product not found, return error
-	if err := config.DB.Order("created_at DESC").Where("status = ?", true).Find(&products).Error; err != nil {
+	if err := config.DB.Order("updated_at DESC").Where("status = ?", true).Find(&products).Error; err != nil {
 		log.Print(color.RedString(err.Error()))
 		return c.JSON(http.StatusInternalServerError, map[string]interface{}{
 			"status":  500,
