@@ -223,7 +223,7 @@ func get_label_by_id(id int) string {
 	case 4:
 		return "Berawan"
 	default:
-		return "Berawan"
+		return "NoWeather"
 	}
 }
 
@@ -1088,9 +1088,13 @@ func Get_myplant_overview(c echo.Context) error {
 	isActiveButtonHarvest := false
 	isActiveButtonDead := false
 	day_button := int(diff.Hours()/24) + 1
-	if day_button > 6 && isEnabledWeeklyProgress {
+	if day_button > 6 {
 		isActiveButtonHarvest = true
 		isActiveButtonDead = true
+		if isActiveWeeklyProgress && !isEnabledWeeklyProgress {
+			isActiveButtonHarvest = false
+			isActiveButtonDead = false
+		}
 	}
 	// END GET BUTTON HARVEST & DEAD ---------------------------------------------------------------------------------
 
