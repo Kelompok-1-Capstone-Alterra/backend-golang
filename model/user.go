@@ -89,13 +89,13 @@ type Fertilizing struct {
 type Complaints struct {
 	gorm.Model
 	UserID     uint   `json:"-"`
-	PhoneNumber string `json:"phone_number"`
+	Phone string `json:"phone"`
 	Email       string `json:"email"`
-	Notes       string `json:"notes"`
+	Message       string `json:"message"`
 }
 
 type Suggestions struct {
 	gorm.Model
 	UserID uint   `json:"-"`
-	Content string `json:"content"`
+	Message string `json:"message"`
 }
