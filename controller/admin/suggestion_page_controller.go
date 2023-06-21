@@ -24,7 +24,7 @@ func GetAllSuggestions(c echo.Context) error {
 	suggestions := []model.Suggestions{}
 	responses := []Response{}
 
-	if err := config.DB.Order("created_at DESC").Find(&suggestions).Error; err != nil {
+	if err := config.DB.Order("updated_at DESC").Find(&suggestions).Error; err != nil {
 		log.Print(color.RedString(err.Error()))
 		return c.JSON(http.StatusBadRequest, map[string]interface{}{
 			"status":  400,
