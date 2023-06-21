@@ -50,13 +50,13 @@
       <tr>
         <th>ID</th>
         <th>UserID</th>
-        <th>Content</th>
+        <th>Message</th>
       </tr>
       {{range .Suggestions}}
       <tr>
         <td>{{.ID}}</td>
         <td>{{.UserID}}</td>
-        <td>{{.Content}}</td>
+        <td>{{.Message}}</td>
       </tr>
       {{end}}
     </table>
@@ -68,17 +68,17 @@
       <tr>
         <th>ID</th>
         <th>UserID</th>
-        <th>PhoneNumber</th>
+        <th>Phone</th>
         <th>Email</th>
-        <th>Notes</th>
+        <th>Message</th>
       </tr>
       {{range .Complaints}}
       <tr>
         <td>{{.ID}}</td>
         <td>{{.UserID}}</td>
-        <td>{{.PhoneNumber}}</td>
+        <td>{{.Phone}}</td>
         <td>{{.Email}}</td>
-        <td>{{.Notes}}</td>
+        <td>{{.Message}}</td>
       </tr>
       {{end}}
     </table>
