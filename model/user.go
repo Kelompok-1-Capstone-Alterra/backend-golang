@@ -43,14 +43,14 @@ func (u *User) ComparePassword(password string) string {
 // Struct for save weather history for each user
 type InfoWeather struct {
 	gorm.Model
-	UserID     uint   `json:"user_id" form:"user_id" gorm:"unique"`
+	UserID      uint   `json:"user_id" form:"user_id" gorm:"unique"`
 	Location    string `json:"location" form:"location"`
 	Temperature string `json:"temperature" form:"temperature"`
 	Label       string `json:"label" form:"label"`
 }
 type LikedArticles struct {
 	gorm.Model
-	UserID     uint `json:"user_id" form:"user_id"`
+	UserID    uint `json:"user_id" form:"user_id"`
 	ArticleID uint `json:"articles_id" form:"articles_id" `
 }
 type MyPlant struct {
@@ -88,14 +88,14 @@ type Fertilizing struct {
 
 type Complaints struct {
 	gorm.Model
-	UserID     uint   `json:"-"`
-	Phone string `json:"phone"`
-	Email       string `json:"email"`
-	Message       string `json:"message"`
+	UserID  uint   `json:"-"`
+	Phone   string `json:"phone"`
+	Email   string `json:"email"`
+	Message string `json:"message"`
 }
 
 type Suggestions struct {
 	gorm.Model
-	UserID uint   `json:"-"`
+	UserID  uint   `json:"-"`
 	Message string `json:"message"`
 }
