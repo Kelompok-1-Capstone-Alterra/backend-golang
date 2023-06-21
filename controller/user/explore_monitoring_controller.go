@@ -223,7 +223,7 @@ func get_label_by_id(id int) string {
 	case 4:
 		return "Berawan"
 	default:
-		return "Berawan"
+		return "NoWeather"
 	}
 }
 
