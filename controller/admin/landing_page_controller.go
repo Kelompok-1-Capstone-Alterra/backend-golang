@@ -185,7 +185,7 @@ func GetOverview(c echo.Context) error {
 	// Retrieve weather data from InfoWeather table, sort from the newest
 	var weatherData []model.InfoWeather
 	if err := config.DB.
-		Order("created_at DESC").
+		Order("updated_at DESC").
 		Find(&weatherData).Error; err != nil {
 		log.Print(color.RedString(err.Error()))
 		return c.JSON(http.StatusInternalServerError, map[string]interface{}{

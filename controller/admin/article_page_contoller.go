@@ -88,7 +88,7 @@ func GetArticles(c echo.Context) error {
 	articles := []model.Article{}
 
 	// Get all articles
-	if err := config.DB.Order("created_at DESC").Find(&articles).Error; err != nil {
+	if err := config.DB.Order("updated_at DESC").Find(&articles).Error; err != nil {
 		log.Print(color.RedString(err.Error()))
 		return c.JSON(http.StatusInternalServerError, map[string]interface{}{
 			"status":  500,
@@ -144,7 +144,7 @@ func GetArticlesByTitle(c echo.Context) error {
 	articles := []model.Article{}
 
 	// Retrieve articles by keyword
-	if err := config.DB.Order("created_at DESC").Where("title LIKE ?", "%"+title+"%").Find(&articles).Error; err != nil {
+	if err := config.DB.Order("updated_at DESC").Where("title LIKE ?", "%"+title+"%").Find(&articles).Error; err != nil {
 		log.Print(color.RedString(err.Error()))
 		return c.JSON(http.StatusInternalServerError, map[string]interface{}{
 			"status":  500,
