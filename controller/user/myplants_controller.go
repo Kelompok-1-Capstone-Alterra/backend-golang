@@ -18,7 +18,7 @@ func GetMyPlantList(c echo.Context) error {
 	user_id, _ := utils.GetUserIDFromToken(token)
 
 	//get data by trending
-	if err := config.DB.Order("created_at DESC").Where("user_id=?", user_id).Find(&myPlants).Error; err != nil {
+	if err := config.DB.Order("created_at DESC").Where("user_id=? AND status NOT IN ?", user_id, []string{"harvest", "dead"}).Find(&myPlants).Error; err != nil {
 		log.Print(color.RedString(err.Error()))
 		return c.JSON(http.StatusBadRequest, map[string]interface{}{
 			"status":  400,

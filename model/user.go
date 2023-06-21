@@ -89,13 +89,13 @@ type Fertilizing struct {
 type Complaints struct {
 	gorm.Model
 	UserID  uint   `json:"-"`
-	Phone   string `json:"phone"`
-	Email   string `json:"email"`
-	Message string `json:"message"`
+	Phone   string `json:"phone" validate:"required,numeric,min=10,max=15"`
+	Email   string `json:"email" validate:"required,email"`
+	Message string `json:"message" validate:"required,min=4,max=255"`
 }
 
 type Suggestions struct {
 	gorm.Model
 	UserID  uint   `json:"-"`
-	Message string `json:"message"`
+	Message string `json:"message" validate:"required,min=4,max=255"`
 }
