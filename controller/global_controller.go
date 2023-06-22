@@ -174,11 +174,6 @@ func Delete_picture_from_local(c echo.Context) error {
 
 	ctx := context.Background()
 
-	// Create a GCS client
-	client, err := storage.NewClient(ctx, option.WithoutAuthentication())
-	if err != nil {
-		return err
-	}
 	defer client.Close()
 
 	bucketName := "agriplant-image-bucket"
