@@ -79,7 +79,7 @@ func CreateArticle(c echo.Context) error {
 	}
 
 	return c.JSON(http.StatusOK, map[string]interface{}{
-		"message": "success",
+		"message": "success to add new article",
 		"data":    response,
 	})
 }
@@ -133,7 +133,7 @@ func GetArticles(c echo.Context) error {
 	}
 
 	return c.JSON(http.StatusOK, map[string]interface{}{
-		"message": "success",
+		"message": "success to retrieve all articles list	",
 		"data":    responses,
 	})
 }
@@ -189,7 +189,7 @@ func GetArticlesByTitle(c echo.Context) error {
 	}
 
 	return c.JSON(http.StatusOK, map[string]interface{}{
-		"message": "success",
+		"message": "success to get article by title",
 		"data":    responses,
 	})
 }
@@ -240,7 +240,7 @@ func GetArticleByID(c echo.Context) error {
 	}
 
 	return c.JSON(http.StatusOK, map[string]interface{}{
-		"message": "success",
+		"message": "success to get article by id",
 		"data":    response,
 	})
 }
@@ -317,7 +317,7 @@ func UpdateArticleByID(c echo.Context) error {
 	}
 
 	return c.JSON(http.StatusOK, map[string]interface{}{
-		"message": "success",
+		"message": "success to update article",
 		"data":    response,
 	})
 }
@@ -347,6 +347,6 @@ func DeleteArticleByID(c echo.Context) error {
 	}
 
 	return c.JSON(http.StatusOK, map[string]interface{}{
-		"message": "success",
+		"message": "success to delete article",
 	})
 }

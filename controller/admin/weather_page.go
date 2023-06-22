@@ -35,19 +35,21 @@ func CreateWeather(c echo.Context) error {
 	}
 
 	if !isValidLabel {
+		log.Print(color.RedString("invalid label"))
 		return c.JSON(http.StatusBadRequest, map[string]interface{}{
 			"status":  400,
-			"message": "bad request, invalid label",
+			"message": "bad request",
 		})
 	}
-
+	
 	// Check if the label already exists
 	existingWeather := model.Weather{}
 	result := config.DB.Where("label = ? AND deleted_at IS NULL", weather.Label).First(&existingWeather)
 	if result.Error == nil {
+		log.Print(color.RedString("label already exists"))
 		return c.JSON(http.StatusBadRequest, map[string]interface{}{
 			"status":  400,
-			"message": "bad request, label already exists",
+			"message": "bad request",
 		})
 	}
 
@@ -97,7 +99,7 @@ func CreateWeather(c echo.Context) error {
 	}
 
 	return c.JSON(http.StatusOK, map[string]interface{}{
-		"message": "success",
+		"message": "success to add new weather information",
 		"data":    response,
 	})
 }
@@ -149,7 +151,7 @@ func GetWeathers(c echo.Context) error {
 	}
 
 	return c.JSON(http.StatusOK, map[string]interface{}{
-		"message": "success",
+		"message": "success to get all weathers information",
 		"data":    responses,
 	})
 }
@@ -198,7 +200,7 @@ func GetWeatherByID(c echo.Context) error {
 	}
 
 	return c.JSON(http.StatusOK, map[string]interface{}{
-		"message": "success",
+		"message": "success to retrieve weather detailed information",
 		"data":    response,
 	})
 }
@@ -238,9 +240,10 @@ func UpdateWeatherByID(c echo.Context) error {
 	}
 
 	if !isValidLabel {
+		log.Print(color.RedString("invalid label"))
 		return c.JSON(http.StatusBadRequest, map[string]interface{}{
 			"status":  400,
-			"message": "bad request, invalid label",
+			"message": "bad request",
 		})
 	}
 
@@ -290,7 +293,7 @@ func UpdateWeatherByID(c echo.Context) error {
 	}
 
 	return c.JSON(http.StatusOK, map[string]interface{}{
-		"message": "success",
+		"message": "success to update weather detailed information",
 		"data":    response,
 	})
 }
@@ -319,6 +322,6 @@ func DeleteWeatherByID(c echo.Context) error {
 	}
 
 	return c.JSON(http.StatusOK, map[string]interface{}{
-		"message": "success",
+		"message": "success to delete weather information",
 	})
 }
