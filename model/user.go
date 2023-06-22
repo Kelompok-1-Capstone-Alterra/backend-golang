@@ -102,8 +102,9 @@ type Suggestions struct {
 
 type Notification struct {
 	gorm.Model
-	UserID    uint   `json:"user_id"`
-	MyPlantID uint   `json:"myplant_id"`
-	Activity  string `json:"activity"`
-	IsEnabled bool   `json:"is_enbaled"`
+	UserID     uint   `json:"user_id"`
+	MyPlantID  uint   `json:"myplant_id"`
+	Date       string `json:"date"`
+	Activity   string `json:"activity"`
+	ReadStatus bool   `json:"read_status"`
 }
