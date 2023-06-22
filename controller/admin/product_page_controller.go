@@ -62,7 +62,7 @@ func GetProducts(c echo.Context) error {
 	}
 
 	return c.JSON(http.StatusOK, map[string]interface{}{
-		"message": "success",
+		"message": "success to retrieve all product list",
 		"data":    responses,
 	})
 }
@@ -163,7 +163,7 @@ func CreateProduct(c echo.Context) error {
 	}
 
 	return c.JSON(http.StatusOK, map[string]interface{}{
-		"message": "success",
+		"message": "success to add new product",
 		"data":    response,
 	})
 }
@@ -225,7 +225,7 @@ func GetProductByID(c echo.Context) error {
 	}
 
 	return c.JSON(http.StatusOK, map[string]interface{}{
-		"message": "success",
+		"message": "success to retrieve product detailed information",
 		"data":    response,
 	})
 }
@@ -245,13 +245,6 @@ func DeleteProductByID(c echo.Context) error {
 		})
 	}
 
-	config.DB.Model(&product).Association("Pictures").Find(&product.Pictures)
-	for _, picture := range product.Pictures {
-		if err_delete_picture := utils.Delete_picture(picture.URL); err_delete_picture != nil {
-			log.Print(color.RedString(err_delete_picture.Error()))
-		}
-	}
-
 	config.DB.Model(&product).Association("Pictures").Clear()
 
 	// Delete product
@@ -264,7 +257,7 @@ func DeleteProductByID(c echo.Context) error {
 	}
 
 	return c.JSON(http.StatusOK, map[string]interface{}{
-		"message": "success",
+		"message": "success to delete product",
 	})
 }
 
@@ -369,7 +362,7 @@ func UpdateProductByID(c echo.Context) error {
 	}
 
 	return c.JSON(http.StatusOK, map[string]interface{}{
-		"message": "success",
+		"message": "success to update product",
 		"data":    response,
 	})
 }
@@ -428,7 +421,7 @@ func GetProductsByName(c echo.Context) error {
 	}
 
 	return c.JSON(http.StatusOK, map[string]interface{}{
-		"message": "success",
+		"message": "success to get product by name",
 		"data":    responses,
 	})
 }
@@ -490,7 +483,7 @@ func GetProductsDisplay(c echo.Context) error {
 	}
 
 	return c.JSON(http.StatusOK, map[string]interface{}{
-		"message": "success",
+		"message": "success to retrieve all product list on display",
 		"data":    responses,
 	})
 }
@@ -552,7 +545,7 @@ func GetProductsArchive(c echo.Context) error {
 	}
 
 	return c.JSON(http.StatusOK, map[string]interface{}{
-		"message": "success",
+		"message": "success to retrieve all product list on archive",
 		"data":    responses,
 	})
 }

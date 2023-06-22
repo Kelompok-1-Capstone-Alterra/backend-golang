@@ -74,5 +74,6 @@ func InitialMigration() {
 		&model.Fertilizing{},
 		&model.Complaints{},
 		&model.Suggestions{},
+		&model.Notification{},
 	)
 }

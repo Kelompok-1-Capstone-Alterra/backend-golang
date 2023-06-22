@@ -99,6 +99,8 @@ func New() *echo.Echo {
 	// Explore & Monitoring
 	eAuth.GET("/users/weather/:latitude/:longitude", user.Get_weather)
 	eAuth.GET("/users/weather/:label_id", user.Get_weather_article)
+	eAuth.GET("/users/plants/notifications/:latitude/:longitude", user.Get_notifications)
+	eAuth.PUT("/users/plants/notifications/:notification_id", user.Read_notification)
 	eAuth.GET("/plants", user.Get_available_plants)
 	eAuth.GET("/plants/search", user.Search_available_plants)
 	eAuth.GET("/plants/:plant_id", user.Get_plant_detail)
