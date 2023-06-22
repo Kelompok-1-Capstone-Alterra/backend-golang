@@ -24,7 +24,6 @@ import (
 func Get_weather(c echo.Context) error {
 	latitude := c.Param("latitude")
 	longitude := c.Param("longitude")
-	fmt.Println(latitude, longitude)
 	apikey := "869a5f0aa562d21ec64ff37c7c6c157f"
 	baseURL := "https://api.openweathermap.org/data/2.5/weather"
 
@@ -224,7 +223,7 @@ func get_label_by_id(id int) string {
 	case 4:
 		return "Berawan"
 	default:
-		return "Berawan"
+		return "NoWeather"
 	}
 }
 
@@ -400,7 +399,7 @@ func Get_plant_location(c echo.Context) error {
 
 	if planting_info.Container {
 		var container_info model.ContainerInfo
-		
+
 		if err_container := config.DB.Where("planting_info_id=?", planting_info.ID).First(&container_info).Error; err_container != nil {
 			log.Print(color.RedString(err_container.Error()))
 			return c.JSON(http.StatusNotFound, map[string]interface{}{
@@ -425,7 +424,7 @@ func Get_plant_location(c echo.Context) error {
 
 	if planting_info.Ground {
 		var ground_info model.GroundInfo
-		
+
 		if err_ground := config.DB.Where("planting_info_id=?", planting_info.ID).First(&ground_info).Error; err_ground != nil {
 			log.Print(color.RedString(err_ground.Error()))
 			return c.JSON(http.StatusNotFound, map[string]interface{}{
@@ -433,7 +432,7 @@ func Get_plant_location(c echo.Context) error {
 				"message": "not found",
 			})
 		}
-		
+
 		config.DB.Model(&ground_info).Association("Pictures").Find(&ground_info.Pictures)
 
 		var url_ground string
@@ -733,8 +732,7 @@ func Add_my_plant(c echo.Context) error {
 	myplant.IsStartPlanting = false
 
 	// Set the current time as the start_planting_date
-	myplant.StartPlantingDate = time.Now().UTC().Truncate(24 * time.Hour).Add(time.Second)
-	fmt.Println(myplant.StartPlantingDate)
+	myplant.StartPlantingDate = time.Now().UTC()
 
 	if err_save := config.DB.Save(&myplant).Error; err_save != nil {
 		return c.JSON(http.StatusInternalServerError, map[string]interface{}{
@@ -874,14 +872,13 @@ func Start_planting(c echo.Context) error {
 
 	// Get current timestamp according to longitude and latitude
 	currentTime := get_current_time_from_latlong(myplant_binding.Latitude, myplant_binding.Longitude)
-	fmt.Println(currentTime)
-	fmt.Println(currentTime.Truncate(24 * time.Hour).Add(time.Second))
+	newCurrentTime := time.Date(currentTime.Year(), currentTime.Month(), currentTime.Day(), 0, 0, 1, 0, currentTime.Location())
 
 	// START SET1 - myplant table : longitude(current), latitude(current), is_start_planting(true), is_start_planting(current date)
 	myplant.Longitude = myplant_binding.Longitude
 	myplant.Latitude = myplant_binding.Latitude
 	myplant.IsStartPlanting = true
-	myplant.StartPlantingDate = currentTime.Truncate(24 * time.Hour).Add(time.Second)
+	myplant.StartPlantingDate = newCurrentTime
 	myplant.Status = "planting"
 
 	if err_save1 := config.DB.Save(&myplant).Error; err_save1 != nil {
@@ -1094,6 +1091,10 @@ func Get_myplant_overview(c echo.Context) error {
 	if day_button > 6 {
 		isActiveButtonHarvest = true
 		isActiveButtonDead = true
+		if isActiveWeeklyProgress && !isEnabledWeeklyProgress {
+			isActiveButtonHarvest = false
+			isActiveButtonDead = false
+		}
 	}
 	// END GET BUTTON HARVEST & DEAD ---------------------------------------------------------------------------------
 
@@ -1710,6 +1711,15 @@ func Add_dead_plant_progress(c echo.Context) error {
 		})
 	}
 
+	myplant.Status = "dead"
+	if err_update := config.DB.Save(&myplant).Error; err_update != nil {
+		log.Print(color.RedString(err_update.Error()))
+		return c.JSON(http.StatusInternalServerError, map[string]interface{}{
+			"status":  500,
+			"message": "internal server error",
+		})
+	}
+
 	return c.JSON(http.StatusOK, map[string]interface{}{
 		"status":  200,
 		"message": "success to add dead plant progress",
@@ -1780,6 +1790,15 @@ func Add_harvest_plant_progress(c echo.Context) error {
 
 	if err_insert := config.DB.Save(&weeklyProgress).Error; err_insert != nil {
 		log.Print(color.RedString(err_insert.Error()))
+		return c.JSON(http.StatusInternalServerError, map[string]interface{}{
+			"status":  500,
+			"message": "internal server error",
+		})
+	}
+
+	myplant.Status = "harvest"
+	if err_update := config.DB.Save(&myplant).Error; err_update != nil {
+		log.Print(color.RedString(err_update.Error()))
 		return c.JSON(http.StatusInternalServerError, map[string]interface{}{
 			"status":  500,
 			"message": "internal server error",

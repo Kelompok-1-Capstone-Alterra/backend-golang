@@ -88,7 +88,7 @@ func GetArticles(c echo.Context) error {
 	articles := []model.Article{}
 
 	// Get all articles
-	if err := config.DB.Find(&articles).Error; err != nil {
+	if err := config.DB.Order("updated_at DESC").Find(&articles).Error; err != nil {
 		log.Print(color.RedString(err.Error()))
 		return c.JSON(http.StatusInternalServerError, map[string]interface{}{
 			"status":  500,
@@ -144,7 +144,7 @@ func GetArticlesByTitle(c echo.Context) error {
 	articles := []model.Article{}
 
 	// Retrieve articles by keyword
-	if err := config.DB.Where("title LIKE ?", "%"+title+"%").Find(&articles).Error; err != nil {
+	if err := config.DB.Order("updated_at DESC").Where("title LIKE ?", "%"+title+"%").Find(&articles).Error; err != nil {
 		log.Print(color.RedString(err.Error()))
 		return c.JSON(http.StatusInternalServerError, map[string]interface{}{
 			"status":  500,
@@ -256,13 +256,6 @@ func UpdateArticleByID(c echo.Context) error {
 			"status":  404,
 			"message": "not found",
 		})
-	}
-
-	config.DB.Model(&article).Association("Pictures").Find(&article.Pictures)
-	for _, picture := range article.Pictures {
-		if err_delete_picture := utils.Delete_picture(picture.URL); err_delete_picture != nil {
-			log.Print(color.RedString(err_delete_picture.Error()))
-		}
 	}
 
 	config.DB.Model(&article).Association("Pictures").Clear()

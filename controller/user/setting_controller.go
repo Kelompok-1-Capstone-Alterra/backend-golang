@@ -9,6 +9,7 @@ import (
 	"github.com/agriplant/model"
 	"github.com/agriplant/utils"
 	"github.com/fatih/color"
+	"github.com/go-playground/validator/v10"
 	"github.com/labstack/echo/v4"
 )
 
@@ -189,11 +190,11 @@ func UpdateUserPassword(c echo.Context) error {
 // SETTING - [Endpoint 5 : Get my plants stats]
 func GetMyPlantsStats(c echo.Context) error {
 	type Response struct {
-		myplant_id uint
-		pictures   []model.Picture
-		name       string
-		latin      string
-		status     string
+		MyPlantID uint            `json:"myplant_id"`
+		Pictures  []model.Picture `json:"pictures"`
+		Name      string          `json:"name"`
+		Latin     string          `json:"latin"`
+		Status    string          `json:"status"`
 	}
 
 	status := c.QueryParam("status")
@@ -204,12 +205,22 @@ func GetMyPlantsStats(c echo.Context) error {
 	user_id, _ := utils.GetUserIDFromToken(token)
 
 	// Get all my plants
-	if err := config.DB.Where("status = ? AND user_id = ?", status, user_id).Find(&MyPlants).Error; err != nil {
-		log.Print(color.RedString(err.Error()))
-		return c.JSON(http.StatusBadRequest, map[string]interface{}{
-			"status":  400,
-			"message": "bad request",
-		})
+	if status == "all" {
+		if err := config.DB.Where("status = ? AND user_id = ?", "harvest", user_id).Or("status = ? AND user_id = ?", "dead", user_id).Find(&MyPlants).Error; err != nil {
+			log.Print(color.RedString(err.Error()))
+			return c.JSON(http.StatusBadRequest, map[string]interface{}{
+				"status":  400,
+				"message": "bad request",
+			})
+		}
+	} else {
+		if err := config.DB.Where("status = ? AND user_id = ?", status, user_id).Find(&MyPlants).Error; err != nil {
+			log.Print(color.RedString(err.Error()))
+			return c.JSON(http.StatusBadRequest, map[string]interface{}{
+				"status":  400,
+				"message": "bad request",
+			})
+		}
 	}
 
 	for i := 0; i < len(MyPlants); i++ {
@@ -223,7 +234,7 @@ func GetMyPlantsStats(c echo.Context) error {
 				"message": "bad request",
 			})
 		}
-		temp.myplant_id = MyPlants[i].ID
+		temp.MyPlantID = MyPlants[i].ID
 
 		picture := []model.Picture{}
 		if err := config.DB.Where("plant_id = ?", MyPlants[i].PlantID).Find(&picture).Error; err != nil {
@@ -233,11 +244,11 @@ func GetMyPlantsStats(c echo.Context) error {
 				"message": "bad request",
 			})
 		}
-		temp.pictures = picture
+		temp.Pictures = picture
 
-		temp.name = MyPlants[i].Name
-		temp.latin = plant.Latin
-		temp.status = MyPlants[i].Status
+		temp.Name = MyPlants[i].Name
+		temp.Latin = plant.Latin
+		temp.Status = MyPlants[i].Status
 		Responses = append(Responses, temp)
 	}
 
@@ -250,9 +261,19 @@ func GetMyPlantsStats(c echo.Context) error {
 
 // SETTING - [Endpoint 6 : Send complaint email]
 func SendComplaintEmail(c echo.Context) error {
+	validate := validator.New()
 	complaint := model.Complaints{}
 
 	if err := c.Bind(&complaint); err != nil {
+		log.Print(color.RedString(err.Error()))
+		return c.JSON((http.StatusBadRequest), map[string]interface{}{
+			"status":  400,
+			"message": "bad request",
+		})
+	}
+
+	err := validate.Struct(complaint)
+	if err != nil {
 		log.Print(color.RedString(err.Error()))
 		return c.JSON((http.StatusBadRequest), map[string]interface{}{
 			"status":  400,
@@ -281,9 +302,19 @@ func SendComplaintEmail(c echo.Context) error {
 
 // SETTING - [Endpoint 7 : Send suggestion]
 func SendSuggestion(c echo.Context) error {
+	validate := validator.New()
 	suggestion := model.Suggestions{}
 
 	if err := c.Bind(&suggestion); err != nil {
+		log.Print(color.RedString(err.Error()))
+		return c.JSON((http.StatusBadRequest), map[string]interface{}{
+			"status":  400,
+			"message": "bad request",
+		})
+	}
+
+	err := validate.Struct(suggestion)
+	if err != nil {
 		log.Print(color.RedString(err.Error()))
 		return c.JSON((http.StatusBadRequest), map[string]interface{}{
 			"status":  400,

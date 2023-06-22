@@ -18,7 +18,7 @@ func GetMyPlantList(c echo.Context) error {
 	user_id, _ := utils.GetUserIDFromToken(token)
 
 	//get data by trending
-	if err := config.DB.Where("user_id=?", user_id).Find(&myPlants).Error; err != nil {
+	if err := config.DB.Order("created_at DESC").Where("user_id=? AND status NOT IN ?", user_id, []string{"harvest", "dead"}).Find(&myPlants).Error; err != nil {
 		log.Print(color.RedString(err.Error()))
 		return c.JSON(http.StatusBadRequest, map[string]interface{}{
 			"status":  400,
@@ -46,8 +46,10 @@ func GetMyPlantList(c echo.Context) error {
 	for i := 0; i < len(plants); i++ {
 		config.DB.Model(&plants[i]).Association("Pictures").Find(&plants[i].Pictures)
 		result := map[string]interface{}{
+			"plant_id":   myPlants[i].PlantID,
 			"myplant_id": myPlants[i].ID,
 			"name":       myPlants[i].Name,
+			"location":   myPlants[i].Location,
 			"picture":    plants[i].Pictures[0].URL,
 			"latin":      plants[i].Latin,
 		}
@@ -65,7 +67,7 @@ func GetMyPlantListBYKeyword(c echo.Context) error {
 	name := c.QueryParam("name")
 
 	//get data by trending
-	if err := config.DB.Where("name LIKE ?", "%"+name+"%").Find(&myPlants).Error; err != nil {
+	if err := config.DB.Order("created_at DESC").Where("name LIKE ?", "%"+name+"%").Find(&myPlants).Error; err != nil {
 		log.Print(color.RedString(err.Error()))
 		return c.JSON(http.StatusBadRequest, map[string]interface{}{
 			"status":  400,
@@ -86,9 +88,8 @@ func GetMyPlantListBYKeyword(c echo.Context) error {
 		}
 		plants = append(plants, plant)
 	}
-	var data []map[string]interface{}
-	//var expic []
-	//Populate Pictures field for each article
+
+	data := []map[string]interface{}{}
 	for i := 0; i < len(plants); i++ {
 		config.DB.Model(&plants[i]).Association("Pictures").Find(&plants[i].Pictures)
 		result := map[string]interface{}{
