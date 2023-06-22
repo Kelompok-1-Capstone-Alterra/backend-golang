@@ -46,7 +46,10 @@ func Upload_pictures(c echo.Context) error {
 	form, err := c.MultipartForm()
 	if err != nil {
 		log.Println(err)
-		return c.JSON(http.StatusBadRequest, "Failed to read pictures files")
+		return c.JSON(http.StatusBadRequest, map[string]interface{}{
+			"status":  400,
+			"message": "bad request, Failed to get pictures",
+		})
 	}
 
 	pictures := form.File["pictures"] // pictures adalah nama field untuk file-file gambar
@@ -56,7 +59,10 @@ func Upload_pictures(c echo.Context) error {
 		url, err := Save_picture(pictureFile)
 		if err != nil {
 			log.Println(err)
-			return c.JSON(http.StatusInternalServerError, "Failed to save pictures")
+			return c.JSON(http.StatusInternalServerError, map[string]interface{}{
+				"status":  500,
+				"message": "internal server error, Failed to save picture",
+			})
 		}
 		urls = append(urls, url)
 	}
