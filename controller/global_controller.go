@@ -3,12 +3,12 @@ package controller
 import (
 	"context"
 	"encoding/base64"
+	"fmt"
 	"io"
 	"io/ioutil"
 	"log"
 	"mime/multipart"
 	"net/http"
-	"os"
 	"strings"
 
 	"google.golang.org/api/option"
@@ -108,16 +108,6 @@ func UploadToCloudStorage(encodedImage string) (string, error) {
 	}
 
 	imageURL := uuid.New().String() + ".png"
-	file, errCreate := os.Create(imageURL)
-	if errCreate != nil {
-		return dummyURL, errCreate
-	}
-	defer file.Close()
-
-	_, errWrite := file.Write(decodedData)
-	if errWrite != nil {
-		return dummyURL, errWrite
-	}
 
 	// Open the bucket.
 	bucket := client.Bucket(bucketName)
@@ -144,32 +134,35 @@ func UploadToCloudStorage(encodedImage string) (string, error) {
 
 // GLOBAL - [Endpoint 3 : Get picture]
 func Get_picture(c echo.Context) error {
-	url := c.Param("url")
+	imageURL := c.Param("url") // Assuming the image URL is passed as a query parameter named "url"
 
+	// Specify the bucket name and object name in the Cloud Storage bucket
+	bucketName := "agriplant-image-bucket"
+	objectName := imageURL
+
+	// Download and serve the image file
+	err := downloadFile(c.Response().Writer, bucketName, objectName)
+	if err != nil {
+		// Handle error
+		return err
+	}
+
+	return nil
+}
+
+func downloadFile(w io.Writer, bucket, object string) error {
 	ctx := context.Background()
 
-	// Create a GCS client
-	client, err := storage.NewClient(ctx, option.WithoutAuthentication())
-	if err != nil {
-		return err
-	}
 	defer client.Close()
 
-	bucketName := "agriplant-image-bucket"
-	objectName := url
-
-	bucket := client.Bucket(bucketName)
-	obj := bucket.Object(objectName)
-
-	reader, err := obj.NewReader(ctx)
+	rc, err := client.Bucket(bucket).Object(object).NewReader(ctx)
 	if err != nil {
-		return err
+		return fmt.Errorf("Object(%q).NewReader: %w", object, err)
 	}
-	defer reader.Close()
+	defer rc.Close()
 
-	w := c.Response().Writer
-	if _, err := io.Copy(w, reader); err != nil {
-		return err
+	if _, err := io.Copy(w, rc); err != nil {
+		return fmt.Errorf("io.Copy: %w", err)
 	}
 
 	return nil
