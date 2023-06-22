@@ -43,7 +43,7 @@ func GetProducts(c echo.Context) error {
 			seeds = append(seeds, product[i])
 		} else if product[i].Category == "Pestisida" {
 			pesticides = append(pesticides, product[i])
-		} else if product[i].Category == "Alat tani" {
+		} else if product[i].Category == "Alat Tani" {
 			tools = append(tools, product[i])
 		} else if product[i].Category == "Pupuk" {
 			fertilizers = append(fertilizers, product[i])
