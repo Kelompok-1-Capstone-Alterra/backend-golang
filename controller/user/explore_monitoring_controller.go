@@ -238,6 +238,227 @@ func StringToUintPointer(value string) (*uint, error) {
 	return &uintValue, nil
 }
 
+// EXPLORE & MONITORING (Menu Home) - [Endpoint 3.1 : Get notifictions]
+func Get_notifications(c echo.Context) error {
+	token := strings.TrimPrefix(c.Request().Header.Get("Authorization"), "Bearer ")
+	user_id, _ := utils.GetUserIDFromToken(token)
+	latitude := c.Param("latitude")
+	longitude := c.Param("longitude")
+
+	// get user userCurrentDate
+	var user model.User
+	if err_first_user := config.DB.First(&user, user_id).Error; err_first_user != nil {
+		log.Print(color.RedString(err_first_user.Error()))
+		return c.JSON(http.StatusBadRequest, map[string]interface{}{
+			"status":  404,
+			"message": "bad request",
+		})
+	}
+
+	userCurrentDate := get_current_time_from_latlong(latitude, longitude).Format("2006-01-02")
+
+	var notificationCheck model.Notification
+	if err_first_check := config.DB.Where("user_id=? AND date=?", user_id, userCurrentDate).First(&notificationCheck).Error; err_first_check != nil {
+		// delete yesterday notification
+		var deleteNotification model.Notification
+		if err_deleteNotifications := config.DB.Where("user_id=?", user_id).Delete(&deleteNotification).Error; err_deleteNotifications != nil {
+			log.Print(color.RedString(err_deleteNotifications.Error()))
+			return c.JSON(http.StatusInternalServerError, map[string]interface{}{
+				"status":  500,
+				"message": "internal server error",
+			})
+		}
+
+		// insert notifications
+		err_generateNotifications := generate_notifications(user_id, userCurrentDate)
+		if !err_generateNotifications {
+			log.Print(color.RedString("error while generate notifications"))
+			return c.JSON(http.StatusInternalServerError, map[string]interface{}{
+				"status":  500,
+				"message": "internal server error",
+			})
+		}
+	}
+
+	// retrieve all notification datas
+	var notifications []model.Notification
+	if err_find := config.DB.Order("created_at DESC").Where("user_id=? AND date=?", user_id, userCurrentDate).Find(&notifications).Error; err_find != nil {
+		log.Print(color.RedString(err_find.Error()))
+		return c.JSON(http.StatusInternalServerError, map[string]interface{}{
+			"status":  500,
+			"message": "internal server error",
+		})
+	}
+
+	responses := []map[string]interface{}{}
+	for _, notification := range notifications {
+		// get my_plants data
+		var myplant model.MyPlant
+		if err_first := config.DB.First(&myplant, notification.MyPlantID).Error; err_first != nil {
+			log.Print(color.RedString(err_first.Error()))
+			return c.JSON(http.StatusInternalServerError, map[string]interface{}{
+				"status":  500,
+				"message": "internal server error",
+			})
+		}
+
+		// generate description
+		description := ""
+		switch notification.Activity {
+		case "watering":
+			description = "Kamu belum menyiram"
+		case "fertilizing":
+			description = "Kamu belum memupuk"
+		case "weekly progress":
+			description = "Kamu belum menambahkan weekly progress"
+		}
+
+		response := map[string]interface{}{
+			"id_notif":       notification.ID,
+			"nama_tanamanku": myplant.Name,
+			"description":    description,
+			"myplant_id":     notification.MyPlantID,
+			"plant_id":       myplant.PlantID,
+			"location":       myplant.Location,
+			"read_status":    notification.ReadStatus,
+		}
+
+		responses = append(responses, response)
+	}
+
+	return c.JSON(http.StatusOK, map[string]interface{}{
+		"status":  200,
+		"message": "success to get all notifications",
+		"data":    responses,
+	})
+}
+
+// HELPER FUNCTION
+func generate_notifications(user_id uint, userCurrentDate string) bool {
+	var myPlants []model.MyPlant
+	if err_find := config.DB.Where("user_id=? AND status='planting'", user_id).Find(&myPlants).Error; err_find != nil {
+		log.Print(color.RedString(err_find.Error()))
+		return false
+	}
+
+	// Loop each myPlants data to store data
+	for _, myPlant := range myPlants {
+		currentTime := get_current_time_from_latlong(myPlant.Latitude, myPlant.Longitude)
+		diff := currentTime.Sub(myPlant.StartPlantingDate)
+		day := int(diff.Hours()/24) + 1
+		week := int(diff.Hours()/(24*7)) + 1
+		if day > 6 {
+			day = day % 7
+			if day == 0 {
+				day = 7
+			}
+		}
+
+		// Check watering
+		// get watering periode
+		var wateringInfo model.WateringInfo
+		if err_first_watering := config.DB.Where("plant_id=?", myPlant.PlantID).First(&wateringInfo).Error; err_first_watering != nil {
+			log.Print(color.RedString(err_first_watering.Error()))
+			return false
+		}
+
+		// get watering history
+		var watering model.Watering
+		if err_first := config.DB.Where("my_plant_id=? AND week=?", myPlant.ID, week).First(&watering).Error; err_first != nil {
+			log.Print(color.RedString(err_first.Error(), "please hit endpoint Get myplant overview first"))
+			return false
+		}
+		watering_history := []int{watering.Day1, watering.Day2, watering.Day3, watering.Day4, watering.Day5, watering.Day6, watering.Day7}
+		if watering_history[day-1] < wateringInfo.Period {
+			var notification model.Notification
+			notification.UserID = user_id
+			notification.MyPlantID = myPlant.ID
+			notification.Date = userCurrentDate
+			notification.Activity = "watering"
+			notification.ReadStatus = false
+
+			if err_save := config.DB.Save(&notification).Error; err_save != nil {
+				log.Print(color.RedString(err_save.Error()))
+				return false
+			}
+		}
+
+		// Check fetilizing
+		var fertilizingInfo model.FertilizingInfo
+		if err_first := config.DB.Where("plant_id=?", myPlant.PlantID).First(&fertilizingInfo).Error; err_first != nil {
+			log.Print(color.RedString(err_first.Error()))
+			return false
+		}
+
+		day_fertilizing := int(diff.Hours()/24) + 1
+		if (week == 1 && day == 1) || (day_fertilizing%fertilizingInfo.Period == 0) {
+			var fertilizing model.Fertilizing
+			if err_first_fertilizing := config.DB.Where("my_plant_id=? AND week=?", myPlant.ID, week).First(&fertilizing).Error; err_first_fertilizing != nil {
+				var notification model.Notification
+				notification.UserID = user_id
+				notification.MyPlantID = myPlant.ID
+				notification.Date = userCurrentDate
+				notification.Activity = "fertilizing"
+				notification.ReadStatus = false
+
+				if err_save := config.DB.Save(&notification).Error; err_save != nil {
+					log.Print(color.RedString(err_save.Error()))
+					return false
+				}
+			}
+		}
+
+		// Check weekly progress
+		var weeklyProgress model.WeeklyProgress
+		fmt.Println(day)
+		if day == 7 {
+			if err_first := config.DB.Where("my_plant_id=? AND week=? status='planting'", myPlant.ID, week).First(&weeklyProgress).Error; err_first != nil {
+				var notification model.Notification
+				notification.UserID = user_id
+				notification.MyPlantID = myPlant.ID
+				notification.Date = userCurrentDate
+				notification.Activity = "weekly progress"
+				notification.ReadStatus = false
+
+				if err_save := config.DB.Save(&notification).Error; err_save != nil {
+					log.Print(color.RedString(err_save.Error()))
+					return false
+				}
+			}
+		}
+	}
+
+	return true
+}
+
+// EXPLORE & MONITORING (Menu Home) - [Endpoint 3.2 : Read notifiction]
+func Read_notification(c echo.Context) error {
+	notificationId := c.Param("notification_id")
+
+	var notification model.Notification
+	if err_first := config.DB.First(&notification, notificationId).Error; err_first != nil {
+		log.Print(color.RedString(err_first.Error()))
+		return c.JSON(http.StatusNotFound, map[string]interface{}{
+			"status":  404,
+			"message": "not found",
+		})
+	}
+
+	notification.ReadStatus = true
+	if err_save := config.DB.Save(&notification).Error; err_save != nil {
+		log.Print(color.RedString(err_save.Error()))
+		return c.JSON(http.StatusInternalServerError, map[string]interface{}{
+			"status":  500,
+			"message": "internal server error",
+		})
+	}
+
+	return c.JSON(http.StatusOK, map[string]interface{}{
+		"status":  200,
+		"message": "success to read notification",
+	})
+}
+
 // EXPLORE & MONITORING (Menu Home) - [Endpoint 5 : Get available plants]
 func Get_available_plants(c echo.Context) error {
 	var plants []model.Plant
@@ -912,6 +1133,28 @@ func Start_planting(c echo.Context) error {
 	}
 	// END SET2
 
+	// START APPEND NOTIFICATION
+	userCurrentDate := get_current_time_from_latlong(myplant_binding.Latitude, myplant_binding.Longitude).Format("2006-01-02")
+	activities := []string{"watering", "fertilizing"}
+
+	for _, activity := range activities {
+		var notification model.Notification
+		notification.UserID = user_id
+		notification.MyPlantID = uint(myplant_id)
+		notification.Date = userCurrentDate
+		notification.Activity = activity
+		notification.ReadStatus = false
+
+		if err_save := config.DB.Save(&notification).Error; err_save != nil {
+			log.Print(color.RedString(err_save.Error()))
+			return c.JSON(http.StatusInternalServerError, map[string]interface{}{
+				"status":  500,
+				"message": "internal server error",
+			})
+		}
+	}
+	// END APPEND NOTIFICATION
+
 	return c.JSON(http.StatusOK, map[string]interface{}{
 		"status":  200,
 		"message": "success to start planting",
@@ -1017,7 +1260,7 @@ func Get_myplant_overview(c echo.Context) error {
 
 	// get watering is_active
 	is_active_watering := true
-	if watering_history[day-1] >= 2 {
+	if watering_history[day-1] >= wateringInfo.Period {
 		is_active_watering = false
 	}
 
