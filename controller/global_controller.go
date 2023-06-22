@@ -89,7 +89,6 @@ func Delete_picture_from_local(c echo.Context) error {
 }
 
 func Encode_base64(pictureFile *multipart.FileHeader) string {
-
 	// Buka file gambar
 	src, err_open := pictureFile.Open()
 	if err_open != nil {

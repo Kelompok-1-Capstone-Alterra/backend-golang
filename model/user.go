@@ -99,3 +99,11 @@ type Suggestions struct {
 	UserID  uint   `json:"-"`
 	Message string `json:"message" validate:"required,min=4,max=255"`
 }
+
+type Notification struct {
+	gorm.Model
+	UserID    uint   `json:"user_id"`
+	MyPlantID uint   `json:"myplant_id"`
+	Activity  string `json:"activity"`
+	IsEnabled bool   `json:"is_enbaled"`
+}
