@@ -1,0 +1,13 @@
+{
+  "type": "service_account",
+  "project_id": "capstonealterra",
+  "private_key_id": "0457bfb5b3156fd5103a1d5b1e79189d87cb7c55",
+  "private_key": "-----BEGIN PRIVATE KEY-----\nMIIEvgIBADANBgkqhkiG9w0BAQEFAASCBKgwggSkAgEAAoIBAQCnoz/nur9gpjss\nd0ysekd2r6gZvnGL6Npt0rxJv7bU6XH7zvNIwrKPMlOx1tN0oFf4dVAtGwFxtuBx\n3YFfjcanLz3d04nNFgfR7iyRaymTDYEiNE+5YYYpO89T3nsHE2jbJMa+mlafHKcj\n/CNm7Jq+9ut5ZMgpRwIl1mDV0LE+vXqWfTj/jaOMWhKHml9vvsIOPsR1jFeg64yF\nWNjB0o9z12MRz/ZDWOCsVg/Jw1mRp0YmpTTfRwztQFHsgjh0cIolLVpN0ZdMSEzE\nlabjteH6OHHfq5vLR2O/hbRgQ5U265Hd+GWsurLROaRLhPvNLxxCrk2AejPu6i0H\nGb7Efs9FAgMBAAECggEAKPHHnwrOyYVweIje8lWfdM6siTUpuJl0GFTbZkvsFQ67\np1xBsajUQgNxy8MDvL2ZHvdQUOQCs0qOgWEvwy32skjonHCZfLz/xfedbRs2eVNY\nEgmi202FnjacigiSFgVYnAXcgRtjQtOVw0VHRFFP7oqSswC5ntNYI/O7jR2+3Oq2\nsyUIExg2/FH0tYxW2g7wOyC3NSPhIjyDi6UX4WxFddQEr7TqMm5icxZi9Ut0ZLIn\nDhGqPiQPLWSkMcAngNQ6oazu5Jw3ycCYIX9vN7Q/9tTksWLvCvyV6uLXrWPWmaao\nNZCl9g6saCrBXuF3d+74bujqRKHDEsmUMPyX7/REtQKBgQDq1V5NXf05CXspQ9uD\nzb1BG3zU5pZ2faBlctRckPEcHZTdw0gw9C6HRmfXr5wbRVt3O9+PtgonTlTru/JZ\nMv0sICrdLx7E1umCysFu03UYzbvBcdrK6fDe52WnhR9isMSCEIFUQpzjET/vpL9/\n66EDtP6bCA9ilpzfp9uCKX7c4wKBgQC2v2HAbpb85xFeX5KVOau+ncFvQ87WDYhg\nmLyQbgkVQ7dflWrv2FgXUtJPhWE5FPe0fjtli0UpBihCV9XSSR2W5Ggt3atQpMyl\nkwhsuepVPTvovGEZEuwWRu22EwNAfnzh5i00NDnS5zAKklnYbRpdW3Z0kZb6qXzu\nA0E6iJrDtwKBgQCK6vfjSrOOtzYdfh/wg5fuWQVqqJHfvIdTHC/WJoQLftBes7QU\nCY8wxQyPAjqVw1zNVyT0TdsJz4PbBA7kh45POSRCPiq0hPIURj9RgVPm/WWRlPm6\nSdQM+NQg2lZrumg1DPCE2PcYOE8bQ9lpIgnZOIvZSFZZmwFoKVNoV4XNwwKBgGAU\nTrh1bDya367WYKLEJ1+YYVK2O9CeXM0sgDcPIwdjCs3eKNLg06+vg5L7dRolw/XJ\nSEEi78GZ0yDOPUTJ3ByxCXTTznYfrth+bTd8p48ZGp5KLGKaaDVuJRxM8rC9z7qU\n4b9Ilf4kPkXQnBwFgI8Ev0qaIN64rU4Vt/2mRHgRAoGBANhFxZXeacwMY9dh0HP1\nHaux9aNBwj/P65xO+XKx6sTKQLBX968mSw5FS5PJzXoHHtMK6KHH6tDPwe/XWQcK\n+KVnXe0qGcX7KeYsAzepKhDWV1QG0rmFH3+eydUN3lVJtjJRG7VAFPv+sB5Xv0aN\nY2XryeMk/1nHmup0MLZGIxES\n-----END PRIVATE KEY-----\n",
+  "client_email": "agriplant-image@capstonealterra.iam.gserviceaccount.com",
+  "client_id": "116781656696511607591",
+  "auth_uri": "https://accounts.google.com/o/oauth2/auth",
+  "token_uri": "https://oauth2.googleapis.com/token",
+  "auth_provider_x509_cert_url": "https://www.googleapis.com/oauth2/v1/certs",
+  "client_x509_cert_url": "https://www.googleapis.com/robot/v1/metadata/x509/agriplant-image%40capstonealterra.iam.gserviceaccount.com",
+  "universe_domain": "googleapis.com"
+}
