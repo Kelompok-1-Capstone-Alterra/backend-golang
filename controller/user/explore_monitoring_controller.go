@@ -1857,13 +1857,6 @@ func Update_weekly_progress(c echo.Context) error {
 		})
 	}
 
-	config.DB.Model(&weeklyProgress).Association("Pictures").Find(&weeklyProgress.Pictures)
-	for _, picture := range weeklyProgress.Pictures {
-		if err_delete_picture := utils.Delete_picture(picture.URL); err_delete_picture != nil {
-			log.Print(color.RedString(err_delete_picture.Error()))
-		}
-	}
-
 	config.DB.Model(&weeklyProgress).Association("Pictures").Clear()
 
 	weeklyProgress.Condition = weeklyProgress_bind.Condition

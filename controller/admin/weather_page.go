@@ -308,13 +308,6 @@ func DeleteWeatherByID(c echo.Context) error {
 		})
 	}
 
-	config.DB.Model(&weather).Association("Pictures").Find(&weather.Pictures)
-	for _, picture := range weather.Pictures {
-		if err_delete_picture := utils.Delete_picture(picture.URL); err_delete_picture != nil {
-			log.Print(color.RedString(err_delete_picture.Error()))
-		}
-	}
-
 	config.DB.Model(&weather).Association("Pictures").Clear()
 
 	if err := config.DB.Delete(&weather).Error; err != nil {
