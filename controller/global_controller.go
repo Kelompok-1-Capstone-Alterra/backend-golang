@@ -3,7 +3,6 @@ package controller
 import (
 	"context"
 	"encoding/base64"
-	"fmt"
 	"io"
 	"io/ioutil"
 	"log"
@@ -150,7 +149,10 @@ func Get_picture(c echo.Context) error {
 	err := downloadFile(c.Response().Writer, bucketName, objectName)
 	if err != nil {
 		// Handle error
-		return err
+		return c.JSON(http.StatusInternalServerError, map[string]interface{}{
+			"status":  500,
+			"message": "internal server error, Failed to get picture",
+		})
 	}
 
 	return nil
@@ -163,12 +165,18 @@ func downloadFile(w io.Writer, bucket, object string) error {
 
 	rc, err := client.Bucket(bucket).Object(object).NewReader(ctx)
 	if err != nil {
-		return fmt.Errorf("Object(%q).NewReader: %w", object, err)
+		return echo.NewHTTPError(http.StatusNotFound, map[string]interface{}{
+			"status":  404,
+			"message": "not found, Failed to get object from cloud storage",
+		})
 	}
 	defer rc.Close()
 
 	if _, err := io.Copy(w, rc); err != nil {
-		return fmt.Errorf("io.Copy: %w", err)
+		return echo.NewHTTPError(http.StatusInternalServerError, map[string]interface{}{
+			"status":  500,
+			"message": "internal server error, Failed to copy object from cloud storage",
+		})
 	}
 
 	return nil
@@ -189,7 +197,10 @@ func Delete_picture_from_local(c echo.Context) error {
 	obj := bucket.Object(objectName)
 
 	if err := obj.Delete(ctx); err != nil {
-		return err
+		return c.JSON(http.StatusInternalServerError, map[string]interface{}{
+			"status":  500,
+			"message": "internal server error, Failed to delete picture",
+		})
 	}
 
 	return c.JSON(http.StatusOK, map[string]interface{}{
