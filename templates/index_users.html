@@ -85,6 +85,30 @@
     <br />
     <hr />
 
+    <h1>Table Notifications</h1>
+    <table>
+      <tr>
+        <th>ID</th>
+        <th>UserID</th>
+        <th>MyPlantID</th>
+        <th>Date</th>
+        <th>Activity</th>
+        <th>ReadStatus</th>
+      </tr>
+      {{range .Notifications}}
+      <tr>
+        <td>{{.ID}}</td>
+        <td>{{.UserID}}</td>
+        <td>{{.MyPlantID}}</td>
+        <td>{{.Date}}</td>
+        <td>{{.Activity}}</td>
+        <td>{{.ReadStatus}}</td>
+      </tr>
+      {{end}}
+    </table>
+    <br />
+    <hr />
+
     <!-- END -->
   </body>
 </html>

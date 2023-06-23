@@ -302,9 +302,10 @@ func Show_all_DB_Admins(c echo.Context) error {
 func Show_all_DB_Users(c echo.Context) error {
 	tmpl := template.Must(template.ParseFiles("templates/index_users.html"))
 	type TemplateData struct {
-		InfoWeathers []model.InfoWeather
-		Suggestions  []model.Suggestions
-		Complaints   []model.Complaints
+		InfoWeathers  []model.InfoWeather
+		Suggestions   []model.Suggestions
+		Complaints    []model.Complaints
+		Notifications []model.Notification
 	}
 
 	// Get Weathers
@@ -337,10 +338,21 @@ func Show_all_DB_Users(c echo.Context) error {
 		})
 	}
 
+	// Get Notifications
+	var notifications []model.Notification
+	if err_find_notifications := config.DB.Find(&notifications).Error; err_find_notifications != nil {
+		log.Print(color.RedString(err_find_notifications.Error()))
+		return c.JSON(http.StatusInternalServerError, map[string]interface{}{
+			"status":  500,
+			"message": "internal server error",
+		})
+	}
+
 	data := TemplateData{
 		InfoWeathers: infoWeathers,
 		Suggestions:  suggestions,
 		Complaints:   complaints,
+		Notifications: notifications,
 	}
 
 	err := tmpl.Execute(c.Response().Writer, data)
