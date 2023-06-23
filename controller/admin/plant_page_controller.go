@@ -4,6 +4,7 @@ import (
 	"errors"
 	"log"
 	"net/http"
+	"strconv"
 	"strings"
 
 	"github.com/agriplant/config"
@@ -474,6 +475,27 @@ func DeletePlantDetails(c echo.Context) error {
 	config.DB.Where("plant_id = ?", plantID).Delete(&model.FertilizingInfo{})
 	config.DB.Where("plant_id = ?", plantID).Delete(&model.TemperatureInfo{})
 	config.DB.Where("plant_id = ?", plantID).Delete(&model.PlantingInfo{})
+
+	// Delete notification that used deleted plant_id
+	var notifications []model.Notification
+	if err_find := config.DB.Find(&notifications).Error; err_find != nil {
+		log.Print(color.RedString(err_find.Error()))
+		return c.JSON(http.StatusInternalServerError, map[string]interface{}{
+			"status":  500,
+			"message": "internal server error",
+		})
+	}
+
+	for _, notification := range notifications {
+		var myPlant model.MyPlant
+		config.DB.First(&myPlant, notification.MyPlantID)
+
+		plandId, _ := strconv.Atoi(plantID)
+		if uint(plandId) == myPlant.PlantID {
+			var notification model.Notification
+			config.DB.Where("my_plant_id=?", myPlant.ID).Delete(&notification)
+		}
+	}
 
 	// Delete my_plants that used deleted plant_id
 	var myPlants model.MyPlant
