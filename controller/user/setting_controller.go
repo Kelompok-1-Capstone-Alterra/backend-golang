@@ -237,13 +237,7 @@ func GetMyPlantsStats(c echo.Context) error {
 		temp.MyPlantID = MyPlants[i].ID
 
 		picture := []model.Picture{}
-		if err := config.DB.Where("plant_id = ?", MyPlants[i].PlantID).Find(&picture).Error; err != nil {
-			log.Print(color.RedString(err.Error()))
-			return c.JSON(http.StatusBadRequest, map[string]interface{}{
-				"status":  400,
-				"message": "bad request",
-			})
-		}
+		config.DB.Where("plant_id = ?", MyPlants[i].PlantID).Find(&picture)
 		temp.Pictures = picture
 
 		temp.Name = MyPlants[i].Name
