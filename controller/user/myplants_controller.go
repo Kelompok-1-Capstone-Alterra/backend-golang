@@ -26,39 +26,33 @@ func GetMyPlantList(c echo.Context) error {
 		})
 	}
 
-	var plants []model.Plant
-	for _, idPlant := range myPlants {
+	responses := []map[string]interface{}{}
+	for _, myPlant := range myPlants {
 		var plant model.Plant
-
-		if err := config.DB.First(&plant, idPlant.PlantID).Error; err != nil {
-			log.Print(color.RedString(err.Error()))
-			return c.JSON(http.StatusBadRequest, map[string]interface{}{
-				"status":  400,
-				"message": "bad request",
+		if err_first := config.DB.First(&plant, myPlant.PlantID).Error; err_first != nil {
+			log.Print(color.RedString(err_first.Error()))
+			return c.JSON(http.StatusInternalServerError, map[string]interface{}{
+				"status":  500,
+				"message": "internal server error",
 			})
 		}
+		config.DB.Model(&plant).Association("Pictures").Find(&plant.Pictures)
 
-		plants = append(plants, plant)
-	}
-
-	data := []map[string]interface{}{}
-	//Populate Pictures field for each article
-	for i := 0; i < len(plants); i++ {
-		config.DB.Model(&plants[i]).Association("Pictures").Find(&plants[i].Pictures)
-		result := map[string]interface{}{
-			"plant_id":   myPlants[i].PlantID,
-			"myplant_id": myPlants[i].ID,
-			"name":       myPlants[i].Name,
-			"location":   myPlants[i].Location,
-			"picture":    plants[i].Pictures[0].URL,
-			"latin":      plants[i].Latin,
+		response := map[string]interface{}{
+			"plant_id":   myPlant.PlantID,
+			"myplant_id": myPlant.ID,
+			"name":       myPlant.Name,
+			"location":   myPlant.Location,
+			"picture":    plant.Pictures[0].URL,
+			"latin":      plant.Latin,
 		}
-		data = append(data, result)
+
+		responses = append(responses, response)
 	}
 
 	return c.JSON(http.StatusOK, map[string]interface{}{
 		"message": "success to retrieve latest myPlants data",
-		"data":    data,
+		"data":    responses,
 	})
 }
 
