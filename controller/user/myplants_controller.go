@@ -117,11 +117,41 @@ func DeleteMyPlants(c echo.Context) error {
 		})
 	}
 
+	// Validation1 : check if myplant_id valid
+	var myPlants_check []model.MyPlant
+	if err_find := config.DB.Where("id IN ?", deleteID.MyPlants_ID).Find(&myPlants_check).Error; err_find != nil {
+		log.Print(color.RedString(err_find.Error()))
+		return c.JSON(http.StatusInternalServerError, map[string]interface{}{
+			"status":  500,
+			"message": "internal server error",
+		})
+	}
+	if len(deleteID.MyPlants_ID) != len(myPlants_check) || len(deleteID.MyPlants_ID) == 0 {
+		log.Print(color.RedString("there is myplant_id not valid"))
+		return c.JSON(http.StatusBadRequest, map[string]interface{}{
+			"status":  400,
+			"message": "bad request",
+		})
+	}
+
 	if err := config.DB.Where("id IN ?", deleteID.MyPlants_ID).Delete(&myPlants).Error; err != nil {
 		log.Print(color.RedString(err.Error()))
 		return c.JSON(http.StatusNotFound, map[string]interface{}{
 			"status":  404,
 			"message": "not found",
+		})
+	}
+
+	// delete notification according to myplant_id
+	token := strings.TrimPrefix(c.Request().Header.Get("Authorization"), "Bearer ")
+	user_id, _ := utils.GetUserIDFromToken(token)
+
+	var notification model.Notification
+	if err_del := config.DB.Where("user_id=? AND my_plant_id IN ?", user_id, deleteID.MyPlants_ID).Delete(&notification).Error; err_del != nil {
+		log.Print(color.RedString(err_del.Error()))
+		return c.JSON(http.StatusInternalServerError, map[string]interface{}{
+			"status":  500,
+			"message": "internal server error",
 		})
 	}
 
