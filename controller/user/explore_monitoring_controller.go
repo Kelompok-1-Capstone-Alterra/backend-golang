@@ -1956,6 +1956,10 @@ func Add_dead_plant_progress(c echo.Context) error {
 		})
 	}
 
+	// Delete notification that used deleted plant_id
+	var notification model.Notification
+	config.DB.Where("my_plant_id=?", myplant_id).Delete(&notification)
+
 	return c.JSON(http.StatusOK, map[string]interface{}{
 		"status":  200,
 		"message": "success to add dead plant progress",
@@ -2040,6 +2044,10 @@ func Add_harvest_plant_progress(c echo.Context) error {
 			"message": "internal server error",
 		})
 	}
+
+	// Delete notification that used deleted plant_id
+	var notification model.Notification
+	config.DB.Where("my_plant_id=?", myplant_id).Delete(&notification)
 
 	return c.JSON(http.StatusOK, map[string]interface{}{
 		"status":  200,
