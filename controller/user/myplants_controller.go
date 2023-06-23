@@ -26,39 +26,33 @@ func GetMyPlantList(c echo.Context) error {
 		})
 	}
 
-	var plants []model.Plant
-	for _, idPlant := range myPlants {
+	responses := []map[string]interface{}{}
+	for _, myPlant := range myPlants {
 		var plant model.Plant
-
-		if err := config.DB.First(&plant, idPlant.PlantID).Error; err != nil {
-			log.Print(color.RedString(err.Error()))
-			return c.JSON(http.StatusBadRequest, map[string]interface{}{
-				"status":  400,
-				"message": "bad request",
+		if err_first := config.DB.First(&plant, myPlant.PlantID).Error; err_first != nil {
+			log.Print(color.RedString(err_first.Error()))
+			return c.JSON(http.StatusInternalServerError, map[string]interface{}{
+				"status":  500,
+				"message": "internal server error",
 			})
 		}
+		config.DB.Model(&plant).Association("Pictures").Find(&plant.Pictures)
 
-		plants = append(plants, plant)
-	}
-
-	data := []map[string]interface{}{}
-	//Populate Pictures field for each article
-	for i := 0; i < len(plants); i++ {
-		config.DB.Model(&plants[i]).Association("Pictures").Find(&plants[i].Pictures)
-		result := map[string]interface{}{
-			"plant_id":   myPlants[i].PlantID,
-			"myplant_id": myPlants[i].ID,
-			"name":       myPlants[i].Name,
-			"location":   myPlants[i].Location,
-			"picture":    plants[i].Pictures[0].URL,
-			"latin":      plants[i].Latin,
+		response := map[string]interface{}{
+			"plant_id":   myPlant.PlantID,
+			"myplant_id": myPlant.ID,
+			"name":       myPlant.Name,
+			"location":   myPlant.Location,
+			"picture":    plant.Pictures[0].URL,
+			"latin":      plant.Latin,
 		}
-		data = append(data, result)
+
+		responses = append(responses, response)
 	}
 
 	return c.JSON(http.StatusOK, map[string]interface{}{
 		"message": "success to retrieve latest myPlants data",
-		"data":    data,
+		"data":    responses,
 	})
 }
 
@@ -123,11 +117,41 @@ func DeleteMyPlants(c echo.Context) error {
 		})
 	}
 
+	// Validation1 : check if myplant_id valid
+	var myPlants_check []model.MyPlant
+	if err_find := config.DB.Where("id IN ?", deleteID.MyPlants_ID).Find(&myPlants_check).Error; err_find != nil {
+		log.Print(color.RedString(err_find.Error()))
+		return c.JSON(http.StatusInternalServerError, map[string]interface{}{
+			"status":  500,
+			"message": "internal server error",
+		})
+	}
+	if len(deleteID.MyPlants_ID) != len(myPlants_check) || len(deleteID.MyPlants_ID) == 0 {
+		log.Print(color.RedString("there is myplant_id not valid"))
+		return c.JSON(http.StatusBadRequest, map[string]interface{}{
+			"status":  400,
+			"message": "bad request",
+		})
+	}
+
 	if err := config.DB.Where("id IN ?", deleteID.MyPlants_ID).Delete(&myPlants).Error; err != nil {
 		log.Print(color.RedString(err.Error()))
 		return c.JSON(http.StatusNotFound, map[string]interface{}{
 			"status":  404,
 			"message": "not found",
+		})
+	}
+
+	// delete notification according to myplant_id
+	token := strings.TrimPrefix(c.Request().Header.Get("Authorization"), "Bearer ")
+	user_id, _ := utils.GetUserIDFromToken(token)
+
+	var notification model.Notification
+	if err_del := config.DB.Where("user_id=? AND my_plant_id IN ?", user_id, deleteID.MyPlants_ID).Delete(&notification).Error; err_del != nil {
+		log.Print(color.RedString(err_del.Error()))
+		return c.JSON(http.StatusInternalServerError, map[string]interface{}{
+			"status":  500,
+			"message": "internal server error",
 		})
 	}
 
