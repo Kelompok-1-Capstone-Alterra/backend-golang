@@ -3,6 +3,7 @@ package controller
 import (
 	"context"
 	"encoding/base64"
+	"github.com/fatih/color"
 	"io"
 	"io/ioutil"
 	"log"
@@ -149,9 +150,10 @@ func Get_picture(c echo.Context) error {
 	err := downloadFile(c.Response().Writer, bucketName, objectName)
 	if err != nil {
 		// Handle error
-		return c.JSON(http.StatusInternalServerError, map[string]interface{}{
-			"status":  500,
-			"message": "internal server error, Failed to get picture",
+		log.Print(color.RedString(err.Error()), " failed to get picture, url not found")
+		return c.JSON(http.StatusNotFound, map[string]interface{}{
+			"status":  400,
+			"message": "not found",
 		})
 	}
 
@@ -165,9 +167,10 @@ func downloadFile(w io.Writer, bucket, object string) error {
 
 	rc, err := client.Bucket(bucket).Object(object).NewReader(ctx)
 	if err != nil {
-		return echo.NewHTTPError(http.StatusNotFound, map[string]interface{}{
-			"status":  404,
-			"message": "not found, Failed to get object from cloud storage",
+		log.Print(color.RedString(err.Error()), " failed to get object from cloud storage")
+		return echo.NewHTTPError(http.StatusInternalServerError, map[string]interface{}{
+			"status":  500,
+			"message": "internal server error",
 		})
 	}
 	defer rc.Close()
