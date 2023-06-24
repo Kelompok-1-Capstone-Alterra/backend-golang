@@ -641,7 +641,7 @@ func Get_plant_location(c echo.Context) error {
 			"message": "not found",
 		})
 	}
-
+	fmt.Println(planting_info.Ground, planting_info.Container)
 	responses := []map[string]interface{}{}
 
 	if planting_info.Container {
@@ -737,8 +737,8 @@ func GetPlantingArticle(c echo.Context) error {
 		})
 	}
 
-	var plantingArticle model.ContainerInfo
 	if location == "container" {
+		var plantingArticle model.ContainerInfo
 		if err_first := config.DB.Where("planting_info_id=?", plantingInfo.ID).First(&plantingArticle).Error; err_first != nil {
 			log.Print(color.RedString(err_first.Error()))
 			return c.JSON(http.StatusNotFound, map[string]interface{}{
@@ -761,6 +761,7 @@ func GetPlantingArticle(c echo.Context) error {
 			},
 		})
 	} else if location == "ground" {
+		var plantingArticle model.GroundInfo
 		if err_first := config.DB.Where("planting_info_id=?", plantingInfo.ID).First(&plantingArticle).Error; err_first != nil {
 			log.Print(color.RedString(err_first.Error()))
 			return c.JSON(http.StatusNotFound, map[string]interface{}{
