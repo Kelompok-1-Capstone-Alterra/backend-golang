@@ -278,15 +278,6 @@ func Get_notifications(c echo.Context) error {
 				"message": "internal server error",
 			})
 		}
-
-		err_generateNotifications2 := generate_notifications(user_id, userCurrentDate)
-		if !err_generateNotifications2 {
-			log.Print(color.RedString("error while generate notifications 2"))
-			return c.JSON(http.StatusInternalServerError, map[string]interface{}{
-				"status":  500,
-				"message": "internal server error",
-			})
-		}
 	}
 
 	// retrieve all notification datas
@@ -390,8 +381,6 @@ func generate_notifications(user_id uint, userCurrentDate string) bool {
 			if err_save2 := config.DB.Save(&wateringCheck).Error; err_save2 != nil {
 				return false
 			}
-			fmt.Println("aman", myPlant.ID)
-			return true
 		}
 
 		watering_history := []int{watering.Day1, watering.Day2, watering.Day3, watering.Day4, watering.Day5, watering.Day6, watering.Day7}
