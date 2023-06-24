@@ -131,7 +131,7 @@ func New() *echo.Echo {
 	// Articles (with token)
 	eAuth.GET("/users/articles/trending", user.GetArticlesTrending)
 	eAuth.GET("/users/articles/latest", user.GetArticlesLatest)
-	eAuth.GET("/users/articles/:id", user.GetArticlesbyID)
+	eAuth.GET("/users/articles/:id", user.GetArticlesByID)
 	eAuth.GET("/users/articles/liked", user.GetArticlesLiked)
 	eAuth.POST("/users/articles/:article_id/liked", user.AddLikes)
 	eAuth.DELETE("/users/articles/:article_id/liked", user.DeleteLikes)
