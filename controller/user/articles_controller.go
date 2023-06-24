@@ -155,13 +155,11 @@ func GetArticlesByID(c echo.Context) error {
 	// Check if the user has liked the article
 	token := strings.TrimPrefix(c.Request().Header.Get("Authorization"), "Bearer ")
 	userID, _ := utils.GetUserIDFromToken(token)
+
 	var likedArticle model.LikedArticles
-	if err := config.DB.Where("user_id = ? AND article_id = ?", userID, id).First(&likedArticle).Error; err != nil {
-		log.Print(color.RedString(err.Error()))
-		return c.JSON(http.StatusNotFound, map[string]interface{}{
-			"status":  404,
-			"message": "not found",
-		})
+	is_liked := false
+	if err := config.DB.Where("user_id = ? AND article_id = ?", userID, id).First(&likedArticle).Error; err == nil {
+		is_liked = true
 	}
 
 	result := map[string]interface{}{
@@ -169,7 +167,7 @@ func GetArticlesByID(c echo.Context) error {
 		"title":       articles.Title,
 		"picture":     articles.Pictures[0].URL,
 		"description": articles.Description,
-		"is_liked":    (likedArticle.ID != 0), // Check if the user has liked the article
+		"is_liked":    is_liked, // Check if the user has liked the article
 	}
 	data = append(data, result)
 
