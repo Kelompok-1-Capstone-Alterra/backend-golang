@@ -124,7 +124,7 @@ func GetArticlesLiked(c echo.Context) error {
 	})
 }
 
-func GetArticlesbyID(c echo.Context) error {
+func GetArticlesByID(c echo.Context) error {
 	articles := model.Article{}
 	id, _ := strconv.Atoi(c.Param("id"))
 
@@ -151,18 +151,31 @@ func GetArticlesbyID(c echo.Context) error {
 	var data []map[string]interface{}
 	// Populate Pictures field for each product
 	config.DB.Model(&articles).Association("Pictures").Find(&articles.Pictures)
+
+	// Check if the user has liked the article
+	token := strings.TrimPrefix(c.Request().Header.Get("Authorization"), "Bearer ")
+	userID, _ := utils.GetUserIDFromToken(token)
+	var likedArticle model.LikedArticles
+	if err := config.DB.Where("user_id = ? AND article_id = ?", userID, id).First(&likedArticle).Error; err != nil {
+		log.Print(color.RedString(err.Error()))
+		return c.JSON(http.StatusNotFound, map[string]interface{}{
+			"status":  404,
+			"message": "not found",
+		})
+	}
+
 	result := map[string]interface{}{
 		"id":          articles.ID,
 		"title":       articles.Title,
 		"picture":     articles.Pictures[0].URL,
 		"description": articles.Description,
-		"is_liked":    false,
+		"is_liked":    (likedArticle.ID != 0), // Check if the user has liked the article
 	}
 	data = append(data, result)
-	// remove article_id from articles_pictures
+
+	// Remove article_id from articles_pictures
 	for i := 0; i < len(articles.Pictures); i++ {
 		articles.Pictures[i].ArticleID = nil
-
 	}
 
 	return c.JSON(http.StatusOK, map[string]interface{}{
