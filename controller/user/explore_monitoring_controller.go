@@ -272,7 +272,16 @@ func Get_notifications(c echo.Context) error {
 		// insert notifications
 		err_generateNotifications := generate_notifications(user_id, userCurrentDate)
 		if !err_generateNotifications {
-			log.Print(color.RedString("error while generate notifications"))
+			log.Print(color.RedString("error while generate notifications 1"))
+			return c.JSON(http.StatusInternalServerError, map[string]interface{}{
+				"status":  500,
+				"message": "internal server error",
+			})
+		}
+
+		err_generateNotifications2 := generate_notifications(user_id, userCurrentDate)
+		if !err_generateNotifications2 {
+			log.Print(color.RedString("error while generate notifications 2"))
 			return c.JSON(http.StatusInternalServerError, map[string]interface{}{
 				"status":  500,
 				"message": "internal server error",
@@ -366,8 +375,25 @@ func generate_notifications(user_id uint, userCurrentDate string) bool {
 		var watering model.Watering
 		if err_first := config.DB.Where("my_plant_id=? AND week=?", myPlant.ID, week).First(&watering).Error; err_first != nil {
 			log.Print(color.RedString(err_first.Error(), "please hit endpoint Get myplant overview first"))
-			return false
+
+			var wateringCheck model.Watering
+			wateringCheck.MyPlantID = myPlant.ID
+			wateringCheck.Week = week
+			wateringCheck.Day1 = 0
+			wateringCheck.Day2 = 0
+			wateringCheck.Day3 = 0
+			wateringCheck.Day4 = 0
+			wateringCheck.Day5 = 0
+			wateringCheck.Day6 = 0
+			wateringCheck.Day7 = 0
+
+			if err_save2 := config.DB.Save(&wateringCheck).Error; err_save2 != nil {
+				return false
+			}
+			fmt.Println("aman", myPlant.ID)
+			return true
 		}
+
 		watering_history := []int{watering.Day1, watering.Day2, watering.Day3, watering.Day4, watering.Day5, watering.Day6, watering.Day7}
 		if watering_history[day-1] < wateringInfo.Period {
 			var notification model.Notification
