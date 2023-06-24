@@ -173,9 +173,21 @@ func GetArticlesbyID(c echo.Context) error {
 
 func AddLikes(c echo.Context) error {
 	like := model.LikedArticles{}
+	article := model.Article{}
+
 	articles_id, _ := StringToUintPointer(c.Param("article_id"))
 	token := strings.TrimPrefix(c.Request().Header.Get("Authorization"), "Bearer ")
 	user_id, _ := utils.GetUserIDFromToken(token)
+
+	// increment the "like" field by 1
+	article.Like++
+	if err := config.DB.Model(&model.Article{}).Where("id = ?", articles_id).Update("like", article.Like).Error; err != nil {
+		log.Print(color.RedString(err.Error()))
+		return c.JSON(http.StatusInternalServerError, map[string]interface{}{
+			"status":  500,
+			"message": "internal server error",
+		})
+	}
 
 	// Get product by id
 	// If product not found, return error
@@ -195,20 +207,45 @@ func AddLikes(c echo.Context) error {
 }
 
 func DeleteLikes(c echo.Context) error {
-	article_id, _ := StringToUintPointer(c.Param("article_id"))
+	articleID, _ := StringToUintPointer(c.Param("article_id"))
 
-	token := strings.TrimPrefix(c.Request().Header.Get("Authorization"), "Bearer ")
-	user_id, _ := utils.GetUserIDFromToken(token)
-
-	var likedArticle model.LikedArticles
-	if err_first := config.DB.Where("user_id=? AND article_id=?", user_id, article_id).First(&likedArticle).Error; err_first != nil {
-		log.Print(color.RedString(err_first.Error()))
+	// Fetch the article from the database
+	article := model.Article{}
+	if err := config.DB.Where("id = ?", articleID).First(&article).Error; err != nil {
+		log.Print(color.RedString(err.Error()))
 		return c.JSON(http.StatusNotFound, map[string]interface{}{
 			"status":  404,
 			"message": "not found",
 		})
-	} else {
-		if err := config.DB.Where("user_id=? AND article_id=?", user_id, article_id).Delete(&likedArticle).Error; err != nil {
+	}
+
+	// Extract user ID from the token
+	token := strings.TrimPrefix(c.Request().Header.Get("Authorization"), "Bearer ")
+	userID, _ := utils.GetUserIDFromToken(token)
+
+	// Check if the user has liked the article
+	var likedArticle model.LikedArticles
+	if err := config.DB.Where("user_id = ? AND article_id = ?", userID, articleID).First(&likedArticle).Error; err != nil {
+		log.Print(color.RedString(err.Error()))
+		return c.JSON(http.StatusNotFound, map[string]interface{}{
+			"status":  404,
+			"message": "not found",
+		})
+	}
+
+	// Delete the like entry
+	if err := config.DB.Delete(&likedArticle).Error; err != nil {
+		log.Print(color.RedString(err.Error()))
+		return c.JSON(http.StatusInternalServerError, map[string]interface{}{
+			"status":  500,
+			"message": "internal server error",
+		})
+	}
+
+	// Decrement the "like" field if it is greater than 0
+	if article.Like > 0 {
+		article.Like--
+		if err := config.DB.Model(&model.Article{}).Where("id = ?", articleID).Update("like", article.Like).Error; err != nil {
 			log.Print(color.RedString(err.Error()))
 			return c.JSON(http.StatusInternalServerError, map[string]interface{}{
 				"status":  500,
