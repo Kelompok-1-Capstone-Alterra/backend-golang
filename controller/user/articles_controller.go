@@ -1,6 +1,7 @@
 package controller
 
 import (
+	"errors"
 	"log"
 	"net/http"
 	"strconv"
@@ -11,6 +12,7 @@ import (
 	"github.com/agriplant/utils"
 	"github.com/fatih/color"
 	"github.com/labstack/echo/v4"
+	"gorm.io/gorm"
 )
 
 func GetArticlesTrending(c echo.Context) error {
@@ -190,7 +192,33 @@ func AddLikes(c echo.Context) error {
 	token := strings.TrimPrefix(c.Request().Header.Get("Authorization"), "Bearer ")
 	user_id, _ := utils.GetUserIDFromToken(token)
 
-	// increment the "like" field by 1
+	// Check if the user has already liked the article
+	err := config.DB.Where("article_id = ? AND user_id = ?", *articles_id, user_id).First(&like).Error
+	if err == nil {
+		// User has already liked the article
+		return c.JSON(http.StatusBadRequest, map[string]interface{}{
+			"status":  400,
+			"message": "You have already liked this article",
+		})
+	} else if !errors.Is(err, gorm.ErrRecordNotFound) {
+		// Error occurred while checking the like record
+		log.Print(color.RedString(err.Error()))
+		return c.JSON(http.StatusInternalServerError, map[string]interface{}{
+			"status":  500,
+			"message": "Internal server error",
+		})
+	}
+
+	// Fetch the current value of "Like" from the database
+	if err := config.DB.Model(&model.Article{}).Where("id = ?", articles_id).First(&article).Error; err != nil {
+		log.Print(color.RedString(err.Error()))
+		return c.JSON(http.StatusInternalServerError, map[string]interface{}{
+			"status":  500,
+			"message": "internal server error",
+		})
+	}
+
+	// Increment the "Like" field by 1
 	article.Like++
 	if err := config.DB.Model(&model.Article{}).Where("id = ?", articles_id).Update("like", article.Like).Error; err != nil {
 		log.Print(color.RedString(err.Error()))
@@ -266,6 +294,7 @@ func DeleteLikes(c echo.Context) error {
 	}
 
 	return c.JSON(http.StatusOK, map[string]interface{}{
-		"message": "success to unlike",
+		"message": "Successfully unliked the article",
+		"status":  200,
 	})
 }
