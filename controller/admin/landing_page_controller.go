@@ -165,6 +165,7 @@ func GetOverview(c echo.Context) error {
 		Joins("JOIN plants ON my_plants.plant_id = plants.id").
 		Group("my_plants.plant_id").
 		Order("total_users DESC").
+		Limit(10). // Limit the number of plant summaries to 10
 		Find(&plantSummaries).Error; err != nil {
 		log.Print(color.RedString(err.Error()))
 		return c.JSON(http.StatusInternalServerError, map[string]interface{}{
@@ -186,6 +187,7 @@ func GetOverview(c echo.Context) error {
 	var weatherData []model.InfoWeather
 	if err := config.DB.
 		Order("created_at DESC").
+		Limit(10). // Limit the number of weather entries to 10
 		Find(&weatherData).Error; err != nil {
 		log.Print(color.RedString(err.Error()))
 		return c.JSON(http.StatusInternalServerError, map[string]interface{}{
