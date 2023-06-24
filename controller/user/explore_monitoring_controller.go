@@ -1301,18 +1301,31 @@ func Get_myplant_overview(c echo.Context) error {
 	}
 
 	day_fertilizing := int(diff.Hours()/24) + 1
-	is_active_fertilizing := false
-	if week == 1 && day == 1 {
-		is_active_fertilizing = true
-	} else if day_fertilizing%fertilizingInfo.Period == 0 {
-		is_active_fertilizing = true
+
+	// Get how many times has fertilization been done
+	var fertlizingCheck []model.Fertilizing
+	if err_fertlizingCheck := config.DB.Where("my_plant_id=?", myplant_id).Find(&fertlizingCheck).Error; err_fertlizingCheck != nil {
+		log.Print(color.RedString(err_fertlizingCheck.Error()))
+		return c.JSON(http.StatusInternalServerError, map[string]interface{}{
+			"status":  500,
+			"message": "internal server error",
+		})
 	}
 
+	is_active_fertilizing := false
 	is_enabled_fertilizing := false
-	if is_active_fertilizing {
-		var fertilizing model.Fertilizing
-		if err_first_fertilizing := config.DB.Where("my_plant_id=? AND week=?", myplant_id, week).First(&fertilizing).Error; err_first_fertilizing != nil {
-			is_enabled_fertilizing = true
+	if len(fertlizingCheck) < fertilizingInfo.Limit {
+		if week == 1 && day == 1 {
+			is_active_fertilizing = true
+		} else if day_fertilizing%fertilizingInfo.Period == 0 {
+			is_active_fertilizing = true
+		}
+
+		if is_active_fertilizing {
+			var fertilizing model.Fertilizing
+			if err_first_fertilizing := config.DB.Where("my_plant_id=? AND week=?", myplant_id, week).First(&fertilizing).Error; err_first_fertilizing != nil {
+				is_enabled_fertilizing = true
+			}
 		}
 	}
 
