@@ -163,6 +163,7 @@ func GetOverview(c echo.Context) error {
 		Table("my_plants").
 		Select("plants.name AS plant_name, COUNT(DISTINCT my_plants.user_id) AS total_users").
 		Joins("JOIN plants ON my_plants.plant_id = plants.id").
+		Where("plants.deleted_at IS NULL"). // Filter out deleted plants
 		Group("my_plants.plant_id").
 		Order("total_users DESC").
 		Limit(10). // Limit the number of plant summaries to 10
