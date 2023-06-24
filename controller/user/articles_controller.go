@@ -138,6 +138,16 @@ func GetArticlesbyID(c echo.Context) error {
 		})
 	}
 
+	// Increment the "view" field by 1
+	articles.View++
+	if err := config.DB.Model(&model.Article{}).Where("id = ?", id).Update("view", articles.View).Error; err != nil {
+		log.Print(color.RedString(err.Error()))
+		return c.JSON(http.StatusInternalServerError, map[string]interface{}{
+			"status":  500,
+			"message": "internal server error",
+		})
+	}
+
 	var data []map[string]interface{}
 	// Populate Pictures field for each product
 	config.DB.Model(&articles).Association("Pictures").Find(&articles.Pictures)
