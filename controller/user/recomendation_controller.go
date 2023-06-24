@@ -14,7 +14,7 @@ import (
 func GetProducts(c echo.Context) error {
 	product := []model.Product{}
 
-	if err := config.DB.Find(&product).Error; err != nil {
+	if err := config.DB.Order("created_at DESC").Find(&product).Error; err != nil {
 		log.Print(color.RedString(err.Error()))
 		return c.JSON(http.StatusInternalServerError, map[string]interface{}{
 			"status":  500,
@@ -43,7 +43,7 @@ func GetProducts(c echo.Context) error {
 			seeds = append(seeds, product[i])
 		} else if product[i].Category == "Pestisida" {
 			pesticides = append(pesticides, product[i])
-		} else if product[i].Category == "Alat tani" {
+		} else if product[i].Category == "Alat Tani" {
 			tools = append(tools, product[i])
 		} else if product[i].Category == "Pupuk" {
 			fertilizers = append(fertilizers, product[i])
@@ -131,7 +131,7 @@ func GetProductsByName(c echo.Context) error {
 
 	product := []model.Product{}
 
-	if err := config.DB.Where("name LIKE ?", "%"+name+"%").Find(&product).Error; err != nil {
+	if err := config.DB.Order("created_at DESC").Where("name LIKE ?", "%"+name+"%").Find(&product).Error; err != nil {
 		log.Print(color.RedString(err.Error()))
 		return c.JSON(http.StatusInternalServerError, map[string]interface{}{
 			"status":  500,
@@ -185,7 +185,7 @@ func GetProductsByCategory(c echo.Context) error {
 
 	product := []model.Product{}
 
-	if err := config.DB.Where("category = ?", category).Find(&product).Error; err != nil {
+	if err := config.DB.Order("created_at DESC").Where("category = ?", category).Find(&product).Error; err != nil {
 		log.Print(color.RedString(err.Error()))
 		return c.JSON(http.StatusInternalServerError, map[string]interface{}{
 			"status":  500,
@@ -242,7 +242,7 @@ func GetProductsByCategoryAndName(c echo.Context) error {
 
 	product := []model.Product{}
 
-	if err := config.DB.Where("category = ? AND name LIKE ?", category, "%"+name+"%").Find(&product).Error; err != nil {
+	if err := config.DB.Order("created_at DESC").Where("category = ? AND name LIKE ?", category, "%"+name+"%").Find(&product).Error; err != nil {
 		log.Print(color.RedString(err.Error()))
 		return c.JSON(http.StatusInternalServerError, map[string]interface{}{
 			"status":  500,
@@ -386,7 +386,7 @@ func GetProductContactByID(c echo.Context) error {
 func GetRelatedProducts(category string) []model.ProductResponse {
 	product := []model.Product{}
 
-	if err := config.DB.Where("category = ?", category).Find(&product).Error; err != nil {
+	if err := config.DB.Order("created_at DESC").Where("category = ?", category).Find(&product).Error; err != nil {
 		log.Print(color.RedString(err.Error()))
 	}
 

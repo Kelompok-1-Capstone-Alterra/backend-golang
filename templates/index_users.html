@@ -50,13 +50,13 @@
       <tr>
         <th>ID</th>
         <th>UserID</th>
-        <th>Content</th>
+        <th>Message</th>
       </tr>
       {{range .Suggestions}}
       <tr>
         <td>{{.ID}}</td>
         <td>{{.UserID}}</td>
-        <td>{{.Content}}</td>
+        <td>{{.Message}}</td>
       </tr>
       {{end}}
     </table>
@@ -68,17 +68,41 @@
       <tr>
         <th>ID</th>
         <th>UserID</th>
-        <th>PhoneNumber</th>
+        <th>Phone</th>
         <th>Email</th>
-        <th>Notes</th>
+        <th>Message</th>
       </tr>
       {{range .Complaints}}
       <tr>
         <td>{{.ID}}</td>
         <td>{{.UserID}}</td>
-        <td>{{.PhoneNumber}}</td>
+        <td>{{.Phone}}</td>
         <td>{{.Email}}</td>
-        <td>{{.Notes}}</td>
+        <td>{{.Message}}</td>
+      </tr>
+      {{end}}
+    </table>
+    <br />
+    <hr />
+
+    <h1>Table Notifications</h1>
+    <table>
+      <tr>
+        <th>ID</th>
+        <th>UserID</th>
+        <th>MyPlantID</th>
+        <th>Date</th>
+        <th>Activity</th>
+        <th>ReadStatus</th>
+      </tr>
+      {{range .Notifications}}
+      <tr>
+        <td>{{.ID}}</td>
+        <td>{{.UserID}}</td>
+        <td>{{.MyPlantID}}</td>
+        <td>{{.Date}}</td>
+        <td>{{.Activity}}</td>
+        <td>{{.ReadStatus}}</td>
       </tr>
       {{end}}
     </table>

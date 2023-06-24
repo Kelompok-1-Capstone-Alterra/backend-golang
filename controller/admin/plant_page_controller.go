@@ -1,8 +1,10 @@
 package admin
 
 import (
+	"errors"
 	"log"
 	"net/http"
+	"strconv"
 	"strings"
 
 	"github.com/agriplant/config"
@@ -10,6 +12,7 @@ import (
 	"github.com/agriplant/utils"
 	"github.com/fatih/color"
 	"github.com/labstack/echo/v4"
+	"gorm.io/gorm"
 )
 
 func CreatePlant(c echo.Context) error {
@@ -61,7 +64,7 @@ func GetPlants(c echo.Context) error {
 	responses := []Response{}
 
 	// Get all plants
-	if err := config.DB.Find(&plants).Error; err != nil {
+	if err := config.DB.Order("updated_at DESC").Find(&plants).Error; err != nil {
 		log.Print(color.RedString(err.Error()))
 		return c.JSON(http.StatusBadRequest, map[string]interface{}{
 			"status":  400,
@@ -116,7 +119,7 @@ func GetPlantsByKeyword(c echo.Context) error {
 	responses := []Response{}
 
 	// Get all plants
-	if err := config.DB.Where("`name` LIKE ?", "%"+keyword+"%").Find(&plants).Error; err != nil {
+	if err := config.DB.Order("updated_at DESC").Where("`name` LIKE ?", "%"+keyword+"%").Find(&plants).Error; err != nil {
 		log.Print(color.RedString(err.Error()))
 		return c.JSON(http.StatusBadRequest, map[string]interface{}{
 			"status":  400,
@@ -194,7 +197,7 @@ func UpdatePlantDetails(c echo.Context) error {
 
 	plantID := c.Param("id")
 
-	// Updating plant details
+	// Get plant by id
 	if err := config.DB.First(&plant, plantID).Error; err != nil {
 		log.Print(color.RedString(err.Error()))
 		return c.JSON(http.StatusBadRequest, map[string]interface{}{
@@ -203,6 +206,7 @@ func UpdatePlantDetails(c echo.Context) error {
 		})
 	}
 
+	// Bind plant details from request body
 	if err := c.Bind(&plant); err != nil {
 		log.Print(color.RedString(err.Error()))
 		return c.JSON(http.StatusBadRequest, map[string]interface{}{
@@ -211,35 +215,17 @@ func UpdatePlantDetails(c echo.Context) error {
 		})
 	}
 
+	// Delete previous pictures
+	config.DB.Where("plant_id = ?", plantID).Unscoped().Delete(&model.Picture{})
+
 	// Updating pictures on plant details
-	pictureDB := []model.Picture{}
-	if err := config.DB.Where("plant_id = ?", plantID).Find(&pictureDB).Error; err != nil {
-		log.Print(color.RedString(err.Error()))
-		return c.JSON(http.StatusBadRequest, map[string]interface{}{
-			"status":  400,
-			"message": "bad request",
-		})
-	}
-
-	if err := config.DB.Unscoped().Delete(&pictureDB).Error; err != nil {
-		log.Print(color.RedString(err.Error()))
-		return c.JSON(http.StatusInternalServerError, map[string]interface{}{
-			"status":  500,
-			"message": "internal server error",
-		})
-	}
-
 	pictures := plant.Pictures
 	for i := 0; i < len(pictures); i++ {
 		pictures[i].PlantID = &plant.ID
 	}
 
-	if err := config.DB.Save(pictures).Error; err != nil {
-		log.Print(color.RedString(err.Error()))
-		return c.JSON(http.StatusInternalServerError, map[string]interface{}{
-			"status":  500,
-			"message": "internal server error",
-		})
+	if len(pictures) != 0 {
+		config.DB.Save(&pictures)
 	}
 
 	// Updating watering info on plant details
@@ -264,35 +250,17 @@ func UpdatePlantDetails(c echo.Context) error {
 		})
 	}
 
+	// Delete previous pictures on watering info
+	config.DB.Where("watering_info_id = ?", watering.ID).Unscoped().Delete(&model.Picture{})
+
 	// Updating pictures on watering info
-	pictureDB = []model.Picture{}
-	if err := config.DB.Where("watering_info_id = ?", watering.ID).Find(&pictureDB).Error; err != nil {
-		log.Print(color.RedString(err.Error()))
-		return c.JSON(http.StatusBadRequest, map[string]interface{}{
-			"status":  400,
-			"message": "bad request",
-		})
-	}
-
-	if err := config.DB.Unscoped().Delete(&pictureDB).Error; err != nil {
-		log.Print(color.RedString(err.Error()))
-		return c.JSON(http.StatusInternalServerError, map[string]interface{}{
-			"status":  500,
-			"message": "internal server error",
-		})
-	}
-
 	pictures = plant.WateringInfo.Pictures
 	for i := 0; i < len(pictures); i++ {
 		pictures[i].WateringInfoID = &watering.ID
 	}
 
-	if err := config.DB.Save(pictures).Error; err != nil {
-		log.Print(color.RedString(err.Error()))
-		return c.JSON(http.StatusInternalServerError, map[string]interface{}{
-			"status":  500,
-			"message": "internal server error",
-		})
+	if len(pictures) != 0 {
+		config.DB.Save(&pictures)
 	}
 
 	// Updating temperature info on plant details
@@ -317,35 +285,17 @@ func UpdatePlantDetails(c echo.Context) error {
 		})
 	}
 
+	// Delete previous pictures on temperature info
+	config.DB.Where("temperature_info_id = ?", temperature.ID).Unscoped().Delete(&model.Picture{})
+
 	// Updating pictures on temperature info
-	pictureDB = []model.Picture{}
-	if err := config.DB.Where("temperature_info_id = ?", temperature.ID).Find(&pictureDB).Error; err != nil {
-		log.Print(color.RedString(err.Error()))
-		return c.JSON(http.StatusBadRequest, map[string]interface{}{
-			"status":  400,
-			"message": "bad request",
-		})
-	}
-
-	if err := config.DB.Unscoped().Delete(&pictureDB).Error; err != nil {
-		log.Print(color.RedString(err.Error()))
-		return c.JSON(http.StatusInternalServerError, map[string]interface{}{
-			"status":  500,
-			"message": "internal server error",
-		})
-	}
-
 	pictures = plant.TemperatureInfo.Pictures
 	for i := 0; i < len(pictures); i++ {
 		pictures[i].TemperatureInfoID = &temperature.ID
 	}
 
-	if err := config.DB.Save(pictures).Error; err != nil {
-		log.Print(color.RedString(err.Error()))
-		return c.JSON(http.StatusInternalServerError, map[string]interface{}{
-			"status":  500,
-			"message": "internal server error",
-		})
+	if len(pictures) != 0 {
+		config.DB.Save(&pictures)
 	}
 
 	// Updating fertilizing info on plant details
@@ -370,35 +320,17 @@ func UpdatePlantDetails(c echo.Context) error {
 		})
 	}
 
+	// Delete previous pictures on fertilizing info
+	config.DB.Where("fertilizing_info_id = ?", fertilizing.ID).Unscoped().Delete(&model.Picture{})
+
 	// Updating pictures on fertilizing info
-	pictureDB = []model.Picture{}
-	if err := config.DB.Where("fertilizing_info_id = ?", fertilizing.ID).Find(&pictureDB).Error; err != nil {
-		log.Print(color.RedString(err.Error()))
-		return c.JSON(http.StatusBadRequest, map[string]interface{}{
-			"status":  400,
-			"message": "bad request",
-		})
-	}
-
-	if err := config.DB.Unscoped().Delete(&pictureDB).Error; err != nil {
-		log.Print(color.RedString(err.Error()))
-		return c.JSON(http.StatusInternalServerError, map[string]interface{}{
-			"status":  500,
-			"message": "internal server error",
-		})
-	}
-
 	pictures = plant.FertilizingInfo.Pictures
 	for i := 0; i < len(pictures); i++ {
 		pictures[i].FertilizingInfoID = &fertilizing.ID
 	}
 
-	if err := config.DB.Save(pictures).Error; err != nil {
-		log.Print(color.RedString(err.Error()))
-		return c.JSON(http.StatusInternalServerError, map[string]interface{}{
-			"status":  500,
-			"message": "internal server error",
-		})
+	if len(pictures) != 0 {
+		config.DB.Save(&pictures)
 	}
 
 	// Updating planting info on plant details
@@ -424,108 +356,74 @@ func UpdatePlantDetails(c echo.Context) error {
 
 	// Updating container info on planting info
 	container := model.ContainerInfo{}
-	if err := config.DB.Where("planting_info_id = ?", planting.ID).First(&container).Error; err != nil {
-		log.Print(color.RedString(err.Error()))
-		return c.JSON(http.StatusBadRequest, map[string]interface{}{
-			"status":  400,
-			"message": "bad request",
-		})
-	}
+	err := config.DB.Where("planting_info_id = ?", planting.ID).First(&container).Error
+	if errors.Is(err, gorm.ErrRecordNotFound) {
+		if plant.PlantingInfo.Container {
+			container = plant.PlantingInfo.ContainerInfo
+			container.PlantingInfoID = planting.ID
+			config.DB.Save(&container)
+			config.DB.Where("planting_info_id = ?", planting.ID).First(&container)
+		}
+	} else {
+		if plant.PlantingInfo.Container {
+			container.Instructions = plant.PlantingInfo.ContainerInfo.Instructions
+			container.Materials = plant.PlantingInfo.ContainerInfo.Materials
+			container.Video = plant.PlantingInfo.ContainerInfo.Video
 
-	container.Instructions = plant.PlantingInfo.ContainerInfo.Instructions
-	container.Materials = plant.PlantingInfo.ContainerInfo.Materials
-	container.Video = plant.PlantingInfo.ContainerInfo.Video
-
-	if err := config.DB.Model(&container).Updates(model.ContainerInfo{Instructions: container.Instructions, Materials: container.Materials, Video: container.Video}).Error; err != nil {
-		log.Print(color.RedString(err.Error()))
-		return c.JSON(http.StatusInternalServerError, map[string]interface{}{
-			"status":  500,
-			"message": "internal server error",
-		})
+			config.DB.Model(&container).Updates(model.ContainerInfo{Instructions: container.Instructions, Materials: container.Materials, Video: container.Video})
+		} else {
+			config.DB.Where("container_info_id = ?", container.ID).Unscoped().Delete(&model.Picture{})
+			config.DB.Where("planting_info_id = ?", planting.ID).Unscoped().Delete(&model.ContainerInfo{})
+		}
 	}
 
 	// Updating pictures on container info
-	pictureDB = []model.Picture{}
-	if err := config.DB.Where("container_info_id = ?", container.ID).Find(&pictureDB).Error; err != nil {
-		log.Print(color.RedString(err.Error()))
-		return c.JSON(http.StatusBadRequest, map[string]interface{}{
-			"status":  400,
-			"message": "bad request",
-		})
-	}
+	config.DB.Where("container_info_id = ?", container.ID).Unscoped().Delete(&model.Picture{})
 
-	if err := config.DB.Unscoped().Delete(&pictureDB).Error; err != nil {
-		log.Print(color.RedString(err.Error()))
-		return c.JSON(http.StatusInternalServerError, map[string]interface{}{
-			"status":  500,
-			"message": "internal server error",
-		})
-	}
-
+	// Updating pictures on container info
 	pictures = plant.PlantingInfo.ContainerInfo.Pictures
 	for i := 0; i < len(pictures); i++ {
 		pictures[i].ContainerInfoID = &container.ID
 	}
 
-	if err := config.DB.Save(pictures).Error; err != nil {
-		log.Print(color.RedString(err.Error()))
-		return c.JSON(http.StatusInternalServerError, map[string]interface{}{
-			"status":  500,
-			"message": "internal server error",
-		})
+	if len(pictures) != 0 {
+		config.DB.Save(&pictures)
 	}
 
 	// Updating ground info on planting info
 	ground := model.GroundInfo{}
-	if err := config.DB.Where("planting_info_id = ?", planting.ID).First(&ground).Error; err != nil {
-		log.Print(color.RedString(err.Error()))
-		return c.JSON(http.StatusBadRequest, map[string]interface{}{
-			"status":  400,
-			"message": "bad request",
-		})
+	err = config.DB.Where("planting_info_id = ?", planting.ID).First(&ground).Error
+	if errors.Is(err, gorm.ErrRecordNotFound) {
+		if plant.PlantingInfo.Ground {
+			ground = plant.PlantingInfo.GroundInfo
+			ground.PlantingInfoID = planting.ID
+			config.DB.Save(&ground)
+			config.DB.Where("planting_info_id = ?", planting.ID).First(&ground)
+		}
+	} else {
+		if plant.PlantingInfo.Ground {
+			ground.Instructions = plant.PlantingInfo.GroundInfo.Instructions
+			ground.Materials = plant.PlantingInfo.GroundInfo.Materials
+			ground.Video = plant.PlantingInfo.GroundInfo.Video
+
+			config.DB.Model(&ground).Updates(model.GroundInfo{Instructions: ground.Instructions, Materials: ground.Materials, Video: ground.Video})
+		} else {
+			config.DB.Where("ground_info_id = ?", ground.ID).Unscoped().Delete(&model.Picture{})
+			config.DB.Where("planting_info_id = ?", planting.ID).Unscoped().Delete(&model.GroundInfo{})
+		}
 	}
 
-	ground.Instructions = plant.PlantingInfo.GroundInfo.Instructions
-	ground.Materials = plant.PlantingInfo.GroundInfo.Materials
-	ground.Video = plant.PlantingInfo.GroundInfo.Video
-
-	if err := config.DB.Model(&ground).Updates(model.GroundInfo{Instructions: ground.Instructions, Materials: ground.Materials, Video: ground.Video}).Error; err != nil {
-		log.Print(color.RedString(err.Error()))
-		return c.JSON(http.StatusInternalServerError, map[string]interface{}{
-			"status":  500,
-			"message": "internal server error",
-		})
-	}
+	// Delete previous pictures on ground info
+	config.DB.Where("ground_info_id = ?", ground.ID).Unscoped().Delete(&model.Picture{})
 
 	// Updating pictures on ground info
-	pictureDB = []model.Picture{}
-	if err := config.DB.Where("ground_info_id = ?", ground.ID).Find(&pictureDB).Error; err != nil {
-		log.Print(color.RedString(err.Error()))
-		return c.JSON(http.StatusBadRequest, map[string]interface{}{
-			"status":  400,
-			"message": "bad request",
-		})
-	}
-
-	if err := config.DB.Unscoped().Delete(&pictureDB).Error; err != nil {
-		log.Print(color.RedString(err.Error()))
-		return c.JSON(http.StatusInternalServerError, map[string]interface{}{
-			"status":  500,
-			"message": "internal server error",
-		})
-	}
-
 	pictures = plant.PlantingInfo.GroundInfo.Pictures
 	for i := 0; i < len(pictures); i++ {
 		pictures[i].GroundInfoID = &ground.ID
 	}
 
-	if err := config.DB.Save(pictures).Error; err != nil {
-		log.Print(color.RedString(err.Error()))
-		return c.JSON(http.StatusInternalServerError, map[string]interface{}{
-			"status":  500,
-			"message": "internal server error",
-		})
+	if len(pictures) != 0 {
+		config.DB.Save(&pictures)
 	}
 
 	// Save plant details
@@ -578,9 +476,30 @@ func DeletePlantDetails(c echo.Context) error {
 	config.DB.Where("plant_id = ?", plantID).Delete(&model.TemperatureInfo{})
 	config.DB.Where("plant_id = ?", plantID).Delete(&model.PlantingInfo{})
 
+	// Delete notification that used deleted plant_id
+	var notifications []model.Notification
+	if err_find := config.DB.Find(&notifications).Error; err_find != nil {
+		log.Print(color.RedString(err_find.Error()))
+		return c.JSON(http.StatusInternalServerError, map[string]interface{}{
+			"status":  500,
+			"message": "internal server error",
+		})
+	}
+
+	for _, notification := range notifications {
+		var myPlant model.MyPlant
+		config.DB.First(&myPlant, notification.MyPlantID)
+
+		plandId, _ := strconv.Atoi(plantID)
+		if uint(plandId) == myPlant.PlantID {
+			var notification model.Notification
+			config.DB.Where("my_plant_id=?", myPlant.ID).Delete(&notification)
+		}
+	}
+
 	// Delete my_plants that used deleted plant_id
 	var myPlants model.MyPlant
-	config.DB.Where("plant_id=?",plantID).Delete(&myPlants)
+	config.DB.Where("plant_id=?", plantID).Delete(&myPlants)
 
 	return c.JSON(http.StatusOK, map[string]interface{}{
 		"status":  200,

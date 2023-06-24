@@ -15,7 +15,7 @@ import (
 func GetProducts(c echo.Context) error {
 	products := []model.Product{}
 
-	if err := config.DB.Find(&products).Error; err != nil {
+	if err := config.DB.Order("updated_at DESC").Find(&products).Error; err != nil {
 		log.Print(color.RedString(err.Error()))
 		return c.JSON(http.StatusInternalServerError, map[string]interface{}{
 			"status":  500,
@@ -24,7 +24,7 @@ func GetProducts(c echo.Context) error {
 	}
 
 	// Iterate over each product record and generate custom response
-	var responses []interface{}
+	responses := []interface{}{}
 	for _, product := range products {
 		// Populate Pictures field for each product
 		config.DB.Model(&product).Association("Pictures").Find(&product.Pictures)
@@ -62,7 +62,7 @@ func GetProducts(c echo.Context) error {
 	}
 
 	return c.JSON(http.StatusOK, map[string]interface{}{
-		"message": "success",
+		"message": "success to retrieve all product list",
 		"data":    responses,
 	})
 }
@@ -163,7 +163,7 @@ func CreateProduct(c echo.Context) error {
 	}
 
 	return c.JSON(http.StatusOK, map[string]interface{}{
-		"message": "success",
+		"message": "success to add new product",
 		"data":    response,
 	})
 }
@@ -225,7 +225,7 @@ func GetProductByID(c echo.Context) error {
 	}
 
 	return c.JSON(http.StatusOK, map[string]interface{}{
-		"message": "success",
+		"message": "success to retrieve product detailed information",
 		"data":    response,
 	})
 }
@@ -245,13 +245,6 @@ func DeleteProductByID(c echo.Context) error {
 		})
 	}
 
-	config.DB.Model(&product).Association("Pictures").Find(&product.Pictures)
-	for _, picture := range product.Pictures {
-		if err_delete_picture := utils.Delete_picture(picture.URL); err_delete_picture != nil {
-			log.Print(color.RedString(err_delete_picture.Error()))
-		}
-	}
-
 	config.DB.Model(&product).Association("Pictures").Clear()
 
 	// Delete product
@@ -264,7 +257,7 @@ func DeleteProductByID(c echo.Context) error {
 	}
 
 	return c.JSON(http.StatusOK, map[string]interface{}{
-		"message": "success",
+		"message": "success to delete product",
 	})
 }
 
@@ -281,13 +274,6 @@ func UpdateProductByID(c echo.Context) error {
 			"status":  500,
 			"message": "internal server error",
 		})
-	}
-
-	config.DB.Model(&product).Association("Pictures").Find(&product.Pictures)
-	for _, picture := range product.Pictures {
-		if err_delete_picture := utils.Delete_picture(picture.URL); err_delete_picture != nil {
-			log.Print(color.RedString(err_delete_picture.Error()))
-		}
 	}
 
 	config.DB.Model(&product).Association("Pictures").Clear()
@@ -376,7 +362,7 @@ func UpdateProductByID(c echo.Context) error {
 	}
 
 	return c.JSON(http.StatusOK, map[string]interface{}{
-		"message": "success",
+		"message": "success to update product",
 		"data":    response,
 	})
 }
@@ -388,7 +374,7 @@ func GetProductsByName(c echo.Context) error {
 
 	// Get product by keyword
 	// If product not found, return error
-	if err := config.DB.Where("name LIKE ?", "%"+name+"%").Find(&products).Error; err != nil {
+	if err := config.DB.Order("updated_at DESC").Where("name LIKE ?", "%"+name+"%").Find(&products).Error; err != nil {
 		log.Print(color.RedString(err.Error()))
 		return c.JSON(http.StatusInternalServerError, map[string]interface{}{
 			"status":  500,
@@ -435,7 +421,7 @@ func GetProductsByName(c echo.Context) error {
 	}
 
 	return c.JSON(http.StatusOK, map[string]interface{}{
-		"message": "success",
+		"message": "success to get product by name",
 		"data":    responses,
 	})
 }
@@ -445,7 +431,7 @@ func GetProductsDisplay(c echo.Context) error {
 
 	// Get product by keyword
 	// If product not found, return error
-	if err := config.DB.Where("status = ?", true).Find(&products).Error; err != nil {
+	if err := config.DB.Order("updated_at DESC").Where("status = ?", true).Find(&products).Error; err != nil {
 		log.Print(color.RedString(err.Error()))
 		return c.JSON(http.StatusInternalServerError, map[string]interface{}{
 			"status":  500,
@@ -497,7 +483,7 @@ func GetProductsDisplay(c echo.Context) error {
 	}
 
 	return c.JSON(http.StatusOK, map[string]interface{}{
-		"message": "success",
+		"message": "success to retrieve all product list on display",
 		"data":    responses,
 	})
 }
@@ -507,7 +493,7 @@ func GetProductsArchive(c echo.Context) error {
 
 	// Get product by keyword
 	// If product not found, return error
-	if err := config.DB.Where("status = ?", false).Find(&products).Error; err != nil {
+	if err := config.DB.Order("updated_at DESC").Where("status = ?", false).Find(&products).Error; err != nil {
 		log.Print(color.RedString(err.Error()))
 		return c.JSON(http.StatusInternalServerError, map[string]interface{}{
 			"status":  500,
@@ -559,7 +545,7 @@ func GetProductsArchive(c echo.Context) error {
 	}
 
 	return c.JSON(http.StatusOK, map[string]interface{}{
-		"message": "success",
+		"message": "success to retrieve all product list on archive",
 		"data":    responses,
 	})
 }

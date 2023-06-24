@@ -18,12 +18,13 @@ func GetAllSuggestions(c echo.Context) error {
 		Picture      string `json:"picture"`
 		Email        string `json:"email"`
 		Message      string `json:"message"`
+		CreatedAt    string `json:"post_at"`
 	}
 
 	suggestions := []model.Suggestions{}
 	responses := []Response{}
 
-	if err := config.DB.Find(&suggestions).Error; err != nil {
+	if err := config.DB.Order("updated_at DESC").Find(&suggestions).Error; err != nil {
 		log.Print(color.RedString(err.Error()))
 		return c.JSON(http.StatusBadRequest, map[string]interface{}{
 			"status":  400,
@@ -48,7 +49,8 @@ func GetAllSuggestions(c echo.Context) error {
 		temp.Name = user.Name
 		temp.Picture = user.URL
 		temp.Email = user.Email
-		temp.Message = suggestions[i].Content
+		temp.Message = suggestions[i].Message
+		temp.CreatedAt = suggestions[i].CreatedAt.String()
 		responses = append(responses, temp)
 	}
 
@@ -90,7 +92,8 @@ func GetSuggestionByID(c echo.Context) error {
 			"name":          user.Name,
 			"picture":       user.URL,
 			"email":         user.Email,
-			"message":       suggestion.Content,
+			"message":       suggestion.Message,
+			"post_at":       suggestion.CreatedAt.String(),
 		},
 	})
 }
