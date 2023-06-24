@@ -183,10 +183,10 @@ func GetOverview(c echo.Context) error {
 		})
 	}
 
-	// Retrieve weather data from InfoWeather table, sort from the newest
+	// Retrieve weather data from InfoWeather table, sort from the newest and group by location
 	var weatherData []model.InfoWeather
 	if err := config.DB.
-		Order("created_at DESC").
+		Raw("SELECT * FROM info_weathers iw WHERE iw.created_at = (SELECT MAX(created_at) FROM info_weathers WHERE location = iw.location)").
 		Limit(10). // Limit the number of weather entries to 10
 		Find(&weatherData).Error; err != nil {
 		log.Print(color.RedString(err.Error()))
