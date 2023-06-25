@@ -213,7 +213,7 @@ func GetMyPlantsStats(c echo.Context) error {
 				"message": "bad request",
 			})
 		}
-	} else {
+	} else if status == "harvest" || status == "dead" {
 		if err := config.DB.Where("status = ? AND user_id = ?", status, user_id).Find(&MyPlants).Error; err != nil {
 			log.Print(color.RedString(err.Error()))
 			return c.JSON(http.StatusBadRequest, map[string]interface{}{
@@ -221,6 +221,12 @@ func GetMyPlantsStats(c echo.Context) error {
 				"message": "bad request",
 			})
 		}
+	} else {
+		log.Print(color.RedString("status not found"))
+		return c.JSON(http.StatusBadRequest, map[string]interface{}{
+			"status":  404,
+			"message": "not found",
+		})
 	}
 
 	for i := 0; i < len(MyPlants); i++ {
