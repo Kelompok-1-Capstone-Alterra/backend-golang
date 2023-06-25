@@ -36,8 +36,7 @@ func init() {
 func Hello_World(c echo.Context) error {
 	return c.JSON(http.StatusOK, map[string]interface{}{
 		"status":  200,
-		"message": "Hello World. OK",
-		"no_test": 15,
+		"message": "Welcome to the Agriplant Backend Application",
 	})
 }
 
