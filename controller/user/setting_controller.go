@@ -344,8 +344,9 @@ func SendSuggestion(c echo.Context) error {
 // SETTING - [Endpoint 8 : Update profile picture]
 func UpdateProfilePicture(c echo.Context) error {
 	var Request struct {
-		Picture string `json:"picture"`
+		Picture string `json:"picture" validate:"required"`
 	}
+	validate := validator.New()
 
 	if err := c.Bind(&Request); err != nil {
 		log.Print(color.RedString(err.Error()))
@@ -355,6 +356,15 @@ func UpdateProfilePicture(c echo.Context) error {
 		})
 	}
 
+	err := validate.Struct(Request)
+	if err != nil {
+		log.Print(color.RedString(err.Error()))
+		return c.JSON((http.StatusBadRequest), map[string]interface{}{
+			"status":  400,
+			"message": "bad request",
+		})
+	}
+	
 	user := model.User{}
 
 	token := strings.TrimPrefix(c.Request().Header.Get("Authorization"), "Bearer ")
