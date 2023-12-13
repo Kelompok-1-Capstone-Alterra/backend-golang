@@ -3,13 +3,17 @@ package controller
 import (
 	"context"
 	"encoding/base64"
-	"github.com/fatih/color"
 	"io"
 	"io/ioutil"
 	"log"
 	"mime/multipart"
 	"net/http"
 	"strings"
+
+	"github.com/agriplant/config"
+	"github.com/agriplant/model"
+	"github.com/agriplant/utils"
+	"github.com/fatih/color"
 
 	"google.golang.org/api/option"
 
@@ -209,4 +213,26 @@ func Delete_picture_from_local(c echo.Context) error {
 		"status":  200,
 		"message": "success to delete picture",
 	})
+}
+
+// Seeder for admin account
+func SeederAdmin() bool {
+	admin := model.Admin{}
+	admin.Name = "Admin Backend"
+	admin.Email = "adminbackend@gmail.com"
+	hashedPassword, _ := utils.HashPassword("beluarbiasa123")
+	admin.Password = hashedPassword
+
+	if err_first := config.DB.Where("email = ?", admin.Email).First(&admin).Error; err_first == nil {
+		log.Print(color.RedString("CHEAT"), " - already auto insert admin, username already exist")
+		return false
+	}
+
+	if err_insert := config.DB.Save(&admin).Error; err_insert != nil {
+		log.Print(color.RedString("CHEAT"), "- failed to auto insert admin")
+		return false
+	}
+
+	log.Print(color.RedString("CHEAT"), "- success to auto insert admin")
+	return true
 }
