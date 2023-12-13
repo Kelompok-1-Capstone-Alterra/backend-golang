@@ -213,7 +213,7 @@ func GetMyPlantsStats(c echo.Context) error {
 				"message": "bad request",
 			})
 		}
-	} else {
+	} else if status == "harvest" || status == "dead" {
 		if err := config.DB.Where("status = ? AND user_id = ?", status, user_id).Find(&MyPlants).Error; err != nil {
 			log.Print(color.RedString(err.Error()))
 			return c.JSON(http.StatusBadRequest, map[string]interface{}{
@@ -221,6 +221,12 @@ func GetMyPlantsStats(c echo.Context) error {
 				"message": "bad request",
 			})
 		}
+	} else {
+		log.Print(color.RedString("status not found"))
+		return c.JSON(http.StatusBadRequest, map[string]interface{}{
+			"status":  404,
+			"message": "not found",
+		})
 	}
 
 	for i := 0; i < len(MyPlants); i++ {
@@ -338,8 +344,9 @@ func SendSuggestion(c echo.Context) error {
 // SETTING - [Endpoint 8 : Update profile picture]
 func UpdateProfilePicture(c echo.Context) error {
 	var Request struct {
-		Picture string `json:"picture"`
+		Picture string `json:"picture" validate:"required"`
 	}
+	validate := validator.New()
 
 	if err := c.Bind(&Request); err != nil {
 		log.Print(color.RedString(err.Error()))
@@ -349,6 +356,15 @@ func UpdateProfilePicture(c echo.Context) error {
 		})
 	}
 
+	err := validate.Struct(Request)
+	if err != nil {
+		log.Print(color.RedString(err.Error()))
+		return c.JSON((http.StatusBadRequest), map[string]interface{}{
+			"status":  400,
+			"message": "bad request",
+		})
+	}
+	
 	user := model.User{}
 
 	token := strings.TrimPrefix(c.Request().Header.Get("Authorization"), "Bearer ")
