@@ -1,0 +1,9 @@
+[Unit]
+Description=go-mvc
+
+[Service]
+Type=simple
+Restart=always
+RestartSec=5s
+WorkingDirectory=/home/ubuntu/go-mvc
+ExecStart=/home/ubuntu/go-mvc/main[Unit] 
